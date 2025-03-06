@@ -64,7 +64,7 @@ const DetailedScreening: React.FC = () => {
 						first_name: 'John',
 						last_name: 'Doe',
 						phone: '555-123-4567',
-						current_address: '123 Main St, Anytown, USA',
+						current_address: '123 Main St, Anytown, South Africa',
 						employment_status: 'Employed',
 						monthly_income: 5000,
 						created_at: new Date().toISOString(),
@@ -80,7 +80,7 @@ const DetailedScreening: React.FC = () => {
 							file_path: '/storage/documents/drivers_license.jpg',
 							document_type: 'id',
 							ocr_text:
-								'DRIVER LICENSE\nJOHN DOE\nDOB: 01/01/1985\n123 MAIN ST\nANYTOWN, USA',
+								'DRIVER LICENSE\nJOHN DOE\nDOB: 01/01/1985\n123 MAIN ST\nANYTOWN, South Africa',
 							created_at: new Date().toISOString(),
 						},
 						{
@@ -124,7 +124,7 @@ const DetailedScreening: React.FC = () => {
 					},
 					rental_history: [
 						{
-							address: '456 Elm St, Anytown, USA',
+							address: '456 Elm St, Anytown, South Africa',
 							start_date: '2020-01-01',
 							end_date: '2022-12-31',
 							landlord_name: 'Jane Smith',

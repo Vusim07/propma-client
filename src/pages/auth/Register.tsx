@@ -15,7 +15,13 @@ import {
 	FormMessage,
 } from '../../components/ui/form';
 import { Input } from '../../components/ui/Input';
-import Select from '../../components/ui/Select';
+import {
+	Select,
+	SelectTrigger,
+	SelectValue,
+	SelectContent,
+	SelectItem,
+} from '../../components/ui/Select';
 import { LockIcon, MailIcon } from 'lucide-react';
 
 const Register: React.FC = () => {
@@ -156,16 +162,20 @@ const Register: React.FC = () => {
 						render={({ field }) => (
 							<FormItem>
 								<FormLabel>Account Type</FormLabel>
-								<div className='relative'>
-									<FormControl>
-										<Select
-											options={roleOptions}
-											value={field.value}
-											onChange={field.onChange}
-											fullWidth
-										/>
-									</FormControl>
-								</div>
+								<FormControl>
+									<Select value={field.value} onValueChange={field.onChange}>
+										<SelectTrigger className='w-full'>
+											<SelectValue placeholder='Select account type' />
+										</SelectTrigger>
+										<SelectContent>
+											{roleOptions.map((role) => (
+												<SelectItem key={role.value} value={role.value}>
+													{role.label}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</FormControl>
 								<FormMessage />
 							</FormItem>
 						)}

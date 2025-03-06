@@ -99,6 +99,12 @@ const AgentLayout: React.FC = () => {
 				</div>
 
 				<nav className='mt-6'>
+					<div className='flex flex-col items-center space-y-2 py-8'>
+						<div className='bg-blue-100 p-2 rounded-full'>
+							<User size={20} className='text-blue-700' />
+						</div>
+						<span className='text-sm font-medium'>{user?.email}</span>
+					</div>
 					<ul>
 						{navItems.map((item) => (
 							<li key={item.to}>
@@ -121,6 +127,18 @@ const AgentLayout: React.FC = () => {
 							</li>
 						))}
 					</ul>
+
+					<div className='flex flex-col py-12 items-center'>
+						<Button
+							variant='outline'
+							size='sm'
+							onClick={handleLogout}
+							className='flex items-center'
+						>
+							<LogOut size={16} className='mr-1' />
+							Logout
+						</Button>
+					</div>
 				</nav>
 
 				{/* Toggle button - only visible on desktop */}
