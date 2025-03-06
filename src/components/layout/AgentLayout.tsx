@@ -60,8 +60,8 @@ const AgentLayout: React.FC = () => {
 
 	return (
 		<div className='min-h-screen bg-gray-100 flex flex-col md:flex-row'>
-			{/* Mobile Menu Button */}
-			<div className='md:hidden bg-white p-4 flex justify-between items-center shadow-md'>
+			{/* Mobile Menu Button - Made sticky */}
+			<div className='md:hidden bg-white p-4 flex justify-between items-center shadow-md sticky top-0 z-40'>
 				<img
 					src='/assets/amara-logo-black.svg'
 					alt='Amara Logo'
@@ -72,11 +72,11 @@ const AgentLayout: React.FC = () => {
 				</Button>
 			</div>
 
-			{/* Sidebar - Mobile: slide in from left, Desktop: always visible */}
+			{/* Sidebar - Fixed on both mobile and desktop */}
 			<div
-				className={`fixed inset-y-0 left-0 z-50 transform bg-white shadow-md md:relative md:translate-x-0 transition-all duration-300 
+				className={`fixed inset-y-0 left-0 z-40 transform bg-white shadow-md transition-all duration-300 
 				${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} 
-				${isCollapsed ? 'md:w-20' : 'md:w-64'}`}
+				md:translate-x-0 ${isCollapsed ? 'md:w-20' : 'md:w-64'}`}
 			>
 				<div
 					className={`p-6 flex ${
@@ -99,7 +99,7 @@ const AgentLayout: React.FC = () => {
 				</div>
 
 				<nav className='mt-6'>
-					<div className='flex flex-col items-center space-y-2 py-8'>
+					<div className='flex flex-col items-center space-y-2 py-8 md:hidden'>
 						<div className='bg-blue-100 p-2 rounded-full'>
 							<User size={20} className='text-blue-700' />
 						</div>
@@ -128,7 +128,7 @@ const AgentLayout: React.FC = () => {
 						))}
 					</ul>
 
-					<div className='flex flex-col py-12 items-center'>
+					<div className='flex flex-col py-12 items-center md:hidden'>
 						<Button
 							variant='outline'
 							size='sm'
@@ -159,10 +159,13 @@ const AgentLayout: React.FC = () => {
 				</button>
 			</div>
 
-			{/* Main Content */}
-			<div className='flex-1 flex flex-col'>
-				{/* Header */}
-				<header className='bg-white shadow-sm hidden md:block'>
+			{/* Main Content - Add left margin to account for fixed sidebar */}
+			<div
+				className='flex-1 flex flex-col md:ml-[256px] transition-all duration-300'
+				style={{ marginLeft: isCollapsed ? '80px' : '' }}
+			>
+				{/* Header - Made sticky */}
+				<header className='bg-white shadow-sm hidden md:block sticky top-0 z-40'>
 					<div className='px-6 py-4 flex items-center justify-between'>
 						<h1 className='text-xl font-semibold text-gray-800'>
 							{user?.role === 'agent' ? 'Agent Portal' : 'Landlord Portal'}
@@ -196,7 +199,7 @@ const AgentLayout: React.FC = () => {
 			{/* Mobile overlay when menu is open */}
 			{isMobileMenuOpen && (
 				<div
-					className='md:hidden fixed inset-0 bg-black bg-opacity-50 z-40'
+					className='md:hidden fixed inset-0 bg-black bg-opacity-50 z-30'
 					onClick={toggleMobileMenu}
 				/>
 			)}
