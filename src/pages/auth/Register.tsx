@@ -1,50 +1,51 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuthStore } from '../../store/authStore';
-import { Input } from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
-import Alert from '../../components/ui/Alert';
-import Select from '../../components/ui/Select';
 import { showToast } from '../../utils/toast';
+import { registerSchema, RegisterFormValues } from '../../schemas/auth';
+import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from '../../components/ui/form';
+import { Input } from '../../components/ui/Input';
+import Select from '../../components/ui/Select';
+import { LockIcon, MailIcon } from 'lucide-react';
 
 const Register: React.FC = () => {
-	const [email, setEmail] = useState('');
-	const [password, setPassword] = useState('');
-	const [confirmPassword, setConfirmPassword] = useState('');
-	const [role, setRole] = useState('tenant');
-	const [formError, setFormError] = useState('');
-
-	const { register, isLoading, error } = useAuthStore();
+	const { register: registerUser, isLoading, error } = useAuthStore();
 	const navigate = useNavigate();
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setFormError('');
+	const form = useForm<RegisterFormValues>({
+		resolver: zodResolver(registerSchema),
+		defaultValues: {
+			email: '',
+			password: '',
+			confirmPassword: '',
+			role: 'tenant',
+		},
+	});
 
-		if (!email || !password || !confirmPassword) {
-			setFormError('Please fill in all fields');
-			return;
-		}
-
-		if (password !== confirmPassword) {
-			setFormError('Passwords do not match');
-			return;
-		}
-
-		if (password.length < 6) {
-			setFormError('Password must be at least 6 characters');
-			return;
-		}
-
+	const onSubmit = async (values: RegisterFormValues) => {
 		try {
-			await register(email, password, role as 'tenant' | 'agent' | 'landlord');
+			await registerUser(
+				values.email,
+				values.password,
+				values.role as 'tenant' | 'agent' | 'landlord',
+			);
 
 			showToast.success('Account created successfully!');
 
 			// Redirect based on user role
-			if (role === 'tenant') {
+			if (values.role === 'tenant') {
 				navigate('/tenant');
-			} else if (role === 'agent' || role === 'landlord') {
+			} else if (values.role === 'agent' || values.role === 'landlord') {
 				navigate('/agent');
 			}
 		} catch (err) {
@@ -59,61 +60,132 @@ const Register: React.FC = () => {
 	];
 
 	return (
-		<div>
-			{(error || formError) && (
-				<Alert variant='error' className='mb-4'>
-					{formError || error}
-				</Alert>
+		<div className='w-full max-w-md mx-auto space-y-6 p-6 bg-white rounded-lg shadow-md'>
+			<img
+				src='/assets/amara-logo-black.svg'
+				alt='Amara Logo'
+				className='h-6 w-auto items-center mx-auto'
+			/>
+			<div className='text-center'>
+				<p className='text-gray-600 mt-2'>Sign up to get started</p>
+			</div>
+
+			{error && (
+				<div className='p-3 bg-red-50 border border-red-200 rounded-md'>
+					<p className='text-sm text-red-600'>{error}</p>
+				</div>
 			)}
 
-			<form onSubmit={handleSubmit}>
-				<Input
-					type='email'
-					value={email}
-					onChange={(e) => setEmail(e.target.value)}
-					required
-					autoComplete='email'
-				/>
+			<Form {...form}>
+				<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+					<FormField
+						control={form.control}
+						name='email'
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Email</FormLabel>
+								<div className='relative'>
+									<div className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-400'>
+										<MailIcon className='h-5 w-5' />
+									</div>
+									<FormControl>
+										<Input
+											className='pl-10'
+											type='email'
+											placeholder='you@example.com'
+											{...field}
+										/>
+									</FormControl>
+								</div>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
 
-				<Input
-					type='password'
-					value={password}
-					onChange={(e) => setPassword(e.target.value)}
-					required
-					autoComplete='new-password'
-				/>
+					<FormField
+						control={form.control}
+						name='password'
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Password</FormLabel>
+								<div className='relative'>
+									<div className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-400'>
+										<LockIcon className='h-5 w-5' />
+									</div>
+									<FormControl>
+										<Input
+											className='pl-10'
+											type='password'
+											placeholder='••••••'
+											{...field}
+										/>
+									</FormControl>
+								</div>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
 
-				<Input
-					type='password'
-					value={confirmPassword}
-					onChange={(e) => setConfirmPassword(e.target.value)}
-					required
-					autoComplete='new-password'
-				/>
+					<FormField
+						control={form.control}
+						name='confirmPassword'
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Confirm Password</FormLabel>
+								<div className='relative'>
+									<div className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-400'>
+										<LockIcon className='h-5 w-5' />
+									</div>
+									<FormControl>
+										<Input
+											className='pl-10'
+											type='password'
+											placeholder='••••••'
+											{...field}
+										/>
+									</FormControl>
+								</div>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
 
-				<Select
-					label='Role'
-					options={roleOptions}
-					value={role}
-					onChange={setRole}
-					fullWidth
-					required
-				/>
+					<FormField
+						control={form.control}
+						name='role'
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>Account Type</FormLabel>
+								<div className='relative'>
+									<FormControl>
+										<Select
+											options={roleOptions}
+											value={field.value}
+											onChange={field.onChange}
+											fullWidth
+										/>
+									</FormControl>
+								</div>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
 
-				<div className='mt-6'>
-					<Button
-						type='submit'
-						isLoading={isLoading}
-						fullWidth
-						className='w-full'
-					>
-						Register
-					</Button>
-				</div>
-			</form>
+					<div className='pt-2'>
+						<Button
+							type='submit'
+							isLoading={isLoading}
+							fullWidth
+							className='w-full'
+						>
+							Create Account
+						</Button>
+					</div>
+				</form>
+			</Form>
 
-			<div className='mt-6'>
-				<p className='text-center text-sm text-gray-600'>
+			<div className='text-center'>
+				<p className='text-sm text-gray-600'>
 					Already have an account?{' '}
 					<Link
 						to='/login'
