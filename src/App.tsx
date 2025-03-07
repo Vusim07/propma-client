@@ -1,6 +1,12 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import {
+	BrowserRouter as Router,
+	Routes,
+	Route,
+	Navigate,
+} from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
+import { PageTitleProvider } from './context/PageTitleContext';
 
 // Auth Pages
 import Login from './pages/auth/Login';
@@ -30,100 +36,117 @@ import Spinner from './components/ui/Spinner';
 import { Toaster } from './components/ui/Toaster';
 
 // Protected Route Component
-const ProtectedRoute = ({ 
-  children, 
-  allowedRoles,
-}: { 
-  children: React.ReactNode, 
-  allowedRoles: string[] 
+const ProtectedRoute = ({
+	children,
+	allowedRoles,
+}: {
+	children: React.ReactNode;
+	allowedRoles: string[];
 }) => {
-  const { user, isLoading } = useAuthStore();
-  
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-  
-  if (!user || !allowedRoles.includes(user.role)) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  return <>{children}</>;
+	const { user, isLoading } = useAuthStore();
+
+	if (isLoading) {
+		return (
+			<div className='min-h-screen flex items-center justify-center'>
+				<Spinner size='lg' />
+			</div>
+		);
+	}
+
+	if (!user || !allowedRoles.includes(user.role)) {
+		return <Navigate to='/login' replace />;
+	}
+
+	return <>{children}</>;
 };
 
 function App() {
-  const { checkAuth, isLoading } = useAuthStore();
-  
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-  
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-  
-  return (
-    <Router>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/login" element={
-          <AuthLayout title="Sign in to your account">
-            <Login />
-          </AuthLayout>
-        } />
-        <Route path="/register" element={
-          <AuthLayout title="Create your account" subtitle="Choose your role to get started">
-            <Register />
-          </AuthLayout>
-        } />
-        
-        {/* Tenant Routes */}
-        <Route path="/tenant" element={
-          <ProtectedRoute allowedRoles={['tenant']}>
-            <TenantLayout />
-          </ProtectedRoute>
-        }>
-          <Route index element={<TenantDashboard />} />
-          <Route path="documents" element={<DocumentUpload />} />
-          <Route path="screening" element={<ScreeningResults />} />
-          <Route path="appointments" element={<AppointmentScheduling />} />
-        </Route>
-        
-        {/* Agent/Landlord Routes */}
-        <Route path="/agent" element={
-          <ProtectedRoute allowedRoles={['agent', 'landlord']}>
-            <AgentLayout />
-          </ProtectedRoute>
-        }>
-          <Route index element={<AgentDashboard />} />
-          <Route path="properties" element={<PropertyManagement />} />
-          <Route path="properties/new" element={<PropertyForm />} />
-          <Route path="properties/:id" element={<PropertyDetail />} />
-          <Route path="properties/:id/edit" element={<PropertyForm />} />
-          <Route path="applications" element={<ReviewApplications />} />
-          <Route path="screening/:id" element={<DetailedScreening />} />
-          <Route path="appointments" element={<ManageAppointments />} />
-          <Route path="workflows" element={<WorkflowManagement />} />
-        </Route>
-        
-        {/* Redirect root to appropriate dashboard based on role */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        
-        {/* Catch all - redirect to login */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-      
-      {/* Toast notifications */}
-      <Toaster />
-    </Router>
-  );
+	const { checkAuth, isLoading } = useAuthStore();
+
+	useEffect(() => {
+		checkAuth();
+	}, [checkAuth]);
+
+	if (isLoading) {
+		return (
+			<div className='min-h-screen flex items-center justify-center'>
+				<Spinner size='lg' />
+			</div>
+		);
+	}
+
+	return (
+		<Router>
+			<PageTitleProvider>
+				<Routes>
+					{/* Public Routes */}
+					<Route
+						path='/login'
+						element={
+							<AuthLayout title='Sign in to your account'>
+								<Login />
+							</AuthLayout>
+						}
+					/>
+					<Route
+						path='/register'
+						element={
+							<AuthLayout
+								title='Create your account'
+								subtitle='Choose your role to get started'
+							>
+								<Register />
+							</AuthLayout>
+						}
+					/>
+
+					{/* Tenant Routes */}
+					<Route
+						path='/tenant'
+						element={
+							<ProtectedRoute allowedRoles={['tenant']}>
+								<TenantLayout />
+							</ProtectedRoute>
+						}
+					>
+						<Route index element={<TenantDashboard />} />
+						<Route path='documents' element={<DocumentUpload />} />
+						<Route path='screening' element={<ScreeningResults />} />
+						<Route path='appointments' element={<AppointmentScheduling />} />
+					</Route>
+
+					{/* Agent/Landlord Routes */}
+					<Route
+						path='/agent'
+						element={
+							<ProtectedRoute allowedRoles={['agent', 'landlord']}>
+								<AgentLayout />
+							</ProtectedRoute>
+						}
+					>
+						<Route index element={<AgentDashboard />} />
+						<Route path='properties' element={<PropertyManagement />} />
+						<Route path='properties/new' element={<PropertyForm />} />
+						<Route path='properties/:id' element={<PropertyDetail />} />
+						<Route path='properties/:id/edit' element={<PropertyForm />} />
+						<Route path='applications' element={<ReviewApplications />} />
+						<Route path='screening/:id' element={<DetailedScreening />} />
+						<Route path='appointments' element={<ManageAppointments />} />
+						<Route path='workflows' element={<WorkflowManagement />} />
+					</Route>
+
+					{/* Redirect root to appropriate dashboard based on role */}
+					<Route path='/' element={<Navigate to='/login' replace />} />
+
+					{/* Catch all - redirect to login */}
+					<Route path='*' element={<Navigate to='/login' replace />} />
+				</Routes>
+
+				{/* Toast notifications */}
+				<Toaster />
+			</PageTitleProvider>
+		</Router>
+	);
 }
 
 export default App;

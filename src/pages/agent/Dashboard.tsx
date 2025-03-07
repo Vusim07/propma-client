@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { useAgentStore } from '../../store/agentStore';
+import { usePageTitle } from '../../context/PageTitleContext';
 import { Card, CardHeader, CardContent } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
@@ -10,6 +11,7 @@ import { FileText, CheckSquare, ArrowRight, Home, Clock } from 'lucide-react';
 
 const AgentDashboard: React.FC = () => {
 	const { user } = useAuthStore();
+	const { setPageTitle } = usePageTitle();
 	const {
 		applications,
 		properties,
@@ -21,12 +23,19 @@ const AgentDashboard: React.FC = () => {
 	} = useAgentStore();
 
 	useEffect(() => {
+		setPageTitle('Dashboard');
 		if (user) {
 			fetchApplications(user.id);
 			fetchProperties(user.id);
 			fetchWorkflowLogs();
 		}
-	}, [user, fetchApplications, fetchProperties, fetchWorkflowLogs]);
+	}, [
+		user,
+		fetchApplications,
+		fetchProperties,
+		fetchWorkflowLogs,
+		setPageTitle,
+	]);
 
 	if (isLoading) {
 		return (

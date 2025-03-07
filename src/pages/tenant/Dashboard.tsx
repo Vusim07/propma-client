@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { useTenantStore } from '../../store/tenantStore';
+import { usePageTitle } from '../../context/PageTitleContext';
 import { Card, CardHeader, CardContent } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
@@ -10,6 +11,7 @@ import { FileText, CheckSquare, Calendar, ArrowRight } from 'lucide-react';
 
 const TenantDashboard: React.FC = () => {
 	const { user } = useAuthStore();
+	const { setPageTitle } = usePageTitle();
 	const {
 		profile,
 		documents,
@@ -23,6 +25,7 @@ const TenantDashboard: React.FC = () => {
 	} = useTenantStore();
 
 	useEffect(() => {
+		setPageTitle('Dashboard');
 		if (user) {
 			fetchProfile(user.id);
 			fetchDocuments(user.id);
@@ -35,6 +38,7 @@ const TenantDashboard: React.FC = () => {
 		fetchDocuments,
 		fetchScreeningReport,
 		fetchAppointments,
+		setPageTitle,
 	]);
 
 	if (isLoading) {

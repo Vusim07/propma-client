@@ -2,6 +2,7 @@
 import React, { useEffect } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { useTenantStore } from '../../store/tenantStore';
+import { usePageTitle } from '../../context/PageTitleContext';
 import { Card, CardHeader, CardContent } from '../../components/ui/Card';
 import Spinner from '../../components/ui/Spinner';
 import Badge from '../../components/ui/Badge';
@@ -19,6 +20,7 @@ import {
 
 const ScreeningResults: React.FC = () => {
 	const { user } = useAuthStore();
+	const { setPageTitle } = usePageTitle();
 	const {
 		screeningReport,
 		profile,
@@ -28,11 +30,12 @@ const ScreeningResults: React.FC = () => {
 	} = useTenantStore();
 
 	useEffect(() => {
+		setPageTitle('Screening');
 		if (user) {
 			fetchScreeningReport(user.id);
 			fetchProfile(user.id);
 		}
-	}, [user, fetchScreeningReport, fetchProfile]);
+	}, [user, fetchScreeningReport, fetchProfile, setPageTitle]);
 
 	if (isLoading) {
 		return (

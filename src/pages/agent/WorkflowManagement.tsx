@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { useAgentStore } from '../../store/agentStore';

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
+import { usePageTitle } from '../../context/PageTitleContext';
 import {
 	Home,
 	FileText,
@@ -16,6 +17,7 @@ import Button from '../ui/Button';
 
 const TenantLayout: React.FC = () => {
 	const { user, logout } = useAuthStore();
+	const { pageTitle } = usePageTitle();
 	const navigate = useNavigate();
 	const [isCollapsed, setIsCollapsed] = useState(false);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -160,9 +162,7 @@ const TenantLayout: React.FC = () => {
 				{/* Header - Made sticky */}
 				<header className='bg-white shadow-sm hidden md:block sticky top-0 z-40'>
 					<div className='px-6 py-4 flex items-center justify-between'>
-						<h1 className='text-xl font-semibold text-gray-800'>
-							Tenant Portal
-						</h1>
+						<h1 className='text-xl font-semibold text-gray-800'>{pageTitle}</h1>
 						<div className='flex items-center space-x-4'>
 							<div className='flex items-center space-x-2'>
 								<div className='bg-blue-100 p-2 rounded-full'>

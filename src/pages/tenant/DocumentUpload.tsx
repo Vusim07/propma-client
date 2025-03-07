@@ -4,6 +4,7 @@ import { useDropzone } from 'react-dropzone';
 import { createWorker } from 'tesseract.js';
 import { useAuthStore } from '@/store/authStore';
 import { useTenantStore } from '@/store/tenantStore';
+import { usePageTitle } from '@/context/PageTitleContext';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Spinner from '@/components/ui/Spinner';
@@ -20,6 +21,7 @@ import { showToast } from '@/utils/toast';
 
 const DocumentUpload: React.FC = () => {
 	const { user } = useAuthStore();
+	const { setPageTitle } = usePageTitle();
 	const { documents, fetchDocuments, uploadDocument, isLoading } =
 		useTenantStore();
 
@@ -33,10 +35,11 @@ const DocumentUpload: React.FC = () => {
 	const [error, setError] = useState('');
 
 	useEffect(() => {
+		setPageTitle('Documents');
 		if (user) {
 			fetchDocuments(user.id);
 		}
-	}, [user, fetchDocuments]);
+	}, [user, fetchDocuments, setPageTitle]);
 
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		accept: {
