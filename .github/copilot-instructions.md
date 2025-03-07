@@ -1,4 +1,4 @@
-# Propma Context Guide
+# Amara Context Guide
 
 **Project Core Identity**  
 AI-powered tenant screening platform for South African real estate professionals
