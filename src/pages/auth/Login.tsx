@@ -18,7 +18,7 @@ import { Input } from '../../components/ui/Input';
 import { LockIcon, MailIcon } from 'lucide-react';
 
 const Login: React.FC = () => {
-	const { login, isLoading, error } = useAuthStore();
+	const { login, loginWithSocial, isLoading, error } = useAuthStore();
 	const navigate = useNavigate();
 
 	const form = useForm<LoginFormValues>({
@@ -81,6 +81,49 @@ const Login: React.FC = () => {
 					<p className='text-sm text-red-600'>{error}</p>
 				</div>
 			)}
+
+			{/* Social Login Buttons */}
+			<div className='space-y-3'>
+				<Button
+					type='button'
+					variant='outline'
+					onClick={() => loginWithSocial('google')}
+					disabled={isLoading}
+					className='w-full flex items-center justify-center'
+				>
+					<img
+						src='/assets/icons8-google.svg'
+						alt='Google'
+						className='h-5 w-5 mr-2'
+					/>
+					<span>Continue with Google</span>
+				</Button>
+				<Button
+					type='button'
+					variant='outline'
+					onClick={() => loginWithSocial('facebook')}
+					disabled={isLoading}
+					className='w-full flex items-center justify-center bg-[#1877F2] text-white hover:bg-[#166FE5]'
+				>
+					<img
+						src='/assets/icons8-facebook.svg'
+						alt='Facebook'
+						className='h-5 w-5 mr-2'
+					/>
+					<span>Continue with Facebook</span>
+				</Button>
+
+				<div className='relative my-6'>
+					<div className='absolute inset-0 flex items-center'>
+						<div className='w-full border-t border-gray-300'></div>
+					</div>
+					<div className='relative flex justify-center text-sm'>
+						<span className='px-2 bg-white text-gray-500'>
+							Or continue with email
+						</span>
+					</div>
+				</div>
+			</div>
 
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>

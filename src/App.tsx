@@ -11,6 +11,7 @@ import { PageTitleProvider } from './context/PageTitleContext';
 // Auth Pages
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import AuthCallback from './pages/auth/AuthCallback';
 import AuthLayout from './components/layout/AuthLayout';
 
 // Tenant Pages
@@ -99,6 +100,7 @@ function App() {
 							</AuthLayout>
 						}
 					/>
+					<Route path='/auth/callback' element={<AuthCallback />} />
 
 					{/* Tenant Routes */}
 					<Route

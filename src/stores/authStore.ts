@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand';
 import { supabase } from '../services/supabase';
@@ -13,6 +14,7 @@ interface AuthState {
 	// Actions
 	login: (email: string, password: string) => Promise<void>;
 	loginWithMagicLink: (email: string) => Promise<void>;
+	loginWithSocial: (provider: 'google' | 'facebook') => Promise<void>;
 	register: (
 		email: string,
 		password: string,
@@ -67,6 +69,32 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 		} catch (error: any) {
 			set({ error: error.message });
 		} finally {
+			set({ loading: false, isLoading: false });
+		}
+	},
+
+	loginWithSocial: async (provider) => {
+		try {
+			set({ loading: true, isLoading: true, error: null });
+
+			// Configure the redirect URL
+			const redirectTo = `${window.location.origin}/auth/callback`;
+
+			const { data, error } = await supabase.auth.signInWithOAuth({
+				provider,
+				options: {
+					redirectTo,
+					// Optional: You can pass additional scopes if needed
+					scopes: provider === 'google' ? 'email profile' : 'email',
+				},
+			});
+
+			if (error) throw error;
+
+			// The user will be redirected to the OAuth provider
+			// No need to set anything here as the redirected callback will handle it
+		} catch (error: any) {
+			set({ error: error.message });
 			set({ loading: false, isLoading: false });
 		}
 	},
