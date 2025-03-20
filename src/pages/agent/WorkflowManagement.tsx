@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../../store/authStore';
-import { useAgentStore } from '../../store/agentStore';
+import { useAuthStore } from '../../stores/authStore';
+import { useAgentStore } from '../../stores/agentStore';
 import {
 	Card,
 	CardHeader,

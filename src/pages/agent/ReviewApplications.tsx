@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuthStore } from '../../store/authStore';
-import { useAgentStore } from '../../store/agentStore';
+import { useAuthStore } from '../../stores/authStore';
+import { useAgentStore } from '../../stores/agentStore';
 import { Card, CardContent } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';

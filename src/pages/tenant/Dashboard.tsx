@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuthStore } from '../../store/authStore';
-import { useTenantStore } from '../../store/tenantStore';
+import { useAuthStore } from '../../stores/authStore';
+import { useTenantStore } from '../../stores/tenantStore';
 import { usePageTitle } from '../../context/PageTitleContext';
 import { Card, CardHeader, CardContent } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';

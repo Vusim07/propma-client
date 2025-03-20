@@ -5,7 +5,7 @@ import {
 	Route,
 	Navigate,
 } from 'react-router-dom';
-import { useAuthStore } from './store/authStore';
+import { useAuthStore } from './stores/authStore';
 import { PageTitleProvider } from './context/PageTitleContext';
 
 // Auth Pages

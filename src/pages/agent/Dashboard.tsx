@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { useAuthStore } from '../../store/authStore';
-import { useAgentStore } from '../../store/agentStore';
+import { useAuthStore } from '../../stores/authStore';
+import { useAgentStore } from '../../stores/agentStore';
 import { usePageTitle } from '../../context/PageTitleContext';
 import { Card, CardHeader, CardContent } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
