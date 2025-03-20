@@ -7,11 +7,17 @@ interface AuthState {
 	user: Tables<'profiles'> | null;
 	session: any | null;
 	loading: boolean;
+	isLoading: boolean; // Add this for consistency with other stores
 	error: string | null;
 
 	// Actions
 	login: (email: string, password: string) => Promise<void>;
 	loginWithMagicLink: (email: string) => Promise<void>;
+	register: (
+		email: string,
+		password: string,
+		role: 'tenant' | 'agent' | 'landlord',
+	) => Promise<void>;
 	signup: (
 		email: string,
 		password: string,
@@ -21,17 +27,19 @@ interface AuthState {
 	resetPassword: (email: string) => Promise<void>;
 	updateProfile: (updates: Partial<Tables<'profiles'>>) => Promise<void>;
 	getProfile: () => Promise<void>;
+	checkAuth: () => Promise<void>; // Add this function
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
 	user: null,
 	session: null,
 	loading: false,
+	isLoading: false, // Initialize this property
 	error: null,
 
 	login: async (email, password) => {
 		try {
-			set({ loading: true, error: null });
+			set({ loading: true, isLoading: true, error: null });
 			const { data, error } = await supabase.auth.signInWithPassword({
 				email,
 				password,
@@ -44,13 +52,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 		} catch (error: any) {
 			set({ error: error.message });
 		} finally {
-			set({ loading: false });
+			set({ loading: false, isLoading: false });
 		}
 	},
 
 	loginWithMagicLink: async (email) => {
 		try {
-			set({ loading: true, error: null });
+			set({ loading: true, isLoading: true, error: null });
 			const { error } = await supabase.auth.signInWithOtp({ email });
 
 			if (error) throw error;
@@ -59,13 +67,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 		} catch (error: any) {
 			set({ error: error.message });
 		} finally {
-			set({ loading: false });
+			set({ loading: false, isLoading: false });
 		}
 	},
 
 	signup: async (email, password, userData) => {
 		try {
-			set({ loading: true, error: null });
+			set({ loading: true, isLoading: true, error: null });
 
 			// 1. Create auth user
 			const { data, error } = await supabase.auth.signUp({ email, password });
@@ -92,13 +100,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 		} catch (error: any) {
 			set({ error: error.message });
 		} finally {
-			set({ loading: false });
+			set({ loading: false, isLoading: false });
 		}
 	},
 
 	logout: async () => {
 		try {
-			set({ loading: true, error: null });
+			set({ loading: true, isLoading: true, error: null });
 			const { error } = await supabase.auth.signOut();
 
 			if (error) throw error;
@@ -107,26 +115,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 		} catch (error: any) {
 			set({ error: error.message });
 		} finally {
-			set({ loading: false });
+			set({ loading: false, isLoading: false });
 		}
 	},
 
 	resetPassword: async (email) => {
 		try {
-			set({ loading: true, error: null });
+			set({ loading: true, isLoading: true, error: null });
 			const { error } = await supabase.auth.resetPasswordForEmail(email);
 
 			if (error) throw error;
 		} catch (error: any) {
 			set({ error: error.message });
 		} finally {
-			set({ loading: false });
+			set({ loading: false, isLoading: false });
 		}
 	},
 
 	updateProfile: async (updates) => {
 		try {
-			set({ loading: true, error: null });
+			set({ loading: true, isLoading: true, error: null });
 			const user = get().user;
 
 			if (!user) throw new Error('User not authenticated');
@@ -142,13 +150,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 		} catch (error: any) {
 			set({ error: error.message });
 		} finally {
-			set({ loading: false });
+			set({ loading: false, isLoading: false });
 		}
 	},
 
 	getProfile: async () => {
 		try {
-			set({ loading: true, error: null });
+			set({ loading: true, isLoading: true, error: null });
 			const { data: sessionData } = await supabase.auth.getSession();
 
 			if (!sessionData.session) {
@@ -168,7 +176,53 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 		} catch (error: any) {
 			set({ error: error.message, user: null });
 		} finally {
-			set({ loading: false });
+			set({ loading: false, isLoading: false });
+		}
+	},
+
+	// Add the checkAuth function that App.tsx expects
+	checkAuth: async () => {
+		try {
+			set({ loading: true, isLoading: true, error: null });
+			await get().getProfile();
+		} catch (error: any) {
+			set({ error: error.message });
+		} finally {
+			set({ loading: false, isLoading: false });
+		}
+	},
+
+	// Missing register function for the Register component
+	register: async (email, password, role) => {
+		try {
+			set({ loading: true, isLoading: true, error: null });
+
+			// 1. Create auth user
+			const { data, error } = await supabase.auth.signUp({ email, password });
+
+			if (error) throw error;
+
+			// 2. Create profile
+			if (data.user) {
+				const { error: profileError } = await supabase.from('profiles').insert({
+					id: data.user.id,
+					email,
+					first_name: '',
+					last_name: '',
+					role,
+					phone: null,
+					company_name: null,
+				});
+
+				if (profileError) throw profileError;
+			}
+
+			set({ session: data.session });
+			await get().getProfile();
+		} catch (error: any) {
+			set({ error: error.message });
+		} finally {
+			set({ loading: false, isLoading: false });
 		}
 	},
 }));

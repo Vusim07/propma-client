@@ -61,13 +61,13 @@ const ProtectedRoute = ({
 };
 
 function App() {
-	const { checkAuth, isLoading } = useAuthStore();
+	const { checkAuth, loading, isLoading } = useAuthStore();
 
 	useEffect(() => {
 		checkAuth();
 	}, [checkAuth]);
 
-	if (isLoading) {
+	if (loading || isLoading) {
 		return (
 			<div className='min-h-screen flex items-center justify-center'>
 				<Spinner size='lg' />
