@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -41,7 +41,7 @@ const profileCompletionSchema = z.object({
 type ProfileCompletionValues = z.infer<typeof profileCompletionSchema>;
 
 const ProfileCompletion: React.FC = () => {
-	const { checkAuth, updateProfile, isLoading } = useAuthStore();
+	const { checkAuth, updateProfile, isLoading, user } = useAuthStore();
 	const [session, setSession] = useState<any>(null);
 	const [initialLoading, setInitialLoading] = useState(true);
 	const navigate = useNavigate();
@@ -57,7 +57,7 @@ const ProfileCompletion: React.FC = () => {
 		},
 	});
 
-	// Check if user has a session
+	// Check if user has a session and pre-fill form with existing data
 	useEffect(() => {
 		const checkSession = async () => {
 			const { data } = await supabase.auth.getSession();
@@ -66,27 +66,49 @@ const ProfileCompletion: React.FC = () => {
 				return;
 			}
 
-			// Pre-fill the form with any data from auth metadata
-			const { user } = data.session;
-			if (user.user_metadata) {
-				const fullName = user.user_metadata.full_name || '';
-				const nameParts = fullName.split(' ');
-				const firstName = nameParts[0] || '';
-				const lastName = nameParts.slice(1).join(' ') || '';
+			setSession(data.session);
 
-				form.setValue('firstName', firstName);
-				form.setValue('lastName', lastName);
-				if (user.phone) {
-					form.setValue('phone', user.phone);
+			// Pre-fill form with any existing user data
+			if (user) {
+				form.setValue('firstName', user.first_name || '');
+				form.setValue('lastName', user.last_name || '');
+
+				// Default to 'tenant' if role is 'pending' or invalid
+				const currentRole = user.role === 'pending' ? 'tenant' : user.role;
+				form.setValue('role', (currentRole as any) || 'tenant');
+
+				form.setValue('phone', user.phone || '');
+				form.setValue('companyName', user.company_name || '');
+			} else {
+				// Pre-fill from auth metadata if available
+				const { user: authUser } = data.session;
+				if (authUser?.user_metadata) {
+					const fullName = authUser.user_metadata.full_name || '';
+					const nameParts = fullName.split(' ');
+					const firstName = nameParts[0] || '';
+					const lastName = nameParts.slice(1).join(' ') || '';
+
+					form.setValue('firstName', firstName);
+					form.setValue('lastName', lastName);
+
+					// Try to get role from metadata or localStorage
+					const role =
+						authUser.user_metadata.role ||
+						localStorage.getItem('userRole') ||
+						'tenant';
+					form.setValue('role', role as any);
+
+					if (authUser.phone) {
+						form.setValue('phone', authUser.phone);
+					}
 				}
 			}
 
-			setSession(data.session);
 			setInitialLoading(false);
 		};
 
 		checkSession();
-	}, [navigate, form]);
+	}, [navigate, form, user]);
 
 	const onSubmit = async (values: ProfileCompletionValues) => {
 		try {
@@ -96,38 +118,45 @@ const ProfileCompletion: React.FC = () => {
 				return;
 			}
 
-			// Call the Supabase Edge Function
-			const { data, error } = await supabase.functions.invoke(
-				'complete-profile',
-				{
-					body: JSON.stringify({
-						id: session.user.id,
-						email: session.user.email,
-						first_name: values.firstName,
-						last_name: values.lastName,
-						role: values.role,
-						phone: values.phone || null,
-						company_name: values.companyName || null,
-					}),
-				},
-			);
+			// Show loading feedback
+			showToast.info('Updating your profile...');
 
-			if (error) {
-				throw new Error(error.message || 'Failed to create profile');
+			console.log('Submitting profile with role:', values.role);
+
+			// Ensure role is valid
+			if (!['tenant', 'agent', 'landlord'].includes(values.role)) {
+				showToast.error('Invalid role selected');
+				return;
 			}
 
-			// If we reach here, profile was successfully created
-			showToast.success('Profile created successfully!');
+			// Update profile directly through the auth store
+			await updateProfile({
+				first_name: values.firstName,
+				last_name: values.lastName,
+				role: values.role,
+				phone: values.phone || null,
+				company_name: values.companyName || null,
+			});
 
 			// Refresh auth state
 			await checkAuth();
 
-			// Redirect based on role
-			if (values.role === 'tenant') {
-				navigate('/tenant');
-			} else {
-				navigate('/agent');
-			}
+			showToast.success('Profile updated successfully!');
+
+			console.log(
+				'Profile updated, navigating to dashboard for role:',
+				values.role,
+			);
+
+			// Add a small delay to ensure state updates propagate
+			setTimeout(() => {
+				// Redirect based on role
+				if (values.role === 'tenant') {
+					window.location.href = '/tenant';
+				} else {
+					window.location.href = '/agent';
+				}
+			}, 100);
 		} catch (error: any) {
 			console.error('Profile completion error:', error);
 			showToast.error(error.message || 'Failed to complete your profile');
@@ -199,12 +228,16 @@ const ProfileCompletion: React.FC = () => {
 						/>
 					</div>
 
+					{/* Make the role selection more prominent */}
 					<FormField
 						control={form.control}
 						name='role'
 						render={({ field }) => (
-							<FormItem>
-								<FormLabel>I am a</FormLabel>
+							<FormItem className='border p-4 rounded-lg bg-gray-50'>
+								<FormLabel className='text-lg font-medium'>I am a</FormLabel>
+								<p className='text-sm text-gray-500 mb-2'>
+									Choose your role in the property rental process
+								</p>
 								<FormControl>
 									<Select value={field.value} onValueChange={field.onChange}>
 										<SelectTrigger className='w-full'>

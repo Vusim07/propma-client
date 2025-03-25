@@ -4,9 +4,11 @@ import {
 	Routes,
 	Route,
 	Navigate,
+	useNavigate,
 } from 'react-router-dom';
 import { useAuthStore } from './stores/authStore';
 import { PageTitleProvider } from './context/PageTitleContext';
+import { Tables } from './services/database.types'; // Add this import
 
 // Auth Pages
 import Login from './pages/auth/Login';
@@ -37,7 +39,7 @@ import AgentLayout from './components/layout/AgentLayout';
 import Spinner from './components/ui/Spinner';
 import { Toaster } from './components/ui/Toaster';
 
-// Enhanced Protected Route Component with better auth state handling
+// Enhanced Protected Route Component with profile completion check
 const ProtectedRoute = ({
 	children,
 	allowedRoles,
@@ -47,6 +49,7 @@ const ProtectedRoute = ({
 }) => {
 	const { user, isLoading } = useAuthStore();
 	const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		// Extra check to ensure auth state is stable
@@ -55,16 +58,43 @@ const ProtectedRoute = ({
 
 			// Brief delay to ensure auth state is settled
 			await new Promise((r) => setTimeout(r, 100));
+
+			const currentUser = useAuthStore.getState().user;
 			console.log(
 				'ProtectedRoute - After delay, user state:',
-				useAuthStore.getState().user?.role,
+				currentUser?.role,
 			);
+
+			// Check if profile is complete enough
+			if (currentUser && isProfileIncomplete(currentUser)) {
+				console.log(
+					'User profile is incomplete, redirecting to profile completion',
+				);
+				navigate('/profile-completion');
+				return;
+			}
 
 			setIsCheckingAuth(false);
 		};
 
 		checkAuthState();
-	}, [user]);
+	}, [user, navigate]);
+
+	// Function to check if a profile has minimal required fields
+	const isProfileIncomplete = (profile: Tables<'profiles'>): boolean => {
+		// More explicit check to ensure we're only redirecting profiles that are truly incomplete
+		const isMissingRequiredFields =
+			!profile.first_name || !profile.last_name || !profile.phone;
+
+		console.log('Profile completeness check:', {
+			first_name: profile.first_name ? 'present' : 'missing',
+			last_name: profile.last_name ? 'present' : 'missing',
+			phone: profile.phone ? 'present' : 'missing',
+			isIncomplete: isMissingRequiredFields,
+		});
+
+		return isMissingRequiredFields;
+	};
 
 	if (isLoading || isCheckingAuth) {
 		return (

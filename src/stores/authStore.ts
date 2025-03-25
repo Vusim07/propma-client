@@ -29,7 +29,9 @@ interface AuthState {
 	) => Promise<void>;
 	logout: () => Promise<void>;
 	resetPassword: (email: string) => Promise<void>;
-	updateProfile: (updates: Partial<Tables<'profiles'>>) => Promise<void>;
+	updateProfile: (
+		updates: Partial<Tables<'profiles'>>,
+	) => Promise<Tables<'profiles'>>; // Fixed return type
 	getProfile: () => Promise<void>;
 	checkAuth: () => Promise<void>;
 	initialize: () => Promise<boolean>;
@@ -240,16 +242,48 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
 			if (!user) throw new Error('User not authenticated');
 
+			// Normalize and validate role
+			const normalizedUpdates = { ...updates };
+			if (updates.role) {
+				const normalizedRole = updates.role.trim().toLowerCase();
+				if (!['tenant', 'agent', 'landlord'].includes(normalizedRole)) {
+					console.error(
+						'Invalid role:',
+						updates.role,
+						'Normalized:',
+						normalizedRole,
+					);
+					throw new Error('Invalid role. Must be tenant, agent, or landlord.');
+				}
+				normalizedUpdates.role = normalizedRole;
+			}
+
+			console.log('Updating profile with data:', normalizedUpdates);
+
 			const { error } = await supabase
 				.from('profiles')
-				.update(updates)
+				.update(normalizedUpdates)
 				.eq('id', user.id);
 
-			if (error) throw error;
+			if (error) {
+				console.error('Profile update error:', error);
+				throw error;
+			}
 
-			set({ user: { ...user, ...updates } });
+			// Update local user state
+			const updatedUser = { ...user, ...updates };
+			set({ user: updatedUser });
+
+			// If role was updated, also update localStorage
+			if (updates.role) {
+				localStorage.setItem('userRole', updates.role);
+			}
+
+			return updatedUser; // Return the updated user profile
 		} catch (error: any) {
+			console.error('Profile update failed:', error);
 			set({ error: error.message });
+			throw error;
 		} finally {
 			set({ loading: false, isLoading: false });
 		}
@@ -301,10 +335,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 				throw new Error('A valid email address is required');
 			}
 
+			// Allow 'pending' as a temporary role during initial registration
+			const normalizedRole = role.trim().toLowerCase();
+			if (
+				!['tenant', 'agent', 'landlord', 'pending'].includes(normalizedRole)
+			) {
+				console.error('Invalid role:', role, 'Normalized:', normalizedRole);
+				throw new Error(
+					'Invalid role. Must be tenant, agent, landlord, or pending.',
+				);
+			}
+
 			// Normalize email to ensure consistency
 			const normalizedEmail = email.trim().toLowerCase();
 
-			console.log('Starting registration for:', normalizedEmail);
+			console.log(
+				'Starting registration for:',
+				normalizedEmail,
+				'with temporary role:',
+				normalizedRole,
+			);
 
 			// Create auth user with proper metadata to ensure profile creation works
 			const { data, error } = await supabase.auth.signUp({
@@ -313,8 +363,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 				options: {
 					emailRedirectTo: `${window.location.origin}/auth/callback`,
 					data: {
-						email: normalizedEmail, // Include email explicitly in metadata
-						role: role,
+						email: normalizedEmail,
+						role: normalizedRole,
 						first_name: '',
 						last_name: '',
 					},

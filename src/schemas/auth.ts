@@ -7,6 +7,7 @@ export const loginSchema = z.object({
 		.min(6, { message: 'Password must be at least 6 characters' }),
 });
 
+// Update the registration schema to remove role requirement
 export const registerSchema = z
 	.object({
 		email: z
@@ -20,14 +21,13 @@ export const registerSchema = z
 		confirmPassword: z
 			.string()
 			.min(6, { message: 'Password must be at least 6 characters' }),
-		role: z.enum(['tenant', 'agent', 'landlord'], {
-			required_error: 'Please select a role',
-		}),
+		// Role is removed from here
 	})
 	.refine((data) => data.password === data.confirmPassword, {
 		message: 'Passwords do not match',
 		path: ['confirmPassword'],
 	});
 
+// Make sure form value types are updated
 export type LoginFormValues = z.infer<typeof loginSchema>;
 export type RegisterFormValues = z.infer<typeof registerSchema>;

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuthStore } from '../../stores/authStore';
@@ -16,13 +16,7 @@ import {
 	FormMessage,
 } from '../../components/ui/form';
 import { Input } from '../../components/ui/Input';
-import {
-	Select,
-	SelectTrigger,
-	SelectValue,
-	SelectContent,
-	SelectItem,
-} from '../../components/ui/Select';
+
 import { EyeIcon, EyeOffIcon, LockIcon, MailIcon } from 'lucide-react';
 
 const Register: React.FC = () => {
@@ -34,7 +28,6 @@ const Register: React.FC = () => {
 		isLoading,
 		error,
 	} = useAuthStore();
-	const navigate = useNavigate();
 
 	const form = useForm<RegisterFormValues>({
 		resolver: zodResolver(registerSchema),
@@ -42,7 +35,6 @@ const Register: React.FC = () => {
 			email: '',
 			password: '',
 			confirmPassword: '',
-			role: 'tenant',
 		},
 	});
 
@@ -66,20 +58,18 @@ const Register: React.FC = () => {
 				values.email.trim().toLowerCase(),
 			);
 
+			// Pass 'pending' as default role - user will choose actual role during profile completion
 			await registerUser(
 				values.email.trim().toLowerCase(),
 				values.password,
-				values.role as 'tenant' | 'agent' | 'landlord',
+				'agent',
 			);
 
-			showToast.success('Account created successfully!');
+			showToast.success('Account created! Please complete your profile.');
 
-			// Redirect based on user role
-			if (values.role === 'tenant') {
-				navigate('/tenant');
-			} else if (values.role === 'agent' || values.role === 'landlord') {
-				navigate('/agent');
-			}
+			// Use window.location for a more reliable redirect
+			console.log('Redirecting to profile completion page');
+			window.location.href = '/profile-completion';
 		} catch (err: any) {
 			console.error('Registration error:', err);
 
@@ -104,12 +94,6 @@ const Register: React.FC = () => {
 			}
 		}
 	};
-
-	const roleOptions = [
-		{ value: 'tenant', label: 'Tenant' },
-		{ value: 'agent', label: 'Agent' },
-		{ value: 'landlord', label: 'Landlord' },
-	];
 
 	return (
 		<div className='w-full max-w-md mx-auto space-y-6 p-6 bg-white rounded-lg shadow-md'>
@@ -262,31 +246,6 @@ const Register: React.FC = () => {
 										)}
 									</button>
 								</div>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-
-					<FormField
-						control={form.control}
-						name='role'
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Account Type</FormLabel>
-								<FormControl>
-									<Select value={field.value} onValueChange={field.onChange}>
-										<SelectTrigger className='w-full'>
-											<SelectValue placeholder='Select account type' />
-										</SelectTrigger>
-										<SelectContent>
-											{roleOptions.map((role) => (
-												<SelectItem key={role.value} value={role.value}>
-													{role.label}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								</FormControl>
 								<FormMessage />
 							</FormItem>
 						)}
