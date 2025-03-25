@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -31,19 +32,43 @@ const Login: React.FC = () => {
 
 	const onSubmit = async (values: LoginFormValues) => {
 		try {
-			await login(values.email, values.password);
+			// Show loading toast
+			showToast.info('Signing you in...');
 
-			// Redirect based on user role
-			const user = JSON.parse(localStorage.getItem('user') || '{}');
-			if (user.role === 'tenant') {
-				showToast.success('Welcome to your tenant dashboard!');
-				navigate('/tenant');
-			} else if (user.role === 'agent' || user.role === 'landlord') {
-				showToast.success(`Welcome to your ${user.role} dashboard!`);
-				navigate('/agent');
+			console.log('Login attempt with:', values.email);
+
+			// Login and get the profile data
+			const profile = await login(values.email, values.password);
+			console.log('Login successful, profile received:', profile?.role);
+
+			if (!profile) {
+				showToast.error('Failed to retrieve user data');
+				return;
 			}
-		} catch (err) {
+
+			// Determine destination based on role
+			let destination = '/';
+			if (profile.role === 'tenant') {
+				destination = '/tenant';
+				showToast.success('Welcome to your tenant dashboard!');
+			} else if (profile.role === 'agent' || profile.role === 'landlord') {
+				destination = '/agent';
+				showToast.success(`Welcome to your ${profile.role} dashboard!`);
+			}
+
+			console.log('About to navigate to:', destination);
+
+			// Try immediate navigation first
+			navigate(destination);
+
+			// Set a fallback navigation with a slight delay to ensure it happens
+			setTimeout(() => {
+				console.log('Executing fallback navigation to:', destination);
+				window.location.href = destination;
+			}, 300);
+		} catch (err: any) {
 			console.error('Login error:', err);
+			showToast.error(err.message || 'Login failed. Please try again.');
 		}
 	};
 
@@ -103,7 +128,7 @@ const Login: React.FC = () => {
 					variant='outline'
 					onClick={() => loginWithSocial('facebook')}
 					disabled={isLoading}
-					className='w-full flex items-center justify-center bg-[#1877F2] text-white hover:bg-[#166FE5]'
+					className='w-full flex items-center justify-center bg-[#1877F2] text-neutral-800 hover:bg-[#166FE5]'
 				>
 					<img
 						src='/assets/icons8-facebook.svg'

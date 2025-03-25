@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
 	BrowserRouter as Router,
 	Routes,
@@ -12,6 +12,7 @@ import { PageTitleProvider } from './context/PageTitleContext';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import AuthCallback from './pages/auth/AuthCallback';
+import ProfileCompletion from './pages/auth/ProfileCompletion';
 import AuthLayout from './components/layout/AuthLayout';
 
 // Tenant Pages
@@ -36,7 +37,7 @@ import AgentLayout from './components/layout/AgentLayout';
 import Spinner from './components/ui/Spinner';
 import { Toaster } from './components/ui/Toaster';
 
-// Protected Route Component
+// Enhanced Protected Route Component with better auth state handling
 const ProtectedRoute = ({
 	children,
 	allowedRoles,
@@ -45,30 +46,79 @@ const ProtectedRoute = ({
 	allowedRoles: string[];
 }) => {
 	const { user, isLoading } = useAuthStore();
+	const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-	if (isLoading) {
+	useEffect(() => {
+		// Extra check to ensure auth state is stable
+		const checkAuthState = async () => {
+			console.log('ProtectedRoute - Initial user state:', user?.role);
+
+			// Brief delay to ensure auth state is settled
+			await new Promise((r) => setTimeout(r, 100));
+			console.log(
+				'ProtectedRoute - After delay, user state:',
+				useAuthStore.getState().user?.role,
+			);
+
+			setIsCheckingAuth(false);
+		};
+
+		checkAuthState();
+	}, [user]);
+
+	if (isLoading || isCheckingAuth) {
 		return (
 			<div className='min-h-screen flex items-center justify-center'>
 				<Spinner size='lg' />
+				<p className='ml-2 text-gray-500'>Verifying access...</p>
 			</div>
 		);
 	}
 
-	if (!user || !allowedRoles.includes(user.role)) {
+	// Get current user state directly from store
+	const currentUser = useAuthStore.getState().user;
+	console.log(
+		'ProtectedRoute - Current user check:',
+		currentUser?.role,
+		'Allowed:',
+		allowedRoles,
+	);
+
+	if (!currentUser || !allowedRoles.includes(currentUser.role)) {
+		console.log('Access denied, redirecting to login');
 		return <Navigate to='/login' replace />;
 	}
 
+	console.log('Access granted, rendering content');
 	return <>{children}</>;
 };
 
 function App() {
-	const { checkAuth, loading, isLoading } = useAuthStore();
+	const { initialize, loading, isLoading } = useAuthStore();
+	const [initializing, setInitializing] = useState(true);
 
+	// Add a new initialization effect that runs only once
 	useEffect(() => {
-		checkAuth();
-	}, [checkAuth]);
+		const initAuth = async () => {
+			setInitializing(true);
+			try {
+				// Call our new initialize method
+				const success = await initialize();
+				console.log('Auth initialization result:', success);
+			} catch (err) {
+				console.error('Error initializing auth:', err);
+			} finally {
+				setInitializing(false);
+			}
+		};
 
-	if (loading || isLoading) {
+		initAuth();
+	}, [initialize]);
+
+	// Remove or update the existing checkAuth effect
+	// since it's redundant with our new initialization
+
+	if (initializing || loading || isLoading) {
 		return (
 			<div className='min-h-screen flex items-center justify-center'>
 				<Spinner size='lg' />
@@ -101,6 +151,17 @@ function App() {
 						}
 					/>
 					<Route path='/auth/callback' element={<AuthCallback />} />
+					<Route
+						path='/profile-completion'
+						element={
+							<AuthLayout
+								title='Complete Your Profile'
+								subtitle='Just a few more details to get started'
+							>
+								<ProfileCompletion />
+							</AuthLayout>
+						}
+					/>
 
 					{/* Tenant Routes */}
 					<Route

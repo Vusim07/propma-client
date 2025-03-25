@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand';
 import { supabase } from '../services/supabase';
@@ -8,18 +7,21 @@ interface AuthState {
 	user: Tables<'profiles'> | null;
 	session: any | null;
 	loading: boolean;
-	isLoading: boolean; // Add this for consistency with other stores
+	isLoading: boolean;
 	error: string | null;
 
 	// Actions
-	login: (email: string, password: string) => Promise<void>;
+	login: (
+		email: string,
+		password: string,
+	) => Promise<Tables<'profiles'> | null>;
 	loginWithMagicLink: (email: string) => Promise<void>;
 	loginWithSocial: (provider: 'google' | 'facebook') => Promise<void>;
 	register: (
 		email: string,
 		password: string,
 		role: 'tenant' | 'agent' | 'landlord',
-	) => Promise<void>;
+	) => Promise<{ user: any; profile: Tables<'profiles'> | null } | undefined>;
 	signup: (
 		email: string,
 		password: string,
@@ -29,30 +31,76 @@ interface AuthState {
 	resetPassword: (email: string) => Promise<void>;
 	updateProfile: (updates: Partial<Tables<'profiles'>>) => Promise<void>;
 	getProfile: () => Promise<void>;
-	checkAuth: () => Promise<void>; // Add this function
+	checkAuth: () => Promise<void>;
+	initialize: () => Promise<boolean>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
 	user: null,
 	session: null,
 	loading: false,
-	isLoading: false, // Initialize this property
+	isLoading: false,
 	error: null,
 
 	login: async (email, password) => {
 		try {
 			set({ loading: true, isLoading: true, error: null });
+			console.log('Auth store: login attempt started');
+
 			const { data, error } = await supabase.auth.signInWithPassword({
 				email,
 				password,
 			});
 
 			if (error) throw error;
+			console.log('Auth store: auth success, fetching profile');
 
+			// Store session first
 			set({ session: data.session });
-			await get().getProfile();
+
+			// Get user profile data
+			const { data: profileData, error: profileError } = await supabase
+				.from('profiles')
+				.select('*')
+				.eq('id', data.user.id)
+				.single();
+
+			if (profileError) {
+				console.error('Error fetching profile:', profileError);
+				throw new Error('Could not retrieve user profile');
+			}
+
+			console.log(
+				'Auth store: profile fetched successfully:',
+				profileData.role,
+			);
+
+			// Set the user in state
+			set({ user: profileData });
+
+			// Also store role in localStorage for convenience
+			localStorage.setItem('userRole', profileData.role);
+
+			// Persist state synchronously to minimize race conditions
+			try {
+				// Force localStorage to update synchronously
+				localStorage.setItem(
+					'auth-user-state',
+					JSON.stringify({
+						id: profileData.id,
+						role: profileData.role,
+					}),
+				);
+			} catch (e) {
+				console.warn('Failed to persist state to localStorage', e);
+			}
+
+			console.log('Auth store: login complete, returning profile');
+			return profileData; // Return the profile data for navigation
 		} catch (error: any) {
+			console.error('Login error:', error);
 			set({ error: error.message });
+			throw error; // Re-throw so the component can handle it
 		} finally {
 			set({ loading: false, isLoading: false });
 		}
@@ -77,23 +125,48 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 		try {
 			set({ loading: true, isLoading: true, error: null });
 
-			// Configure the redirect URL
+			// Configure the redirect URL with the correct path
 			const redirectTo = `${window.location.origin}/auth/callback`;
 
-			const { data, error } = await supabase.auth.signInWithOAuth({
+			console.log('Starting social login with:', provider);
+			console.log('Redirect URL:', redirectTo);
+
+			// Save the provider to local storage for debugging
+			localStorage.setItem('socialLoginProvider', provider);
+			localStorage.setItem('socialLoginAttempt', Date.now().toString());
+
+			// Configure provider-specific scopes
+			const scopes =
+				provider === 'google'
+					? 'email profile'
+					: provider === 'facebook'
+					? 'email,public_profile'
+					: 'email';
+
+			const { error } = await supabase.auth.signInWithOAuth({
 				provider,
 				options: {
 					redirectTo,
-					// Optional: You can pass additional scopes if needed
-					scopes: provider === 'google' ? 'email profile' : 'email',
+					scopes,
+					queryParams:
+						provider === 'google'
+							? {
+									access_type: 'offline',
+									prompt: 'consent',
+							  }
+							: undefined,
 				},
 			});
 
-			if (error) throw error;
+			if (error) {
+				console.error('OAuth initialization error:', error);
+				throw error;
+			}
 
+			console.log('OAuth flow started, redirecting to provider');
 			// The user will be redirected to the OAuth provider
-			// No need to set anything here as the redirected callback will handle it
 		} catch (error: any) {
+			console.error('Social login error:', error);
 			set({ error: error.message });
 			set({ loading: false, isLoading: false });
 		}
@@ -208,7 +281,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 		}
 	},
 
-	// Add the checkAuth function that App.tsx expects
 	checkAuth: async () => {
 		try {
 			set({ loading: true, isLoading: true, error: null });
@@ -220,35 +292,132 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 		}
 	},
 
-	// Missing register function for the Register component
 	register: async (email, password, role) => {
 		try {
 			set({ loading: true, isLoading: true, error: null });
 
-			// 1. Create auth user
-			const { data, error } = await supabase.auth.signUp({ email, password });
-
-			if (error) throw error;
-
-			// 2. Create profile
-			if (data.user) {
-				const { error: profileError } = await supabase.from('profiles').insert({
-					id: data.user.id,
-					email,
-					first_name: '',
-					last_name: '',
-					role,
-					phone: null,
-					company_name: null,
-				});
-
-				if (profileError) throw profileError;
+			// Ensure email is valid before proceeding
+			if (!email || typeof email !== 'string' || !email.includes('@')) {
+				throw new Error('A valid email address is required');
 			}
 
+			// Normalize email to ensure consistency
+			const normalizedEmail = email.trim().toLowerCase();
+
+			console.log('Starting registration for:', normalizedEmail);
+
+			// Create auth user with proper metadata to ensure profile creation works
+			const { data, error } = await supabase.auth.signUp({
+				email: normalizedEmail,
+				password,
+				options: {
+					emailRedirectTo: `${window.location.origin}/auth/callback`,
+					data: {
+						email: normalizedEmail, // Include email explicitly in metadata
+						role: role,
+						first_name: '',
+						last_name: '',
+					},
+				},
+			});
+
+			if (error) {
+				console.error('Auth signup error:', error);
+				throw error;
+			}
+
+			// If no user object was returned, handle gracefully
+			if (!data.user) {
+				console.log('No user data returned, but no error occurred');
+				throw new Error('User creation failed - no user data returned');
+			}
+
+			console.log('User created successfully with ID:', data.user.id);
+
+			// Store session in the store
 			set({ session: data.session });
-			await get().getProfile();
+
+			// Let Supabase's trigger handle profile creation
+			// Wait a moment to ensure the profile has been created
+			await new Promise((resolve) => setTimeout(resolve, 800));
+
+			// Fetch the newly created profile
+			const { data: profileData, error: profileError } = await supabase
+				.from('profiles')
+				.select('*')
+				.eq('id', data.user.id)
+				.single();
+
+			if (profileError) {
+				console.error(
+					'Error fetching profile after registration:',
+					profileError,
+				);
+				// Don't throw here, we can still continue
+			} else {
+				// Set the user in state
+				set({ user: profileData });
+			}
+
+			// Store user role in localStorage for redirects
+			localStorage.setItem('userRole', role);
+
+			return { user: data.user, profile: profileData };
 		} catch (error: any) {
-			set({ error: error.message });
+			console.error('Registration error:', error);
+			set({ error: error.message || 'Registration failed' });
+			throw error; // Re-throw for component handling
+		} finally {
+			set({ loading: false, isLoading: false });
+		}
+	},
+
+	initialize: async () => {
+		try {
+			set({ loading: true, isLoading: true, error: null });
+
+			console.log('Initializing auth store...');
+
+			// Get existing session if any
+			const { data: sessionData, error: sessionError } =
+				await supabase.auth.getSession();
+
+			if (sessionError) {
+				console.error('Session retrieval error:', sessionError);
+				throw sessionError;
+			}
+
+			if (!sessionData.session) {
+				console.log('No existing session found');
+				set({ user: null, session: null });
+				return false;
+			}
+
+			console.log('Existing session found');
+			set({ session: sessionData.session });
+
+			// Fetch the profile for this session
+			const { data: profileData, error: profileError } = await supabase
+				.from('profiles')
+				.select('*')
+				.eq('id', sessionData.session.user.id)
+				.single();
+
+			if (profileError) {
+				console.error(
+					'Error fetching profile during initialization:',
+					profileError,
+				);
+				return false;
+			}
+
+			set({ user: profileData });
+			console.log('Auth initialization complete');
+			return true;
+		} catch (error: any) {
+			console.error('Auth initialization error:', error);
+			set({ error: error.message, user: null, session: null });
+			return false;
 		} finally {
 			set({ loading: false, isLoading: false });
 		}

@@ -1,0 +1,7 @@
+[build]
+command = ""
+
+[deploy]
+release_mode = "auto"
+enable_cors = true
+allow_private_network_access = true
