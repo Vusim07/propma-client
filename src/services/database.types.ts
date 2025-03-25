@@ -176,8 +176,12 @@ export type Database = {
 					province: string;
 					status: string;
 					suburb: string;
-					updated_at: string;
-					application_link?: string; // Add this field
+					updated_at?: string;
+					application_link: string;
+					amenities: string[];
+					images: string[];
+					square_feet: number;
+					description: string;
 				};
 				Insert: {
 					address: string;
@@ -196,7 +200,11 @@ export type Database = {
 					status: string;
 					suburb: string;
 					updated_at?: string;
-					application_link?: string; // Add this field
+					application_link: string;
+					amenities: string[];
+					images: string[];
+					square_feet: number;
+					description: string;
 				};
 				Update: {
 					address?: string;
@@ -215,7 +223,11 @@ export type Database = {
 					status?: string;
 					suburb?: string;
 					updated_at?: string;
-					application_link?: string; // Add this field
+					application_link?: string;
+					amenities?: string[];
+					images?: string[];
+					square_feet?: number;
+					description?: string;
 				};
 				Relationships: [
 					{
@@ -237,6 +249,9 @@ export type Database = {
 					credit_score: number | null;
 					id: string;
 					id_verification_status: string | null;
+					income_verification: boolean;
+					pre_approval_status: string;
+					background_check_status: string | null;
 					recommendation: string | null;
 					report_data: Json | null;
 					updated_at: string;
@@ -250,6 +265,9 @@ export type Database = {
 					credit_score?: number | null;
 					id?: string;
 					id_verification_status?: string | null;
+					income_verification?: boolean;
+					background_check_status?: string | null;
+					pre_approval_status: string;
 					recommendation?: string | null;
 					report_data?: Json | null;
 					updated_at?: string;
@@ -263,6 +281,9 @@ export type Database = {
 					credit_score?: number | null;
 					id?: string;
 					id_verification_status?: string | null;
+					income_verification?: boolean;
+					pre_approval_status?: string | null;
+					background_check_status?: string | null;
 					recommendation?: string | null;
 					report_data?: Json | null;
 					updated_at?: string;
@@ -293,6 +314,8 @@ export type Database = {
 					first_name: string;
 					id: string;
 					id_number: string;
+					employment_status: string;
+					monthly_income: number;
 					last_name: string;
 					phone: string;
 					updated_at: string;
@@ -306,6 +329,8 @@ export type Database = {
 					id?: string;
 					id_number: string;
 					last_name: string;
+					employment_status?: string;
+					monthly_income?: number;
 					phone: string;
 					updated_at?: string;
 				};
@@ -317,6 +342,8 @@ export type Database = {
 					first_name?: string;
 					id?: string;
 					id_number?: string;
+					employment_status?: string;
+					monthly_income?: number;
 					last_name?: string;
 					phone?: string;
 					updated_at?: string;

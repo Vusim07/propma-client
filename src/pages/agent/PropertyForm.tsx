@@ -18,7 +18,6 @@ import Alert from '../../components/ui/Alert';
 import { ArrowLeft, Plus, X } from 'lucide-react';
 import { Property } from '../../types';
 import { showToast } from '../../utils/toast';
-import { Label } from '@/components/ui/label';
 
 const PropertyForm: React.FC = () => {
 	const { id } = useParams<{ id: string }>();

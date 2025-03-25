@@ -30,7 +30,6 @@ import {
 } from 'lucide-react';
 import { Tables } from '../../services/database.types';
 
-// Define proper types for workflow data
 interface WorkflowEmailFilter {
 	subject_contains?: string[];
 	body_contains?: string[];
@@ -41,7 +40,6 @@ interface WorkflowActions {
 	custom_message?: string;
 }
 
-// Create a derived type that transforms database fields to component-expected fields
 interface WorkflowViewModel {
 	id: string;
 	agent_id: string;

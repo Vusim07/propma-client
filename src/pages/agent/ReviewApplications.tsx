@@ -94,7 +94,7 @@ const ReviewApplications: React.FC = () => {
 	const getPropertyAddress = (propertyId: string) => {
 		const property = properties.find((p) => p.id === propertyId);
 		return property
-			? `${property.address}, ${property.city}, ${property.state} ${property.zip}`
+			? `${property.address}, ${property.city}, ${property.province} ${property.postal_code}`
 			: 'Unknown property';
 	};
 

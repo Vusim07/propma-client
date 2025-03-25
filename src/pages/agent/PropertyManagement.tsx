@@ -31,17 +31,18 @@ interface PropertyViewModel {
 	state: string;
 	zip: string;
 	status: 'available' | 'rented' | 'maintenance' | 'inactive';
-	rent: number; // Used for UI display
-	monthly_rent: number; // From database
+	rent: number;
+	monthly_rent: number;
 	bedrooms: number;
 	bathrooms: number;
 	square_feet: number;
 	images: string[];
 	available_from: string;
 	created_at: string;
-	updated_at: string;
+	updated_at?: string;
 	application_link?: string;
 	description?: string;
+	amenities?: string[];
 }
 
 // Type definition for the status filter
@@ -63,7 +64,7 @@ const mapPropertyToViewModel = (
 		state: property.province || '',
 		zip: property.postal_code || '',
 		description: '',
-		square_feet: 0, // Add default if not in database
+		square_feet: 0,
 	};
 };
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
@@ -70,7 +71,7 @@ const PropertyDetail: React.FC = () => {
 				await deleteProperty(property.id);
 				showToast.success('Property deleted successfully');
 				navigate('/agent/properties');
-			} catch (err) {
+			} catch (err: any) {
 				showToast.error(`Failed to delete property: ${err.message}`);
 			}
 		}
@@ -85,7 +86,7 @@ const PropertyDetail: React.FC = () => {
 			setProperty((prev) =>
 				prev ? { ...prev, application_link: link } : null,
 			);
-		} catch (err) {
+		} catch (err: any) {
 			showToast.error(`Failed to generate application link: ${err.message}`);
 		}
 	};
@@ -144,7 +145,7 @@ const PropertyDetail: React.FC = () => {
 							{property.address}
 						</h1>
 						<p className='text-gray-600 mt-1'>
-							{property.city}, {property.state} {property.zip}
+							{property.city}, {property.province} {property.postal_code}
 						</p>
 					</div>
 					<Badge
@@ -191,7 +192,7 @@ const PropertyDetail: React.FC = () => {
 							<div>
 								<p className='text-sm text-gray-500'>Monthly Rent</p>
 								<p className='text-xl font-bold'>
-									R{property.rent.toLocaleString()}
+									R{property.monthly_rent.toLocaleString()}
 								</p>
 							</div>
 							<DollarSign className='h-8 w-8 text-blue-500' />
@@ -258,7 +259,7 @@ const PropertyDetail: React.FC = () => {
 									<p className='font-medium'>
 										{property.address}
 										<br />
-										{property.city}, {property.state} {property.zip}
+										{property.city}, {property.province} {property.postal_code}
 									</p>
 								</div>
 							</div>

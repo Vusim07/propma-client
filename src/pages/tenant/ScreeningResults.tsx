@@ -74,9 +74,11 @@ const ScreeningResults: React.FC = () => {
 		return { label: 'Poor', color: 'danger' };
 	};
 
-	const creditCategory = getCreditScoreCategory(screeningReport.credit_score);
+	const creditCategory = getCreditScoreCategory(
+		screeningReport.credit_score || 0,
+	);
 	const affordabilityCategory = getAffordabilityCategory(
-		screeningReport.affordability_ratio,
+		screeningReport.affordability_score || 0,
 	);
 
 	return (
@@ -164,7 +166,10 @@ const ScreeningResults: React.FC = () => {
 								}}
 							>
 								<span className='text-lg font-bold'>
-									{Math.round((screeningReport.credit_score / 850) * 100)}%
+									{Math.round(
+										((screeningReport.credit_score || 0) / 850) * 100,
+									)}
+									%
 								</span>
 							</div>
 						</div>
@@ -172,7 +177,9 @@ const ScreeningResults: React.FC = () => {
 							<div
 								className='h-2.5 rounded-full'
 								style={{
-									width: `${(screeningReport.credit_score / 850) * 100}%`,
+									width: `${
+										((screeningReport.credit_score || 0) / 850) * 100
+									}%`,
 									backgroundColor:
 										creditCategory.color === 'success'
 											? '#10b981'
@@ -202,7 +209,7 @@ const ScreeningResults: React.FC = () => {
 						<div className='flex items-center justify-between mb-4'>
 							<div>
 								<p className='text-3xl font-bold'>
-									{(screeningReport.affordability_ratio * 100).toFixed(0)}%
+									{(screeningReport.affordability_score || 0 * 100).toFixed(0)}%
 								</p>
 								<Badge variant={affordabilityCategory.color as any}>
 									{affordabilityCategory.label}
@@ -214,7 +221,7 @@ const ScreeningResults: React.FC = () => {
 									{profile
 										? `R${(
 												profile.monthly_income *
-												screeningReport.affordability_ratio
+												(screeningReport.affordability_score || 0)
 										  ).toFixed(0)}/R${profile.monthly_income}`
 										: 'N/A'}
 								</p>
@@ -224,7 +231,7 @@ const ScreeningResults: React.FC = () => {
 							<div
 								className='h-2.5 rounded-full'
 								style={{
-									width: `${screeningReport.affordability_ratio * 100}%`,
+									width: `${(screeningReport.affordability_score || 0) * 100}%`,
 									backgroundColor:
 										affordabilityCategory.color === 'success'
 											? '#10b981'
@@ -302,9 +309,11 @@ const ScreeningResults: React.FC = () => {
 									}
 								>
 									{screeningReport.background_check_status
-										.charAt(0)
-										.toUpperCase() +
-										screeningReport.background_check_status.slice(1)}
+										? screeningReport.background_check_status
+												.charAt(0)
+												.toUpperCase() +
+										  screeningReport.background_check_status.slice(1)
+										: 'Pending'}
 								</span>
 							</div>
 						</div>

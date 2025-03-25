@@ -86,9 +86,9 @@ const AppointmentScheduling: React.FC = () => {
 			await scheduleAppointment({
 				tenant_id: user.id,
 				property_id: propertyId,
-				agent_id: '2', // Default agent ID for MVP
+				agent_id: '2',
 				date: format(selectedDate, 'yyyy-MM-dd'),
-				start_time: startTime,
+				time: startTime,
 				end_time: endTime,
 				status: 'scheduled',
 				notes: notes,
@@ -122,8 +122,7 @@ const AppointmentScheduling: React.FC = () => {
 
 		return appointments.some(
 			(appointment) =>
-				appointment.date === selectedDate &&
-				appointment.start_time === startTime,
+				appointment.date === selectedDate && appointment.time === startTime,
 		);
 	};
 
@@ -345,8 +344,7 @@ const AppointmentScheduling: React.FC = () => {
 													className='text-blue-500 mr-2'
 												/>
 												<span className='font-medium'>
-													{appointment.date} at {appointment.start_time} -{' '}
-													{appointment.end_time}
+													{appointment.date} at {appointment.time}
 												</span>
 											</div>
 											<p className='text-sm text-gray-600 mb-1'>
