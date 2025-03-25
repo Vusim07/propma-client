@@ -8,8 +8,17 @@ import {
 	EmailWorkflow,
 	WorkflowLog,
 	InsertEmailWorkflow,
-	UpdateEmailWorkflow,
 } from '../types';
+
+// Add proper typing for the database workflow fields
+interface WorkflowUpdateFields {
+	name?: string;
+	active?: boolean; // This is the database field name, not is_active
+	email_filter?: any;
+	actions?: any;
+	trigger_event?: string;
+	email_template?: string;
+}
 
 interface AgentState {
 	applications: Application[];
@@ -25,7 +34,7 @@ interface AgentState {
 		status: Application['status'],
 		notes?: string,
 	) => Promise<void>;
-	fetchProperties: (ownerId: string) => Promise<void>;
+	fetchProperties: (agentId: string) => Promise<Property[]>; // Changed return type
 	addProperty: (
 		property: Omit<Property, 'id' | 'created_at' | 'application_link'>,
 	) => Promise<void>;
@@ -36,7 +45,10 @@ interface AgentState {
 	createWorkflow: (
 		workflow: Omit<InsertEmailWorkflow, 'id' | 'created_at' | 'updated_at'>,
 	) => Promise<void>;
-	updateWorkflow: (id: string, updates: UpdateEmailWorkflow) => Promise<void>;
+	updateWorkflow: (
+		id: string,
+		updates: Partial<EmailWorkflow>,
+	) => Promise<void>; // Changed type
 	deleteWorkflow: (id: string) => Promise<void>;
 	fetchWorkflowLogs: (workflowId?: string) => Promise<void>;
 }
@@ -109,28 +121,40 @@ export const useAgentStore = create<AgentState>((set) => ({
 		}
 	},
 
-	fetchProperties: async (ownerId) => {
-		set({ isLoading: true, error: null });
+	fetchProperties: async (agentId) => {
 		try {
+			set({ isLoading: true, error: null });
+
+			console.log('Fetching properties for agent:', agentId);
+
+			// Use agent_id instead of owner_id in the query
 			const { data, error } = await supabase
 				.from('properties')
 				.select('*')
-				.eq('owner_id', ownerId);
+				.eq('agent_id', agentId); // Make sure to use agent_id here, not owner_id
 
-			if (error) throw error;
+			if (error) {
+				console.error('Error fetching properties:', error);
+				throw error;
+			}
 
-			// Format currency and dates
-			const formattedProperties = data?.map((property) => ({
-				...property,
-				rent_formatted: formatCurrency(property.monthly_rent), // Change rent to monthly_rent
-				available_from: formatDate(property.available_from),
-				created_at: property.created_at,
-				updated_at: property.updated_at,
-			}));
+			// Map API response to expected Property type
+			const propertyData =
+				data?.map((item) => ({
+					...item,
+					// Add any missing fields or conversions needed for the Property type
+					rent: item.monthly_rent || 0, // Map monthly_rent to rent
+					status: item.status || 'available',
+					images: item.images || [],
+				})) || [];
 
-			set({ properties: formattedProperties || [], isLoading: false });
-		} catch (error) {
-			set({ error: (error as Error).message, isLoading: false });
+			set({ properties: propertyData });
+			return propertyData;
+		} catch (error: any) {
+			set({ error: error.message || 'Failed to fetch properties' });
+			return [];
+		} finally {
+			set({ isLoading: false });
 		}
 	},
 
@@ -297,9 +321,21 @@ export const useAgentStore = create<AgentState>((set) => ({
 	updateWorkflow: async (id, updates) => {
 		set({ isLoading: true, error: null });
 		try {
+			// Transform updates to match database fields
+			const dbUpdates: WorkflowUpdateFields = {
+				...updates,
+				// If is_active is provided, map it to active
+				...(updates.is_active !== undefined && { active: updates.is_active }),
+			};
+
+			// Remove is_active property if it exists
+			if ((dbUpdates as any).is_active !== undefined) {
+				delete (dbUpdates as any).is_active;
+			}
+
 			const { data, error } = await supabase
 				.from('email_workflows')
-				.update(updates)
+				.update(dbUpdates)
 				.eq('id', id)
 				.select()
 				.single();

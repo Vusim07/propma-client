@@ -21,7 +21,51 @@ import {
 	Check,
 	ArrowUpDown,
 } from 'lucide-react';
-import { Property } from '../../types';
+import { Tables } from '../../services/database.types';
+
+// Define proper property view model type
+interface PropertyViewModel {
+	id: string;
+	address: string;
+	city: string;
+	state: string;
+	zip: string;
+	status: 'available' | 'rented' | 'maintenance' | 'inactive';
+	rent: number; // Used for UI display
+	monthly_rent: number; // From database
+	bedrooms: number;
+	bathrooms: number;
+	square_feet: number;
+	images: string[];
+	available_from: string;
+	created_at: string;
+	updated_at: string;
+	application_link?: string;
+	description?: string;
+}
+
+// Type definition for the status filter
+type StatusFilter = 'all' | 'available' | 'rented' | 'maintenance' | 'inactive';
+
+// Map database property to view model
+const mapPropertyToViewModel = (
+	property: Tables<'properties'>,
+): PropertyViewModel => {
+	return {
+		...property,
+		status: (property.status || 'available') as
+			| 'available'
+			| 'rented'
+			| 'maintenance'
+			| 'inactive',
+		rent: property.monthly_rent || 0,
+		images: property.images || [],
+		state: property.province || '',
+		zip: property.postal_code || '',
+		description: '',
+		square_feet: 0, // Add default if not in database
+	};
+};
 
 const PropertyManagement: React.FC = () => {
 	const { user } = useAuthStore();
@@ -30,12 +74,11 @@ const PropertyManagement: React.FC = () => {
 	const navigate = useNavigate();
 
 	const [searchTerm, setSearchTerm] = useState('');
-	const [statusFilter, setStatusFilter] = useState<
-		'all' | 'available' | 'rented' | 'maintenance' | 'inactive'
-	>('all');
+	const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 	const [sortBy, setSortBy] = useState<'address' | 'rent' | 'date'>('date');
 	const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 	const [copiedLink, setCopiedLink] = useState<string | null>(null);
+	const [viewProperties, setViewProperties] = useState<PropertyViewModel[]>([]);
 
 	useEffect(() => {
 		setPageTitle('Properties');
@@ -44,34 +87,44 @@ const PropertyManagement: React.FC = () => {
 		}
 	}, [user, fetchProperties, setPageTitle]);
 
+	// Convert properties to view model when they change
+	useEffect(() => {
+		const mappedProperties = properties.map(mapPropertyToViewModel);
+		setViewProperties(mappedProperties);
+	}, [properties]);
+
 	const handleCopyLink = (link: string) => {
 		navigator.clipboard.writeText(link);
 		setCopiedLink(link);
 		setTimeout(() => setCopiedLink(null), 2000);
 	};
 
-	const filteredProperties = properties
+	const filteredProperties = viewProperties
 		.filter(
 			(property) => statusFilter === 'all' || property.status === statusFilter,
 		)
 		.filter(
 			(property) =>
-				property.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				property.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				property.description.toLowerCase().includes(searchTerm.toLowerCase()),
+				property.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				property.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				(property.description || '')
+					.toLowerCase()
+					.includes(searchTerm.toLowerCase()),
 		)
 		.sort((a, b) => {
 			if (sortBy === 'address') {
 				return sortOrder === 'asc'
-					? a.address.localeCompare(b.address)
-					: b.address.localeCompare(a.address);
+					? (a.address || '').localeCompare(b.address || '')
+					: (b.address || '').localeCompare(a.address || '');
 			} else if (sortBy === 'rent') {
 				return sortOrder === 'asc' ? a.rent - b.rent : b.rent - a.rent;
 			} else {
 				// Default sort by date
 				return sortOrder === 'asc'
-					? new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-					: new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+					? new Date(a.created_at || 0).getTime() -
+							new Date(b.created_at || 0).getTime()
+					: new Date(b.created_at || 0).getTime() -
+							new Date(a.created_at || 0).getTime();
 			}
 		});
 
@@ -79,7 +132,9 @@ const PropertyManagement: React.FC = () => {
 		setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
 	};
 
-	const getStatusBadgeVariant = (status: Property['status']) => {
+	const getStatusBadgeVariant = (
+		status: PropertyViewModel['status'],
+	): string => {
 		switch (status) {
 			case 'available':
 				return 'success';

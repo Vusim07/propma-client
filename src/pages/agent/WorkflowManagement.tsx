@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useAgentStore } from '../../stores/agentStore';
@@ -29,6 +28,48 @@ import {
 	Search,
 	Clock,
 } from 'lucide-react';
+import { Tables } from '../../services/database.types';
+
+// Define proper types for workflow data
+interface WorkflowEmailFilter {
+	subject_contains?: string[];
+	body_contains?: string[];
+}
+
+interface WorkflowActions {
+	send_application_link: boolean;
+	custom_message?: string;
+}
+
+// Create a derived type that transforms database fields to component-expected fields
+interface WorkflowViewModel {
+	id: string;
+	agent_id: string;
+	name: string;
+	is_active: boolean; // mapped from 'active' in database
+	email_filter: WorkflowEmailFilter;
+	actions: WorkflowActions;
+	created_at: string;
+	updated_at: string;
+}
+
+// Function to map DB type to view model type
+const mapWorkflowToViewModel = (
+	workflow: Tables<'email_workflows'>,
+): WorkflowViewModel => {
+	return {
+		id: workflow.id,
+		agent_id: workflow.agent_id,
+		name: workflow.name,
+		is_active: workflow.active,
+		email_filter: (workflow.email_filter || {}) as WorkflowEmailFilter,
+		actions: (workflow.actions || {
+			send_application_link: true,
+		}) as WorkflowActions,
+		created_at: workflow.created_at,
+		updated_at: workflow.updated_at,
+	};
+};
 
 const WorkflowManagement: React.FC = () => {
 	const { user } = useAuthStore();
@@ -55,12 +96,32 @@ const WorkflowManagement: React.FC = () => {
 	const [sendApplicationLink, setSendApplicationLink] = useState(true);
 	const [customMessage, setCustomMessage] = useState('');
 
+	const [currentWorkflows, setCurrentWorkflows] = useState<WorkflowViewModel[]>(
+		[],
+	);
+
 	useEffect(() => {
 		if (user) {
-			fetchWorkflows(user.id);
-			fetchWorkflowLogs();
+			// Add try-catch to handle missing table gracefully
+			const loadWorkflows = async () => {
+				try {
+					await fetchWorkflows(user.id);
+					await fetchWorkflowLogs();
+				} catch (err) {
+					console.error('Error loading workflows:', err);
+					// No need to do anything special, the error state will be set by the store
+				}
+			};
+
+			loadWorkflows();
 		}
 	}, [user, fetchWorkflows, fetchWorkflowLogs]);
+
+	useEffect(() => {
+		// Transform workflows to view model format
+		const viewModels = workflows.map(mapWorkflowToViewModel);
+		setCurrentWorkflows(viewModels);
+	}, [workflows]);
 
 	const resetForm = () => {
 		setName('');
@@ -79,6 +140,9 @@ const WorkflowManagement: React.FC = () => {
 			await createWorkflow({
 				agent_id: user?.id || '',
 				name,
+				trigger_event: 'email_received', // Add this field
+				email_template: '', // Add this field
+				active: true, // Map to is_active
 				email_filter: {
 					subject_contains: subjectFilters.split(',').map((s) => s.trim()),
 					body_contains: bodyFilters.split(',').map((s) => s.trim()),
@@ -87,7 +151,6 @@ const WorkflowManagement: React.FC = () => {
 					send_application_link: sendApplicationLink,
 					custom_message: customMessage,
 				},
-				is_active: true,
 			});
 
 			setSuccess('Workflow created successfully');
@@ -101,7 +164,7 @@ const WorkflowManagement: React.FC = () => {
 		}
 	};
 
-	const handleEditWorkflow = (workflow: any) => {
+	const handleEditWorkflow = (workflow: WorkflowViewModel) => {
 		setIsEditing(workflow.id);
 		setName(workflow.name);
 		setSubjectFilters(workflow.email_filter.subject_contains?.join(', ') || '');
@@ -126,6 +189,7 @@ const WorkflowManagement: React.FC = () => {
 					send_application_link: sendApplicationLink,
 					custom_message: customMessage,
 				},
+				active: currentWorkflows.find((w) => w.id === id)?.is_active,
 			});
 
 			setSuccess('Workflow updated successfully');
@@ -155,7 +219,7 @@ const WorkflowManagement: React.FC = () => {
 
 	const handleToggleWorkflowStatus = async (id: string, isActive: boolean) => {
 		try {
-			await updateWorkflow(id, { is_active: !isActive });
+			await updateWorkflow(id, { active: !isActive });
 			setSuccess(
 				`Workflow ${isActive ? 'deactivated' : 'activated'} successfully`,
 			);
@@ -194,7 +258,16 @@ const WorkflowManagement: React.FC = () => {
 
 			{error && (
 				<Alert variant='error' className='mb-6'>
-					{error}
+					{error.includes('relation') ? (
+						<>
+							<p>The required database tables haven't been set up yet.</p>
+							<p className='mt-2'>
+								Please contact your administrator to run the database setup.
+							</p>
+						</>
+					) : (
+						error
+					)}
 				</Alert>
 			)}
 
@@ -304,8 +377,8 @@ const WorkflowManagement: React.FC = () => {
 
 			{/* Workflows List */}
 			<div className='grid grid-cols-1 gap-6 mb-8'>
-				{workflows.length > 0 ? (
-					workflows.map((workflow) => (
+				{currentWorkflows.length > 0 ? (
+					currentWorkflows.map((workflow) => (
 						<Card key={workflow.id}>
 							{isEditing === workflow.id ? (
 								// Edit Workflow Form

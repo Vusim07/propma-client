@@ -18,6 +18,7 @@ import Alert from '../../components/ui/Alert';
 import { ArrowLeft, Plus, X } from 'lucide-react';
 import { Property } from '../../types';
 import { showToast } from '../../utils/toast';
+import { Label } from '@/components/ui/label';
 
 const PropertyForm: React.FC = () => {
 	const { id } = useParams<{ id: string }>();
@@ -35,12 +36,12 @@ const PropertyForm: React.FC = () => {
 	const [formData, setFormData] = useState<
 		Omit<Property, 'id' | 'created_at' | 'application_link'>
 	>({
-		owner_id: user?.id || '',
+		agent_id: user?.id || '',
 		address: '',
 		city: '',
-		state: '',
-		zip: '',
-		rent: 0,
+		province: '',
+		postal_code: '',
+		monthly_rent: 0,
 		bedrooms: 1,
 		bathrooms: 1,
 		square_feet: 0,
@@ -50,6 +51,8 @@ const PropertyForm: React.FC = () => {
 		property_type: 'apartment',
 		amenities: [],
 		images: [],
+		suburb: '',
+		deposit_amount: 0,
 	});
 
 	const [amenity, setAmenity] = useState('');
@@ -75,12 +78,12 @@ const PropertyForm: React.FC = () => {
 					.split('T')[0];
 
 				setFormData({
-					owner_id: propertyToEdit.owner_id,
+					agent_id: propertyToEdit.agent_id,
 					address: propertyToEdit.address,
 					city: propertyToEdit.city,
-					state: propertyToEdit.state,
-					zip: propertyToEdit.zip,
-					rent: propertyToEdit.rent,
+					province: propertyToEdit.province,
+					postal_code: propertyToEdit.postal_code,
+					monthly_rent: propertyToEdit.monthly_rent,
 					bedrooms: propertyToEdit.bedrooms,
 					bathrooms: propertyToEdit.bathrooms,
 					square_feet: propertyToEdit.square_feet,
@@ -90,6 +93,8 @@ const PropertyForm: React.FC = () => {
 					property_type: propertyToEdit.property_type,
 					amenities: propertyToEdit.amenities || [],
 					images: propertyToEdit.images || [],
+					suburb: propertyToEdit.suburb,
+					deposit_amount: propertyToEdit.deposit_amount,
 				});
 			}
 		}
@@ -104,10 +109,11 @@ const PropertyForm: React.FC = () => {
 
 		// Handle numeric inputs
 		if (
-			name === 'rent' ||
+			name === 'monthly_rent' ||
 			name === 'bedrooms' ||
 			name === 'bathrooms' ||
-			name === 'square_feet'
+			name === 'square_feet' ||
+			name === 'deposit_amount'
 		) {
 			setFormData({
 				...formData,
@@ -174,15 +180,15 @@ const PropertyForm: React.FC = () => {
 			setFormError('City is required');
 			return false;
 		}
-		if (!formData.state) {
-			setFormError('State is required');
+		if (!formData.province) {
+			setFormError('Province is required');
 			return false;
 		}
-		if (!formData.zip) {
-			setFormError('ZIP code is required');
+		if (!formData.postal_code) {
+			setFormError('Postal code is required');
 			return false;
 		}
-		if (formData.rent <= 0) {
+		if (formData.monthly_rent <= 0) {
 			setFormError('Rent must be greater than 0');
 			return false;
 		}
@@ -279,6 +285,7 @@ const PropertyForm: React.FC = () => {
 					<CardContent>
 						<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
 							<Input
+								placeholder='Address'
 								name='address'
 								value={formData.address}
 								onChange={handleInputChange}
@@ -287,6 +294,7 @@ const PropertyForm: React.FC = () => {
 
 							<div className='grid grid-cols-3 gap-4'>
 								<Input
+									placeholder='City'
 									name='city'
 									value={formData.city}
 									onChange={handleInputChange}
@@ -294,15 +302,17 @@ const PropertyForm: React.FC = () => {
 								/>
 
 								<Input
-									name='state'
-									value={formData.state}
+									placeholder='Province'
+									name='province'
+									value={formData.province}
 									onChange={handleInputChange}
 									required
 								/>
 
 								<Input
-									name='zip'
-									value={formData.zip}
+									placeholder='Postal Code'
+									name='postal_code'
+									value={formData.postal_code}
 									onChange={handleInputChange}
 									required
 								/>
@@ -358,38 +368,72 @@ const PropertyForm: React.FC = () => {
 								</Select>
 							</div>
 
-							<Input
-								name='rent'
-								type='number'
-								value={formData.rent.toString()}
-								onChange={handleInputChange}
-								required
-								min='0'
-								step='50'
-							/>
-
-							<Input
-								name='square_feet'
-								type='number'
-								value={formData.square_feet.toString()}
-								onChange={handleInputChange}
-								required
-								min='0'
-								step='10'
-							/>
-
-							<div className='grid grid-cols-2 gap-4'>
+							<div>
+								<label
+									htmlFor='monthly_rent'
+									className='text-sm font-medium text-gray-700 block mb-1'
+								>
+									Montly Rent
+								</label>
 								<Input
-									name='bedrooms'
+									placeholder='Monthly Rent (R)'
+									name='monthly_rent'
 									type='number'
-									value={formData.bedrooms.toString()}
+									value={formData.monthly_rent.toString()}
+									onChange={handleInputChange}
+									required
+									min='0'
+									step='50'
+								/>
+							</div>
+
+							<div>
+								<label
+									htmlFor='square_feet'
+									className='text-sm font-medium text-gray-700 block mb-1'
+								>
+									Square Feet
+								</label>
+								<Input
+									name='square_feet'
+									type='number'
+									value={formData.square_feet.toString()}
 									onChange={handleInputChange}
 									required
 									min='0'
 									step='1'
 								/>
+							</div>
+							<div>
+								<label
+									htmlFor='bedrooms'
+									className='text-sm font-medium text-gray-700 block mb-1'
+								>
+									Bedrooms
+								</label>
+								<div className='grid grid-cols-2 gap-4'>
+									<Input
+										placeholder='Bedrooms'
+										name='bedrooms'
+										type='number'
+										value={formData.bedrooms.toString()}
+										onChange={handleInputChange}
+										required
+										min='0'
+										step='1'
+									/>
+								</div>
+							</div>
 
+							<div>
+								<label
+									htmlFor='bathrooms'
+									className='text-sm font-medium text-gray-700 block mb-1'
+								>
+									Bathrooms
+								</label>
 								<Input
+									placeholder='Bathrooms'
 									name='bathrooms'
 									type='number'
 									value={formData.bathrooms.toString()}
@@ -399,19 +443,26 @@ const PropertyForm: React.FC = () => {
 									step='0.5'
 								/>
 							</div>
-
-							<Input
-								name='available_from'
-								type='date'
-								value={formData.available_from}
-								onChange={handleInputChange}
-								required
-							/>
+							<div>
+								<label
+									htmlFor='available_from'
+									className='text-sm font-medium text-gray-700 block mb-1'
+								>
+									Available From
+								</label>
+								<Input
+									name='available_from'
+									type='date'
+									value={formData.available_from}
+									onChange={handleInputChange}
+									required
+								/>
+							</div>
 						</div>
 
 						<div className='mt-6'>
 							<Textarea
-								label='Description'
+								label='Property Description'
 								name='description'
 								value={formData.description}
 								onChange={handleInputChange}

@@ -30,6 +30,30 @@ export type DocumentWithFile = Document & {
 
 // Property types
 export type Property = Tables<'properties'>;
+/*
+Properties has fields:
+- id: string
+- agent_id: string
+- address: string
+- city: string
+- province: string (not state)
+- postal_code: string (not zip)
+- monthly_rent: number (not rent)
+- bedrooms: number
+- bathrooms: number
+- square_feet: number
+- available_from: string
+- description: string
+- status: string
+- property_type: string
+- suburb: string
+- deposit_amount: number
+- amenities: any[] (optional)
+- images: string[] (optional)
+- created_at: string
+- updated_at: string
+- application_link?: string
+*/
 export type InsertProperty = InsertTables<'properties'>;
 export type UpdateProperty = UpdateTables<'properties'>;
 
