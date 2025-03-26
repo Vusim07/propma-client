@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand';
 import { supabase } from '../services/supabase';
 import { formatDate } from '../utils/formatters';
@@ -62,7 +63,7 @@ export const useTenantStore = create<TenantState>((set) => ({
 
 			// Use the first profile if multiple exist (though this shouldn't happen)
 			set({
-				profile: data[0],
+				profile: data[0] as any,
 				isLoading: false,
 			});
 		} catch (error) {
