@@ -81,7 +81,7 @@ const ProtectedRoute = ({
 	}, [user, navigate]);
 
 	// Function to check if a profile has minimal required fields
-	const isProfileIncomplete = (profile: Tables<'profiles'>): boolean => {
+	const isProfileIncomplete = (profile: Tables<'users'>): boolean => {
 		// More explicit check to ensure we're only redirecting profiles that are truly incomplete
 		const isMissingRequiredFields =
 			!profile.first_name || !profile.last_name || !profile.phone;

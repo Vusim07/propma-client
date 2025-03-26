@@ -62,7 +62,7 @@ const AuthCallback: React.FC = () => {
 
 				console.log('Profile exists?', !!profileData);
 
-				// Profile doesn't exist - create one with the Edge Function
+				// Create profile if it doesn't exist
 				if (!profileData) {
 					console.log('Creating profile using Edge Function');
 					try {
@@ -119,7 +119,7 @@ const AuthCallback: React.FC = () => {
 									email: normalizedEmail,
 									first_name: firstName,
 									last_name: lastName,
-									role: 'tenant', // Default role for social login
+									role: 'pending', // Use 'pending' to force profile completion
 									phone: null,
 									company_name: null,
 								}),
@@ -136,7 +136,7 @@ const AuthCallback: React.FC = () => {
 									email: normalizedEmail,
 									first_name: firstName,
 									last_name: lastName,
-									role: 'tenant',
+									role: 'pending',
 									phone: null,
 									company_name: null,
 								});
@@ -158,21 +158,38 @@ const AuthCallback: React.FC = () => {
 
 					// Redirect to profile completion for additional details
 					await checkAuth();
-					navigate('/profile-completion');
+					console.log('Redirecting to profile completion');
+					window.location.href = '/profile-completion';
 					return;
 				}
 
-				// Profile exists, proceed to the appropriate dashboard
+				// Check if profile needs completing (if role is pending or empty fields)
+				if (
+					profileData.role === 'pending' ||
+					!profileData.first_name ||
+					!profileData.last_name
+				) {
+					console.log('Profile exists but needs completion');
+					await checkAuth();
+					console.log('Redirecting to profile completion');
+					window.location.href = '/profile-completion';
+					return;
+				}
+
+				// Profile exists and is complete, proceed to the appropriate dashboard
 				await checkAuth();
 				if (profileData.role === 'tenant') {
-					navigate('/tenant');
+					console.log('Redirecting to tenant dashboard');
+					window.location.href = '/tenant';
 				} else if (
 					profileData.role === 'agent' ||
 					profileData.role === 'landlord'
 				) {
-					navigate('/agent');
+					console.log('Redirecting to agent dashboard');
+					window.location.href = '/agent';
 				} else {
-					navigate('/');
+					console.log('Redirecting to home');
+					window.location.href = '/';
 				}
 			} catch (error) {
 				console.error('Auth callback error:', error);

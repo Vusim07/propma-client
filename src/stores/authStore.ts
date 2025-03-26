@@ -17,7 +17,7 @@ interface AuthState {
 	register: (
 		email: string,
 		password: string,
-		role: 'tenant' | 'agent' | 'landlord',
+		role: 'tenant' | 'agent' | 'landlord' | 'pending',
 	) => Promise<{ user: any; profile: Tables<'users'> | null } | undefined>;
 	signup: (
 		email: string,
@@ -386,7 +386,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
 			// Let Supabase's trigger handle profile creation
 			// Wait a moment to ensure the profile has been created
-			await new Promise((resolve) => setTimeout(resolve, 800));
+			await new Promise((resolve) => setTimeout(resolve, 1200)); // Increased timeout
 
 			// Fetch the newly created profile
 			const { data: profileData, error: profileError } = await supabase
@@ -400,7 +400,32 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 					'Error fetching profile after registration:',
 					profileError,
 				);
-				// Don't throw here, we can still continue
+				// Check if the error is just that the profile wasn't found
+				if (profileError.code === 'PGRST116') {
+					// Try creating the profile manually as fallback
+					console.log('Profile not found, creating manually');
+					const { error: insertError } = await supabase.from('users').insert({
+						id: data.user.id,
+						email: normalizedEmail,
+						first_name: '',
+						last_name: '',
+						role: normalizedRole,
+					});
+
+					if (insertError) {
+						console.error('Manual profile creation failed:', insertError);
+					} else {
+						// Fetch again after manual creation
+						const { data: newProfileData } = await supabase
+							.from('users')
+							.select('*')
+							.eq('id', data.user.id)
+							.single();
+
+						set({ user: newProfileData || null });
+						return { user: data.user, profile: newProfileData };
+					}
+				}
 			} else {
 				// Set the user in state
 				set({ user: profileData });

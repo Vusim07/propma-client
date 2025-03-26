@@ -59,17 +59,33 @@ const Register: React.FC = () => {
 			);
 
 			// Pass 'pending' as default role - user will choose actual role during profile completion
-			await registerUser(
+			const result = await registerUser(
 				values.email.trim().toLowerCase(),
 				values.password,
-				'agent',
+				'pending', // Changed from 'agent' to 'pending' to follow our auth flow
 			);
+
+			console.log('Registration result:', result);
+
+			// Ensure we have a valid user before proceeding
+			if (!result || !result.user) {
+				showToast.error('Registration failed. Please try again.');
+				return;
+			}
 
 			showToast.success('Account created! Please complete your profile.');
 
-			// Use window.location for a more reliable redirect
-			console.log('Redirecting to profile completion page');
-			window.location.href = '/profile-completion';
+			// Add a small delay to ensure auth state is propagated
+			setTimeout(() => {
+				// First try using react-router
+				try {
+					window.location.href = '/profile-completion';
+				} catch (navError) {
+					console.error('Navigation error:', navError);
+					// Fallback to direct location change
+					window.location.href = '/profile-completion';
+				}
+			}, 1000); // Increased timeout to ensure profile creation is complete
 		} catch (err: any) {
 			console.error('Registration error:', err);
 

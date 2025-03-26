@@ -60,7 +60,7 @@ export type Database = {
 						foreignKeyName: 'applications_agent_id_fkey';
 						columns: ['agent_id'];
 						isOneToOne: false;
-						referencedRelation: 'profiles';
+						referencedRelation: 'users';
 						referencedColumns: ['id'];
 					},
 					{
@@ -234,7 +234,7 @@ export type Database = {
 						foreignKeyName: 'properties_agent_id_fkey';
 						columns: ['agent_id'];
 						isOneToOne: false;
-						referencedRelation: 'profiles';
+						referencedRelation: 'users';
 						referencedColumns: ['id'];
 					},
 				];
@@ -293,7 +293,7 @@ export type Database = {
 						foreignKeyName: 'screening_reports_agent_id_fkey';
 						columns: ['agent_id'];
 						isOneToOne: false;
-						referencedRelation: 'profiles';
+						referencedRelation: 'users';
 						referencedColumns: ['id'];
 					},
 					{
@@ -392,7 +392,7 @@ export type Database = {
 						foreignKeyName: 'email_workflows_agent_id_fkey';
 						columns: ['agent_id'];
 						isOneToOne: false;
-						referencedRelation: 'profiles';
+						referencedRelation: 'users';
 						referencedColumns: ['id'];
 					},
 				];
@@ -513,7 +513,7 @@ export type Database = {
 						foreignKeyName: 'appointments_agent_id_fkey';
 						columns: ['agent_id'];
 						isOneToOne: false;
-						referencedRelation: 'profiles';
+						referencedRelation: 'users';
 						referencedColumns: ['id'];
 					},
 					{

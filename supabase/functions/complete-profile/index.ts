@@ -142,8 +142,17 @@ serve(async (req) => {
 		}
 
 		// Simplified profile update logic
-		const { id, email, first_name, last_name, role, phone, company_name } =
-			requestData;
+		const {
+			id,
+			email,
+			first_name,
+			last_name,
+			role,
+			phone,
+			company_name,
+			create_tenant_profile = false,
+			tenant_profile = null,
+		} = requestData;
 
 		// Check for required fields
 		if (!id) {
@@ -207,6 +216,50 @@ serve(async (req) => {
 					headers: { ...corsHeaders, 'Content-Type': 'application/json' },
 				},
 			);
+		}
+
+		// If role is tenant and create_tenant_profile flag is true, create a tenant profile
+		if (role === 'tenant' && create_tenant_profile && tenant_profile) {
+			// Check if tenant profile already exists
+			const { data: existingTenant } = await supabaseAdmin
+				.from('tenant_profiles')
+				.select('id')
+				.eq('email', normalizedEmail)
+				.maybeSingle();
+
+			if (existingTenant) {
+				// Update existing tenant profile
+				const { error: tenantError } = await supabaseAdmin
+					.from('tenant_profiles')
+					.update({
+						first_name: first_name || '',
+						last_name: last_name || '',
+						phone: phone || '',
+						...tenant_profile,
+					})
+					.eq('id', existingTenant.id);
+
+				if (tenantError) {
+					console.error('Error updating tenant profile:', tenantError);
+				}
+			} else {
+				// Create new tenant profile
+				const { error: tenantError } = await supabaseAdmin
+					.from('tenant_profiles')
+					.insert({
+						email: normalizedEmail,
+						first_name: first_name || '',
+						last_name: last_name || '',
+						phone: phone || '',
+						...tenant_profile,
+						date_of_birth:
+							tenant_profile.date_of_birth || new Date().toISOString(),
+					});
+
+				if (tenantError) {
+					console.error('Error creating tenant profile:', tenantError);
+				}
+			}
 		}
 
 		console.log('Profile updated successfully');

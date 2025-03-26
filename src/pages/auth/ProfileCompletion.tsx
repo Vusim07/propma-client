@@ -26,17 +26,42 @@ import {
 } from '../../components/ui/Select';
 import { Input } from '../../components/ui/Input';
 import Spinner from '../../components/ui/Spinner';
+import { TenantProfile } from '../../types';
 
 // Schema for profile completion form
-const profileCompletionSchema = z.object({
-	firstName: z.string().min(1, 'First name is required'),
-	lastName: z.string().min(1, 'Last name is required'),
-	role: z.enum(['tenant', 'agent', 'landlord'], {
-		required_error: 'Please select a role',
-	}),
-	phone: z.string().optional(),
-	companyName: z.string().optional(),
-});
+const profileCompletionSchema = z
+	.object({
+		firstName: z.string().min(1, 'First name is required'),
+		lastName: z.string().min(1, 'Last name is required'),
+		role: z.enum(['tenant', 'agent', 'landlord'], {
+			required_error: 'Please select a role',
+		}),
+		phone: z.string().optional(),
+		companyName: z.string().optional(),
+		// Tenant-specific fields
+		id_number: z.string().optional(),
+		employment_status: z.string().optional(),
+		monthly_income: z.coerce.number().optional(),
+		current_address: z.string().optional(),
+	})
+	.refine(
+		(data) => {
+			// If role is tenant, require tenant-specific fields
+			if (data.role === 'tenant') {
+				return (
+					!!data.id_number &&
+					!!data.employment_status &&
+					!!data.monthly_income &&
+					!!data.current_address
+				);
+			}
+			return true;
+		},
+		{
+			message: 'All tenant information is required',
+			path: ['role'],
+		},
+	);
 
 type ProfileCompletionValues = z.infer<typeof profileCompletionSchema>;
 
@@ -44,6 +69,9 @@ const ProfileCompletion: React.FC = () => {
 	const { checkAuth, updateProfile, isLoading, user } = useAuthStore();
 	const [session, setSession] = useState<any>(null);
 	const [initialLoading, setInitialLoading] = useState(true);
+	const [tenantProfile, setTenantProfile] = useState<TenantProfile | null>(
+		null,
+	);
 	const navigate = useNavigate();
 
 	const form = useForm<ProfileCompletionValues>({
@@ -54,8 +82,36 @@ const ProfileCompletion: React.FC = () => {
 			role: 'tenant',
 			phone: '',
 			companyName: '',
+			id_number: '',
+			employment_status: '',
+			monthly_income: undefined,
+			current_address: '',
 		},
 	});
+
+	// Watch the role field to conditionally render tenant-specific fields
+	const selectedRole = form.watch('role');
+
+	// Fetch existing tenant profile if available
+	const fetchTenantProfile = async (email: string) => {
+		try {
+			const { data, error } = await supabase
+				.from('tenant_profiles')
+				.select('*')
+				.eq('email', email)
+				.maybeSingle();
+
+			if (error) {
+				console.error('Error fetching tenant profile:', error);
+				return null;
+			}
+
+			return data;
+		} catch (error) {
+			console.error('Error in fetchTenantProfile:', error);
+			return null;
+		}
+	};
 
 	// Check if user has a session and pre-fill form with existing data
 	useEffect(() => {
@@ -79,6 +135,26 @@ const ProfileCompletion: React.FC = () => {
 
 				form.setValue('phone', user.phone || '');
 				form.setValue('companyName', user.company_name || '');
+
+				// If user is a tenant, try to fetch tenant profile
+				if (user.role === 'tenant' && user.email) {
+					const tenantData = await fetchTenantProfile(user.email);
+					if (tenantData) {
+						setTenantProfile(tenantData);
+
+						// Pre-fill tenant-specific fields
+						form.setValue('id_number', tenantData.id_number || '');
+						form.setValue(
+							'employment_status',
+							tenantData.employment_status || '',
+						);
+						form.setValue(
+							'monthly_income',
+							tenantData.monthly_income || undefined,
+						);
+						form.setValue('current_address', tenantData.current_address || '');
+					}
+				}
 			} else {
 				// Pre-fill from auth metadata if available
 				const { user: authUser } = data.session;
@@ -101,6 +177,27 @@ const ProfileCompletion: React.FC = () => {
 					if (authUser.phone) {
 						form.setValue('phone', authUser.phone);
 					}
+
+					// If email available and role is tenant, check for tenant profile
+					if (authUser.email && role === 'tenant') {
+						const tenantData = await fetchTenantProfile(authUser.email);
+						if (tenantData) {
+							setTenantProfile(tenantData);
+							form.setValue('id_number', tenantData.id_number || '');
+							form.setValue(
+								'employment_status',
+								tenantData.employment_status || '',
+							);
+							form.setValue(
+								'monthly_income',
+								tenantData.monthly_income || undefined,
+							);
+							form.setValue(
+								'current_address',
+								tenantData.current_address || '',
+							);
+						}
+					}
 				}
 			}
 
@@ -121,32 +218,85 @@ const ProfileCompletion: React.FC = () => {
 			// Show loading feedback
 			showToast.info('Updating your profile...');
 
-			console.log('Submitting profile with role:', values.role);
-
 			// Ensure role is valid
 			if (!['tenant', 'agent', 'landlord'].includes(values.role)) {
 				showToast.error('Invalid role selected');
 				return;
 			}
 
-			// Update profile directly through the auth store
-			await updateProfile({
+			// 1. First update the basic user profile
+			const userData = {
 				first_name: values.firstName,
 				last_name: values.lastName,
 				role: values.role,
 				phone: values.phone || null,
 				company_name: values.companyName || null,
-			});
+			};
+
+			await updateProfile(userData);
+
+			// 2. If user is a tenant, create or update tenant_profile
+			if (values.role === 'tenant') {
+				const userEmail = session.user.email;
+				if (!userEmail) {
+					showToast.error('User email not found');
+					return;
+				}
+
+				// Prepare tenant profile data
+				const tenantData = {
+					id: tenantProfile?.id, // Will be undefined for new profiles
+					email: userEmail,
+					first_name: values.firstName,
+					last_name: values.lastName,
+					phone: values.phone || '',
+					id_number: values.id_number || '',
+					employment_status: values.employment_status || '',
+					monthly_income: values.monthly_income || 0,
+					current_address: values.current_address || '',
+					date_of_birth:
+						tenantProfile?.date_of_birth || new Date().toISOString(), // Required field, use existing or default
+				};
+
+				// Check if tenant profile exists
+				if (tenantProfile?.id) {
+					// Update existing profile
+					const { error } = await supabase
+						.from('tenant_profiles')
+						.update({
+							first_name: tenantData.first_name,
+							last_name: tenantData.last_name,
+							phone: tenantData.phone,
+							id_number: tenantData.id_number,
+							employment_status: tenantData.employment_status,
+							monthly_income: tenantData.monthly_income,
+							current_address: tenantData.current_address,
+						})
+						.eq('id', tenantProfile.id);
+
+					if (error) {
+						console.error('Error updating tenant profile:', error);
+						showToast.error('Failed to update tenant profile');
+						return;
+					}
+				} else {
+					// Create new tenant profile
+					const { error } = await supabase
+						.from('tenant_profiles')
+						.insert(tenantData);
+
+					if (error) {
+						console.error('Error creating tenant profile:', error);
+						showToast.error('Failed to create tenant profile');
+						return;
+					}
+				}
+			}
 
 			// Refresh auth state
 			await checkAuth();
 
 			showToast.success('Profile updated successfully!');
-
-			console.log(
-				'Profile updated, navigating to dashboard for role:',
-				values.role,
-			);
 
 			// Add a small delay to ensure state updates propagate
 			setTimeout(() => {
@@ -167,6 +317,15 @@ const ProfileCompletion: React.FC = () => {
 		{ value: 'tenant', label: 'Tenant' },
 		{ value: 'agent', label: 'Agent' },
 		{ value: 'landlord', label: 'Landlord' },
+	];
+
+	const employmentStatusOptions = [
+		{ value: 'full-time', label: 'Full-time employed' },
+		{ value: 'part-time', label: 'Part-time employed' },
+		{ value: 'self-employed', label: 'Self-employed' },
+		{ value: 'unemployed', label: 'Unemployed' },
+		{ value: 'student', label: 'Student' },
+		{ value: 'retired', label: 'Retired' },
 	];
 
 	if (initialLoading) {
@@ -228,7 +387,7 @@ const ProfileCompletion: React.FC = () => {
 						/>
 					</div>
 
-					{/* Make the role selection more prominent */}
+					{/* Role selection */}
 					<FormField
 						control={form.control}
 						name='role'
@@ -271,7 +430,7 @@ const ProfileCompletion: React.FC = () => {
 						)}
 					/>
 
-					{form.watch('role') !== 'tenant' && (
+					{selectedRole !== 'tenant' && (
 						<FormField
 							control={form.control}
 							name='companyName'
@@ -285,6 +444,91 @@ const ProfileCompletion: React.FC = () => {
 								</FormItem>
 							)}
 						/>
+					)}
+
+					{/* Tenant-specific fields */}
+					{selectedRole === 'tenant' && (
+						<div className='space-y-4 border p-4 rounded-lg bg-blue-50'>
+							<h3 className='font-medium text-blue-800'>Tenant Information</h3>
+
+							<FormField
+								control={form.control}
+								name='id_number'
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>ID Number</FormLabel>
+										<FormControl>
+											<Input placeholder='South African ID Number' {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+
+							<FormField
+								control={form.control}
+								name='employment_status'
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Employment Status</FormLabel>
+										<FormControl>
+											<Select
+												value={field.value}
+												onValueChange={field.onChange}
+											>
+												<SelectTrigger className='w-full'>
+													<SelectValue placeholder='Select your employment status' />
+												</SelectTrigger>
+												<SelectContent>
+													{employmentStatusOptions.map((option) => (
+														<SelectItem key={option.value} value={option.value}>
+															{option.label}
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+
+							<FormField
+								control={form.control}
+								name='monthly_income'
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Monthly Income (ZAR)</FormLabel>
+										<FormControl>
+											<Input
+												type='number'
+												placeholder='R 0.00'
+												{...field}
+												onChange={(e) => field.onChange(e.target.valueAsNumber)}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+
+							<FormField
+								control={form.control}
+								name='current_address'
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Current Address</FormLabel>
+										<FormControl>
+											<Input
+												placeholder='Your current residential address'
+												{...field}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
 					)}
 
 					<Button type='submit' className='w-full mt-6' isLoading={isLoading}>
