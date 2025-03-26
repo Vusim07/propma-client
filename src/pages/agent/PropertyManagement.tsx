@@ -154,9 +154,6 @@ const PropertyManagement: React.FC = () => {
 		<div>
 			<div className='mb-6 flex flex-col md:flex-row md:items-center md:justify-between'>
 				<div>
-					<h1 className='text-2xl font-bold text-gray-900'>
-						Property Management
-					</h1>
 					<p className='text-gray-600 mt-1'>
 						Manage your rental properties and listings
 					</p>

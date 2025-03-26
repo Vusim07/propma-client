@@ -74,7 +74,7 @@ export type Database = {
 						foreignKeyName: 'applications_tenant_id_fkey';
 						columns: ['tenant_id'];
 						isOneToOne: false;
-						referencedRelation: 'tenants';
+						referencedRelation: 'tenant_profiles';
 						referencedColumns: ['id'];
 					},
 				];
@@ -446,7 +446,7 @@ export type Database = {
 						foreignKeyName: 'workflow_logs_tenant_id_fkey';
 						columns: ['tenant_id'];
 						isOneToOne: false;
-						referencedRelation: 'tenants';
+						referencedRelation: 'tenant_profiles';
 						referencedColumns: ['id'];
 					},
 					{
@@ -506,7 +506,7 @@ export type Database = {
 						foreignKeyName: 'appointments_tenant_id_fkey';
 						columns: ['tenant_id'];
 						isOneToOne: false;
-						referencedRelation: 'tenants';
+						referencedRelation: 'tenant_profiles';
 						referencedColumns: ['id'];
 					},
 					{

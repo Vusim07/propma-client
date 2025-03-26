@@ -101,9 +101,6 @@ const ReviewApplications: React.FC = () => {
 	return (
 		<div>
 			<div className='mb-6'>
-				<h1 className='text-2xl font-bold text-gray-900'>
-					Review Applications
-				</h1>
 				<p className='text-gray-600 mt-1'>
 					Manage and review tenant applications
 				</p>

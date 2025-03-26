@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { Card, CardHeader, CardContent } from '../../components/ui/Card';
@@ -19,6 +19,8 @@ import {
 	MessageSquare,
 } from 'lucide-react';
 import 'react-calendar/dist/Calendar.css';
+import { supabase } from '../../services/supabase';
+import { usePageTitle } from '../../context/PageTitleContext';
 
 type ValuePiece = Date | null;
 type Value = ValuePiece | [ValuePiece, ValuePiece];
@@ -44,6 +46,8 @@ interface Property {
 }
 
 const ManageAppointments: React.FC = () => {
+	const { setPageTitle } = usePageTitle();
+
 	const { user } = useAuthStore();
 	const [appointments, setAppointments] = useState<Appointment[]>([]);
 	const [properties, setProperties] = useState<Property[]>([]);
@@ -55,75 +59,59 @@ const ManageAppointments: React.FC = () => {
 	const [selectedAppointment, setSelectedAppointment] =
 		useState<Appointment | null>(null);
 
-	// Mock data for MVP
 	useEffect(() => {
+		setPageTitle('Viewing Appointments');
 		const fetchData = async () => {
 			setIsLoading(true);
 			setError('');
 
 			try {
-				// In a real app, we would fetch from Supabase
-				// const { data: appointmentsData, error: appointmentsError } = await supabase
-				//   .from('appointments')
-				//   .select('*, tenant_profiles(*), properties(*)')
-				//   .eq('agent_id', user.id);
-				// if (appointmentsError) throw appointmentsError;
+				if (!user?.id) {
+					throw new Error('User not authenticated');
+				}
 
-				// For MVP, we'll use mock data
-				await new Promise((resolve) => setTimeout(resolve, 800));
+				// Fetch properties
+				const { data: propertiesData, error: propertiesError } = await supabase
+					.from('properties')
+					.select('id, address')
+					.eq('agent_id', user.id);
 
-				const mockProperties = [
-					{ id: '1', address: '456 Oak Ave, Metropolis, NY 10001' },
-					{ id: '2', address: '789 Pine St, Metropolis, NY 10002' },
-				];
+				if (propertiesError) throw propertiesError;
 
-				const mockAppointments = [
-					{
-						id: '1',
-						tenant_id: '1',
-						property_id: '1',
-						agent_id: '2',
-						date: '2023-06-15',
-						start_time: '10:00',
-						end_time: '10:30',
-						status: 'scheduled',
-						notes: 'First viewing of the property',
-						created_at: new Date().toISOString(),
-						tenant_name: 'John Doe',
-						property_address: '456 Oak Ave, Metropolis, NY 10001',
-					},
-					{
-						id: '2',
-						tenant_id: '4',
-						property_id: '2',
-						agent_id: '2',
-						date: '2023-06-16',
-						start_time: '14:00',
-						end_time: '14:30',
-						status: 'scheduled',
-						notes: 'Interested in the backyard and garage',
-						created_at: new Date().toISOString(),
-						tenant_name: 'Jane Smith',
-						property_address: '789 Pine St, Metropolis, NY 10002',
-					},
-					{
-						id: '3',
-						tenant_id: '5',
-						property_id: '1',
-						agent_id: '2',
-						date: '2023-06-14',
-						start_time: '11:00',
-						end_time: '11:30',
-						status: 'completed',
-						notes: 'Tenant was very interested in the property',
-						created_at: new Date().toISOString(),
-						tenant_name: 'Robert Johnson',
-						property_address: '456 Oak Ave, Metropolis, NY 10001',
-					},
-				];
+				// Fetch appointments with tenant and property details
+				const { data: appointmentsData, error: appointmentsError } =
+					await supabase
+						.from('appointments')
+						.select(
+							`
+						*,
+						tenant_profiles:tenant_id(id, first_name, last_name),
+						properties:property_id(id, address)
+					`,
+						)
+						.eq('agent_id', user.id);
 
-				setAppointments(mockAppointments as any);
-				setProperties(mockProperties);
+				if (appointmentsError) throw appointmentsError;
+
+				// Format appointments for display
+				const formattedAppointments = appointmentsData.map((appointment) => ({
+					...appointment,
+					// Extract tenant name from joined data
+					tenant_name: appointment.tenant_profiles
+						? `${appointment.tenant_profiles.first_name} ${appointment.tenant_profiles.last_name}`
+						: 'Unknown Tenant',
+					// Extract property ad;dress from joined data
+					property_address:
+						appointment.properties?.address || 'Unknown Property',
+					// Default values if missing
+					start_time: appointment.time || '09:00',
+					end_time: appointment.time
+						? formatEndTime(appointment.time)
+						: '09:30',
+				}));
+
+				setProperties(propertiesData || []);
+				setAppointments(formattedAppointments);
 				setIsLoading(false);
 			} catch (error) {
 				console.error('Error fetching data:', error);
@@ -132,10 +120,21 @@ const ManageAppointments: React.FC = () => {
 			}
 		};
 
+		// Helper function to calculate end time (30 minutes after start)
+		const formatEndTime = (startTime: string) => {
+			const [hours, minutes] = startTime.split(':').map(Number);
+			const endMinutes = minutes + 30;
+			const newHours = hours + Math.floor(endMinutes / 60);
+			const newMinutes = endMinutes % 60;
+			return `${newHours.toString().padStart(2, '0')}:${newMinutes
+				.toString()
+				.padStart(2, '0')}`;
+		};
+
 		if (user) {
 			fetchData();
 		}
-	}, [user]);
+	}, [user, setPageTitle]);
 
 	const handleDateChange = (value: Value) => {
 		setDate(value);
@@ -156,16 +155,15 @@ const ManageAppointments: React.FC = () => {
 		setIsLoading(true);
 
 		try {
-			// In a real app, we would update in Supabase
-			// const { error } = await supabase
-			//   .from('appointments')
-			//   .update({ status: newStatus })
-			//   .eq('id', appointmentId);
-			// if (error) throw error;
+			// Update appointment status in Supabase
+			const { error } = await supabase
+				.from('appointments')
+				.update({ status: newStatus })
+				.eq('id', appointmentId);
 
-			// For MVP, we'll update the local state
-			await new Promise((resolve) => setTimeout(resolve, 500));
+			if (error) throw error;
 
+			// Update local state
 			setAppointments((prevAppointments) =>
 				prevAppointments.map((appointment) =>
 					appointment.id === appointmentId
@@ -225,9 +223,6 @@ const ManageAppointments: React.FC = () => {
 	return (
 		<div>
 			<div className='mb-6'>
-				<h1 className='text-2xl font-bold text-gray-900'>
-					Manage Appointments
-				</h1>
 				<p className='text-gray-600 mt-1'>
 					Schedule and manage property viewing appointments
 				</p>

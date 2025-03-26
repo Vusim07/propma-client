@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useAgentStore } from '../../stores/agentStore';
+import { usePageTitle } from '../../context/PageTitleContext';
+
 import {
 	Card,
 	CardHeader,
@@ -71,6 +73,8 @@ const mapWorkflowToViewModel = (
 
 const WorkflowManagement: React.FC = () => {
 	const { user } = useAuthStore();
+	const { setPageTitle } = usePageTitle();
+
 	const {
 		workflows,
 		workflowLogs,
@@ -99,6 +103,7 @@ const WorkflowManagement: React.FC = () => {
 	);
 
 	useEffect(() => {
+		setPageTitle('Workflows & Automation');
 		if (user) {
 			// Add try-catch to handle missing table gracefully
 			const loadWorkflows = async () => {
@@ -113,7 +118,7 @@ const WorkflowManagement: React.FC = () => {
 
 			loadWorkflows();
 		}
-	}, [user, fetchWorkflows, fetchWorkflowLogs]);
+	}, [user, fetchWorkflows, fetchWorkflowLogs, setPageTitle]);
 
 	useEffect(() => {
 		// Transform workflows to view model format
@@ -245,9 +250,6 @@ const WorkflowManagement: React.FC = () => {
 	return (
 		<div>
 			<div className='mb-6'>
-				<h1 className='text-2xl font-bold text-gray-900'>
-					Email Workflow Management
-				</h1>
 				<p className='text-gray-600 mt-1'>
 					Create and manage automated workflows for handling incoming email
 					inquiries
