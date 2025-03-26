@@ -73,7 +73,7 @@ serve(async (req) => {
 			}
 
 			const { error } = await supabaseAdmin
-				.from('profiles')
+				.from('users')
 				.delete()
 				.eq('id', tempId);
 
@@ -102,7 +102,7 @@ serve(async (req) => {
 
 			// First check if newId already has a profile
 			const { data: existingProfile } = await supabaseAdmin
-				.from('profiles')
+				.from('users')
 				.select('id')
 				.eq('id', newId)
 				.maybeSingle();
@@ -120,7 +120,7 @@ serve(async (req) => {
 
 			// Update the ID of the temporary profile
 			const { data, error } = await supabaseAdmin
-				.from('profiles')
+				.from('users')
 				.update({ id: newId })
 				.eq('id', oldId)
 				.eq('email', email) // Make sure email matches as a safety check
@@ -185,7 +185,7 @@ serve(async (req) => {
 
 		// Update the profile (it should already exist from the auth trigger)
 		const { data, error } = await supabaseAdmin
-			.from('profiles')
+			.from('users')
 			.update({
 				email: normalizedEmail,
 				first_name: first_name || '',

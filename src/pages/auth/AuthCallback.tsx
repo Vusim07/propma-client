@@ -55,7 +55,7 @@ const AuthCallback: React.FC = () => {
 
 				// Check if profile exists for this user
 				const { data: profileData, error: profileError } = await supabase
-					.from('profiles')
+					.from('users')
 					.select('*')
 					.eq('id', session.user.id)
 					.maybeSingle();
@@ -88,7 +88,7 @@ const AuthCallback: React.FC = () => {
 						if (profileId) {
 							// Just update the existing profile
 							const { error: updateError } = await supabase
-								.from('profiles')
+								.from('users')
 								.update({
 									id: session.user.id,
 									email: session.user.email.trim().toLowerCase(),
@@ -130,7 +130,7 @@ const AuthCallback: React.FC = () => {
 							console.error('Edge function error:', edgeFnError);
 							// Try direct database insert as fallback
 							const { error: directError } = await supabase
-								.from('profiles')
+								.from('users')
 								.insert({
 									id: session.user.id,
 									email: normalizedEmail,

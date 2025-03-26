@@ -325,7 +325,7 @@ export const useAgentStore = create<AgentState>((set) => ({
 			const dbUpdates: WorkflowUpdateFields = {
 				...updates,
 				// If is_active is provided, map it to active
-				...(updates.is_active !== undefined && { active: updates.is_active }),
+				...(updates.active !== undefined && { active: updates.active }),
 			};
 
 			// Remove is_active property if it exists

@@ -45,19 +45,33 @@ export const useTenantStore = create<TenantState>((set) => ({
 		set({ isLoading: true, error: null });
 		try {
 			const { data, error } = await supabase
-				.from('tenants')
+				.from('users')
 				.select('*')
-				.eq('id', tenantId)
-				.single();
+				.eq('id', tenantId);
 
 			if (error) throw error;
 
+			// If data is an empty array, no profile exists yet
+			if (!data || data.length === 0) {
+				set({
+					profile: null,
+					isLoading: false,
+				});
+				return;
+			}
+
+			// Use the first profile if multiple exist (though this shouldn't happen)
 			set({
-				profile: data || null,
+				profile: data[0],
 				isLoading: false,
 			});
 		} catch (error) {
-			set({ error: (error as Error).message, isLoading: false });
+			console.error('Error fetching tenant profile:', error);
+			set({
+				error: (error as Error).message,
+				isLoading: false,
+				profile: null, // Reset profile on error
+			});
 		}
 	},
 
@@ -69,7 +83,7 @@ export const useTenantStore = create<TenantState>((set) => ({
 			}
 
 			const { data, error } = await supabase
-				.from('tenants')
+				.from('tenant_profiles')
 				.update(profile)
 				.eq('id', profile.id)
 				.select()
@@ -148,17 +162,35 @@ export const useTenantStore = create<TenantState>((set) => ({
 	fetchScreeningReport: async (applicationId) => {
 		set({ isLoading: true, error: null });
 		try {
+			// Don't use single() which can cause 406 errors when no report exists
 			const { data, error } = await supabase
 				.from('screening_reports')
 				.select('*')
-				.eq('application_id', applicationId)
-				.single();
+				.eq('application_id', applicationId);
 
 			if (error) throw error;
 
-			set({ screeningReport: data, isLoading: false });
+			// If no data or empty array, set screeningReport to null
+			if (!data || data.length === 0) {
+				set({
+					screeningReport: null,
+					isLoading: false,
+				});
+				return;
+			}
+
+			// Use the first report if multiple exist (though this shouldn't happen)
+			set({
+				screeningReport: data[0],
+				isLoading: false,
+			});
 		} catch (error) {
-			set({ error: (error as Error).message, isLoading: false });
+			console.error('Error fetching screening report:', error);
+			set({
+				error: (error as Error).message,
+				isLoading: false,
+				screeningReport: null, // Reset on error
+			});
 		}
 	},
 

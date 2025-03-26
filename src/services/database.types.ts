@@ -123,7 +123,7 @@ export type Database = {
 					},
 				];
 			};
-			profiles: {
+			users: {
 				Row: {
 					company_name: string | null;
 					created_at: string;
@@ -305,7 +305,7 @@ export type Database = {
 					},
 				];
 			};
-			tenants: {
+			tenant_profiles: {
 				Row: {
 					created_at: string;
 					current_address: string;

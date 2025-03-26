@@ -1,4 +1,6 @@
-import React, { useEffect } from 'react';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { useTenantStore } from '../../stores/tenantStore';
@@ -7,11 +9,19 @@ import { Card, CardHeader, CardContent } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
 import Badge from '../../components/ui/Badge';
-import { FileText, CheckSquare, Calendar, ArrowRight } from 'lucide-react';
+import {
+	FileText,
+	CheckSquare,
+	Calendar,
+	ArrowRight,
+	RefreshCw,
+} from 'lucide-react';
+import { showToast } from '../../utils/toast';
 
 const TenantDashboard: React.FC = () => {
 	const { user } = useAuthStore();
 	const { setPageTitle } = usePageTitle();
+	const [refreshing, setRefreshing] = useState(false);
 	const {
 		profile,
 		documents,
@@ -22,26 +32,53 @@ const TenantDashboard: React.FC = () => {
 		fetchScreeningReport,
 		fetchAppointments,
 		isLoading,
+		error,
 	} = useTenantStore();
 
 	useEffect(() => {
 		setPageTitle('Dashboard');
 		if (user) {
-			fetchProfile(user.id);
-			fetchDocuments(user.id);
-			fetchScreeningReport(user.id);
-			fetchAppointments(user.id);
+			loadTenantData();
 		}
-	}, [
-		user,
-		fetchProfile,
-		fetchDocuments,
-		fetchScreeningReport,
-		fetchAppointments,
-		setPageTitle,
-	]);
+	}, [user, setPageTitle]);
 
-	if (isLoading) {
+	const loadTenantData = async () => {
+		if (!user) return;
+		console.log(user);
+
+		try {
+			// First fetch profile to check if it exists
+			await fetchProfile(user.id);
+
+			// Then fetch other data
+			await Promise.all([
+				fetchDocuments(user.id),
+				fetchScreeningReport(user.id),
+				fetchAppointments(user.id),
+			]);
+		} catch (err) {
+			console.error('Error loading tenant data:', err);
+			showToast.error('Failed to load your profile information');
+		}
+	};
+
+	const handleRefresh = async () => {
+		setRefreshing(true);
+		const toastId = showToast.loading('Refreshing your profile...');
+
+		try {
+			await loadTenantData();
+			showToast.dismiss(toastId as any);
+			showToast.success('Your profile has been refreshed');
+		} catch (err) {
+			showToast.dismiss(toastId as any);
+			// Error is already handled in loadTenantData
+		} finally {
+			setRefreshing(false);
+		}
+	};
+
+	if (isLoading && !profile) {
 		return (
 			<div className='flex justify-center items-center h-64'>
 				<Spinner size='lg' />
@@ -49,19 +86,58 @@ const TenantDashboard: React.FC = () => {
 		);
 	}
 
+	if (error) {
+		return (
+			<div className='text-center p-6'>
+				<h2 className='text-xl font-semibold text-red-600 mb-2'>
+					Error Loading Profile
+				</h2>
+				<p className='text-gray-600 mb-4'>{error}</p>
+				<Button onClick={handleRefresh} disabled={refreshing}>
+					{refreshing ? (
+						<>
+							<Spinner size='sm' className='mr-2' />
+							Retrying...
+						</>
+					) : (
+						<>
+							<RefreshCw size={16} className='mr-2' />
+							Retry
+						</>
+					)}
+				</Button>
+			</div>
+		);
+	}
+
 	return (
 		<div>
-			<div className='mb-6'>
-				<h1 className='text-2xl font-bold text-gray-900'>
-					Welcome, {profile?.first_name || 'Tenant'}
-				</h1>
-				<p className='text-gray-600 mt-1'>
-					Manage your rental application process
-				</p>
+			<div className='mb-6 flex justify-between items-center'>
+				<div>
+					<h1 className='text-2xl font-bold text-gray-900'>
+						Welcome, {user?.first_name || 'Tenant'}
+					</h1>
+					<p className='text-gray-600 mt-1'>
+						Manage your rental application process
+					</p>
+				</div>
+				<Button
+					variant='outline'
+					size='sm'
+					onClick={handleRefresh}
+					disabled={refreshing || isLoading}
+				>
+					{refreshing ? (
+						<Spinner size='sm' className='mr-2' />
+					) : (
+						<RefreshCw size={16} className='mr-2' />
+					)}
+					Refresh
+				</Button>
 			</div>
 
+			{/* Documents Card */}
 			<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'>
-				{/* Documents Card */}
 				<Card>
 					<CardHeader className='flex items-center justify-between'>
 						<h2 className='text-lg font-semibold'>Documents</h2>
@@ -159,11 +235,22 @@ const TenantDashboard: React.FC = () => {
 
 			{/* Profile Information */}
 			<Card>
-				<CardHeader>
+				<CardHeader className='flex items-center justify-between'>
 					<h2 className='text-lg font-semibold'>Profile Information</h2>
+					{isLoading && <Spinner size='sm' />}
 				</CardHeader>
 				<CardContent>
-					{profile ? (
+					{!profile ? (
+						<div className='text-center py-4'>
+							<p className='text-gray-600 mb-4'>
+								You haven't created a tenant profile yet. A complete profile is
+								required for rental applications.
+							</p>
+							<Link to='/tenant/profile'>
+								<Button size='lg'>Create Your Profile</Button>
+							</Link>
+						</div>
+					) : (
 						<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
 							<div>
 								<p className='text-sm text-gray-500'>Full Name</p>
@@ -177,25 +264,50 @@ const TenantDashboard: React.FC = () => {
 							</div>
 							<div>
 								<p className='text-sm text-gray-500'>Phone</p>
-								<p className='font-medium'>{profile.phone}</p>
+								<p className='font-medium'>{profile.phone || 'Not provided'}</p>
 							</div>
 							<div>
 								<p className='text-sm text-gray-500'>Current Address</p>
-								<p className='font-medium'>{profile.current_address}</p>
+								<p className='font-medium'>
+									{profile.current_address || 'Not provided'}
+								</p>
 							</div>
 							<div>
 								<p className='text-sm text-gray-500'>Employment Status</p>
-								<p className='font-medium'>{profile.employment_status}</p>
+								<p className='font-medium'>
+									{profile.employment_status || 'Not provided'}
+								</p>
 							</div>
 							<div>
 								<p className='text-sm text-gray-500'>Monthly Income</p>
 								<p className='font-medium'>
-									R{profile.monthly_income.toLocaleString()}
+									{profile.monthly_income
+										? `R${profile.monthly_income.toLocaleString('en-ZA')}`
+										: 'Not provided'}
+								</p>
+							</div>
+							<div>
+								<p className='text-sm text-gray-500'>ID Number</p>
+								<p className='font-medium'>
+									{profile.id_number || 'Not provided'}
+								</p>
+							</div>
+							<div>
+								<p className='text-sm text-gray-500'>Date of Birth</p>
+								<p className='font-medium'>
+									{profile.date_of_birth
+										? new Date(profile.date_of_birth).toLocaleDateString(
+												'en-ZA',
+												{
+													day: '2-digit',
+													month: '2-digit',
+													year: 'numeric',
+												},
+										  )
+										: 'Not provided'}
 								</p>
 							</div>
 						</div>
-					) : (
-						<p className='text-gray-600'>No profile information available</p>
 					)}
 				</CardContent>
 			</Card>

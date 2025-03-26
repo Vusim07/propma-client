@@ -9,14 +9,14 @@ export type UpdateTables<T extends keyof Database['public']['Tables']> =
 	Database['public']['Tables'][T]['Update'];
 
 // User profile types
-export type Profile = Tables<'profiles'>;
-export type InsertProfile = InsertTables<'profiles'>;
-export type UpdateProfile = UpdateTables<'profiles'>;
+export type Profile = Tables<'users'>;
+export type InsertProfile = InsertTables<'users'>;
+export type UpdateProfile = UpdateTables<'users'>;
 
 // Tenant types
-export type TenantProfile = Tables<'tenants'>;
-export type InsertTenantProfile = InsertTables<'tenants'>;
-export type UpdateTenantProfile = UpdateTables<'tenants'>;
+export type TenantProfile = Tables<'tenant_profiles'>;
+export type InsertTenantProfile = InsertTables<'tenant_profiles'>;
+export type UpdateTenantProfile = UpdateTables<'tenant_profiles'>;
 
 // Document types
 export type Document = Tables<'documents'>;

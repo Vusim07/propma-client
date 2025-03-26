@@ -4,34 +4,31 @@ import { supabase } from '../services/supabase';
 import { Tables } from '../services/database.types';
 
 interface AuthState {
-	user: Tables<'profiles'> | null;
+	user: Tables<'users'> | null;
 	session: any | null;
 	loading: boolean;
 	isLoading: boolean;
 	error: string | null;
 
 	// Actions
-	login: (
-		email: string,
-		password: string,
-	) => Promise<Tables<'profiles'> | null>;
+	login: (email: string, password: string) => Promise<Tables<'users'> | null>;
 	loginWithMagicLink: (email: string) => Promise<void>;
 	loginWithSocial: (provider: 'google' | 'facebook') => Promise<void>;
 	register: (
 		email: string,
 		password: string,
 		role: 'tenant' | 'agent' | 'landlord',
-	) => Promise<{ user: any; profile: Tables<'profiles'> | null } | undefined>;
+	) => Promise<{ user: any; profile: Tables<'users'> | null } | undefined>;
 	signup: (
 		email: string,
 		password: string,
-		userData: Partial<Tables<'profiles'>>,
+		userData: Partial<Tables<'users'>>,
 	) => Promise<void>;
 	logout: () => Promise<void>;
 	resetPassword: (email: string) => Promise<void>;
 	updateProfile: (
-		updates: Partial<Tables<'profiles'>>,
-	) => Promise<Tables<'profiles'>>; // Fixed return type
+		updates: Partial<Tables<'users'>>,
+	) => Promise<Tables<'users'>>; // Fixed return type
 	getProfile: () => Promise<void>;
 	checkAuth: () => Promise<void>;
 	initialize: () => Promise<boolean>;
@@ -62,7 +59,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
 			// Get user profile data
 			const { data: profileData, error: profileError } = await supabase
-				.from('profiles')
+				.from('users')
 				.select('*')
 				.eq('id', data.user.id)
 				.single();
@@ -185,7 +182,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
 			// 2. Create profile
 			if (data.user) {
-				const { error: profileError } = await supabase.from('profiles').insert({
+				const { error: profileError } = await supabase.from('users').insert({
 					id: data.user.id,
 					email,
 					first_name: userData.first_name || '',
@@ -261,7 +258,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 			console.log('Updating profile with data:', normalizedUpdates);
 
 			const { error } = await supabase
-				.from('profiles')
+				.from('users')
 				.update(normalizedUpdates)
 				.eq('id', user.id);
 
@@ -300,7 +297,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 			}
 
 			const { data, error } = await supabase
-				.from('profiles')
+				.from('users')
 				.select('*')
 				.eq('id', sessionData.session.user.id)
 				.single();
@@ -393,7 +390,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
 			// Fetch the newly created profile
 			const { data: profileData, error: profileError } = await supabase
-				.from('profiles')
+				.from('users')
 				.select('*')
 				.eq('id', data.user.id)
 				.single();
@@ -448,7 +445,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
 			// Fetch the profile for this session
 			const { data: profileData, error: profileError } = await supabase
-				.from('profiles')
+				.from('users')
 				.select('*')
 				.eq('id', sessionData.session.user.id)
 				.single();
