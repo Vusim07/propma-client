@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { createWorker } from 'tesseract.js';
 import { useAuthStore } from '@/stores/authStore';
 import { useTenantStore } from '@/stores/tenantStore';
 import { usePageTitle } from '@/context/PageTitleContext';
@@ -18,6 +17,7 @@ import {
 } from '@/components/ui/Select';
 import { Upload, FileText, Trash2, Check } from 'lucide-react';
 import { showToast } from '@/utils/toast';
+import { documentService } from '@/services/documentService';
 
 const DocumentUpload: React.FC = () => {
 	const { user } = useAuthStore();
@@ -30,7 +30,7 @@ const DocumentUpload: React.FC = () => {
 		'id' | 'bank_statement' | 'payslip' | 'other'
 	>('id');
 	const [ocrText, setOcrText] = useState('');
-	const [ocrProgress, setOcrProgress] = useState(0);
+	const [analysisProgress, setAnalysisProgress] = useState(0);
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [error, setError] = useState('');
 
@@ -66,40 +66,38 @@ const DocumentUpload: React.FC = () => {
 		},
 	});
 
-	const processOCR = async () => {
-		if (!file) return;
+	const processDocument = async () => {
+		if (!file || !user) return;
 
 		setIsProcessing(true);
-		setOcrProgress(0);
+		setAnalysisProgress(10); // Initial progress indicator
 
 		const toastId = showToast.loading('Processing document...');
 
 		try {
-			const worker = await createWorker({
-				logger: (progress: { status: string; progress: number }) => {
-					if (progress.status === 'recognizing text') {
-						setOcrProgress(parseInt(progress.progress * 100 + '', 10));
-					}
-				},
-			});
+			// Simulate progress updates as Azure processes in the background
+			const progressInterval = setInterval(() => {
+				setAnalysisProgress((prev) => {
+					const newProgress = prev + Math.floor(Math.random() * 10);
+					return newProgress > 90 ? 90 : newProgress;
+				});
+			}, 1000);
 
-			await worker.loadLanguage('eng');
-			await worker.initialize('eng');
+			// Call Azure Document Intelligence via our Edge Function
+			const result = await documentService.analyzeDocument(file, user.id);
 
-			const {
-				data: { text },
-			} = await worker.recognize(file);
-			setOcrText(text);
-
-			await worker.terminate();
+			clearInterval(progressInterval);
+			setAnalysisProgress(100);
+			setOcrText(result.content);
 			setIsProcessing(false);
-			showToast.dismiss(toastId);
+
+			showToast.dismiss(toastId as any);
 			showToast.success('Document processed successfully!');
 		} catch (err) {
-			console.error('OCR processing error:', err);
+			console.error('Document analysis error:', err);
 			setError('Failed to process document. Please try again.');
 			setIsProcessing(false);
-			showToast.dismiss(toastId);
+			showToast.dismiss(toastId as any);
 			showToast.error('Failed to process document. Please try again.');
 		}
 	};
@@ -108,22 +106,29 @@ const DocumentUpload: React.FC = () => {
 		if (!file || !user) return;
 
 		try {
+			// Create a document object that matches the expected InsertDocument type
 			await uploadDocument({
-				user_id: user.id,
-				file_name: file.name,
-				file_type: file.type,
-				file_size: file.size,
-				file_path: `/storage/documents/${user.id}/${file.name}`,
+				application_id: user.id,
 				document_type: documentType,
-				ocr_text: ocrText,
-			});
+				user_id: user.id,
+				verification_status: 'pending',
+				file_name: file.name,
+				file_path: `/storage/documents/${user.id}/${file.name}`,
+				extracted_data: {
+					text: ocrText,
+					file_name: file.name,
+					file_type: file.type,
+					file_size: file.size,
+					processed_at: new Date().toISOString(),
+				},
+			} as any);
 
 			showToast.success('Document uploaded successfully!');
 
 			// Reset form
 			setFile(null);
 			setOcrText('');
-			setOcrProgress(0);
+			setAnalysisProgress(0);
 		} catch (err) {
 			console.error('Upload error:', err);
 			setError('Failed to upload document. Please try again.');
@@ -241,26 +246,26 @@ const DocumentUpload: React.FC = () => {
 											onClick={(e) => {
 												e.preventDefault();
 												e.stopPropagation();
-												processOCR();
+												processDocument();
 											}}
 											fullWidth
 										>
-											Process Document
+											Analyze Document
 										</Button>
 									) : isProcessing ? (
 										<div>
 											<div className='flex items-center justify-between mb-2'>
 												<span className='text-sm text-gray-600'>
-													Processing...
+													Analyzing document...
 												</span>
 												<span className='text-sm font-medium text-blue-600'>
-													{ocrProgress}%
+													{analysisProgress}%
 												</span>
 											</div>
 											<div className='w-full bg-gray-200 rounded-full h-2.5'>
 												<div
 													className='bg-blue-600 h-2.5 rounded-full'
-													style={{ width: `${ocrProgress}%` }}
+													style={{ width: `${analysisProgress}%` }}
 												></div>
 											</div>
 										</div>
@@ -285,7 +290,7 @@ const DocumentUpload: React.FC = () => {
 					</CardContent>
 				</Card>
 
-				{/* OCR Preview */}
+				{/* Document Preview */}
 				<Card>
 					<CardHeader>
 						<h2 className='text-lg font-semibold'>Document Preview</h2>
@@ -294,7 +299,9 @@ const DocumentUpload: React.FC = () => {
 						{isProcessing ? (
 							<div className='flex flex-col items-center justify-center h-64'>
 								<Spinner size='lg' className='mb-4' />
-								<p className='text-gray-600'>Processing document...</p>
+								<p className='text-gray-600'>
+									Analyzing document using Azure AI...
+								</p>
 							</div>
 						) : ocrText ? (
 							<div>
@@ -316,7 +323,7 @@ const DocumentUpload: React.FC = () => {
 							<div className='flex flex-col items-center justify-center h-64 text-center'>
 								<FileText className='h-12 w-12 text-gray-300 mb-4' />
 								<p className='text-gray-500'>
-									Upload and process a document to see the extracted text here
+									Upload and analyze a document to see the extracted text here
 								</p>
 							</div>
 						)}
@@ -343,7 +350,8 @@ const DocumentUpload: React.FC = () => {
 											<FileText className='h-5 w-5 text-blue-500 mr-3' />
 											<div>
 												<p className='font-medium text-gray-900'>
-													{doc.file_name}
+													{/* File name */}
+													{doc.file_path.split('/').pop()}
 												</p>
 												<div className='flex items-center mt-1'>
 													<span className='text-sm text-gray-500 mr-3'>

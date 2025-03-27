@@ -10,7 +10,8 @@ AI-powered tenant screening platform for South African real estate professionals
 - Styling: Tailwind CSS + Shadcn UI components
 - Backend: Supabase (Auth/DB/Storage)
 - AI: CrewAI agents for document analysis
-- Key Compliance: POPI Act, Rental Housing Act
+- Key Compliance: POPI Act, South African Rental Housing Act
+-
 
 **Essential Patterns**
 
@@ -22,9 +23,10 @@ AI-powered tenant screening platform for South African real estate professionals
 
 2. Security requirements:
 
-   - Client-side OCR processing only
+   - Server-side OCR processing only with Azure Document Intelligence.
    - Row Level Security (RLS) on all Supabase queries
    - ZAR currency formatting for financial data
+   - Write code for production implementation.
 
 3. Performance constraints:
    - Core Web Vitals targets (LCP < 2.5s)
@@ -44,7 +46,7 @@ AI-powered tenant screening platform for South African real estate professionals
   1. Bank statement analysis
   2. ID document validation
   3. Rental affordability calculation
-- Tesseract.js OCR limited to:
+- Azure Document Intelligence for OCR limited to:
   - PDFs under 5MB
   - PNG/JPG images
 
@@ -72,5 +74,7 @@ Inline style attributes
 Uncontrolled form inputs
 
 Complex component nesting
+
+Simulating operations unless necessary.
 
 ```

@@ -91,6 +91,9 @@ export type Database = {
 					notes: string | null;
 					updated_at: string;
 					verification_status: string;
+					user_id: string;
+					file_name: string;
+					file_size: number;
 				};
 				Insert: {
 					application_id: string;
@@ -102,6 +105,9 @@ export type Database = {
 					notes?: string | null;
 					updated_at?: string;
 					verification_status: string;
+					user_id?: string | null;
+					file_name?: string | null;
+					file_size?: number | null;
 				};
 				Update: {
 					application_id?: string;
@@ -113,6 +119,9 @@ export type Database = {
 					notes?: string | null;
 					updated_at?: string;
 					verification_status?: string;
+					user_id?: string | null;
+					file_name?: string | null;
+					file_size?: number | null;
 				};
 				Relationships: [
 					{
@@ -120,6 +129,13 @@ export type Database = {
 						columns: ['application_id'];
 						isOneToOne: false;
 						referencedRelation: 'applications';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'documents_user_id_fkey';
+						columns: ['user_id'];
+						isOneToOne: false;
+						referencedRelation: 'users';
 						referencedColumns: ['id'];
 					},
 				];
