@@ -55,18 +55,22 @@ export const documentService = {
 				);
 			}
 
-			console.log('Signed URL generated:', signedUrlData.signedUrl);
-
 			// Call the Edge Function to analyze the document
+			console.log('Sending request to Edge Function with body:', {
+				fileUrl: signedUrlData.signedUrl,
+			});
+
 			const { data, error } = await supabase.functions.invoke(
 				'analyze-document',
 				{
 					body: { fileUrl: signedUrlData.signedUrl },
-					headers: {
-						'Content-Type': 'application/json',
-					},
 				},
 			);
+
+			if (error) {
+				console.error('Edge Function invocation error:', error);
+				throw new Error(`Edge Function error: ${error.message}`);
+			}
 
 			if (error) {
 				console.error('Edge Function invocation error:', error);

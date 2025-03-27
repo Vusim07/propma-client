@@ -38,10 +38,20 @@ serve(async (req) => {
 		// Parse request body
 		let requestData;
 		try {
-			requestData = await req.json();
-			console.log('Request data received:', requestData);
+			console.log('Request headers:', req.headers);
+			console.log('Request method:', req.method);
+
+			const bodyText = await req.text(); // Read the raw body as text
+			console.log('Raw request body:', bodyText);
+
+			if (!bodyText) {
+				throw new Error('Request body is empty');
+			}
+
+			requestData = JSON.parse(bodyText); // Parse the JSON
+			console.log('Parsed request data:', requestData);
 		} catch (e) {
-			console.error('Failed to parse request JSON:', e);
+			console.error('Failed to parse request JSON:', e.message);
 			return new Response(JSON.stringify({ error: 'Invalid request format' }), {
 				headers: { ...corsHeaders, 'Content-Type': 'application/json' },
 				status: 400,
