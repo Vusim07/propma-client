@@ -44,43 +44,46 @@ export const documentService = {
 			}
 
 			// Get public URL for the file
-			const { data: publicUrlData } = supabase.storage
-				.from('tenant_documents')
-				.getPublicUrl(filePath);
+			const { data: signedUrlData, error: signedUrlError } =
+				await supabase.storage
+					.from('tenant_documents')
+					.createSignedUrl(filePath, 60 * 60); // URL valid for 1 hour
 
-			if (!publicUrlData?.publicUrl) {
-				throw new Error('Failed to get public URL');
+			if (signedUrlError) {
+				throw new Error(
+					`Failed to generate signed URL: ${signedUrlError.message}`,
+				);
 			}
 
-			console.log('Public URL generated:', publicUrlData.publicUrl);
+			console.log('Signed URL generated:', signedUrlData.signedUrl);
 
 			// Call the Edge Function to analyze the document
 			const { data, error } = await supabase.functions.invoke(
 				'analyze-document',
 				{
-					body: { fileUrl: publicUrlData.publicUrl },
+					body: { fileUrl: signedUrlData.signedUrl },
 					headers: {
 						'Content-Type': 'application/json',
 					},
 				},
 			);
 
-			// Clean up the temporary file after processing
-			await supabase.storage.from('tenant_documents').remove([filePath]);
-
 			if (error) {
-				console.error('Function error:', error);
-				throw new Error(`Function error: ${error.message}`);
+				console.error('Edge Function invocation error:', error);
+				throw new Error(`Edge Function error: ${error.message}`);
 			}
 
 			if (!data) {
 				throw new Error('No data returned from document analysis');
 			}
 
-			// If Azure API is down or we're in development, fall back to local processing
-			if (data.error) {
-				console.warn('Using fallback document processing:', data.error);
-				return generateFallbackAnalysis(file);
+			// Clean up the temporary file after processing
+			const { error: cleanupError } = await supabase.storage
+				.from('tenant_documents')
+				.remove([filePath]);
+
+			if (cleanupError) {
+				console.warn('Temporary file cleanup error:', cleanupError);
 			}
 
 			return {

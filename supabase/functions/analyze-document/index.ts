@@ -39,6 +39,7 @@ serve(async (req) => {
 		let requestData;
 		try {
 			requestData = await req.json();
+			console.log('Request data received:', requestData);
 		} catch (e) {
 			console.error('Failed to parse request JSON:', e);
 			return new Response(JSON.stringify({ error: 'Invalid request format' }), {
@@ -50,6 +51,7 @@ serve(async (req) => {
 		const { fileUrl } = requestData;
 
 		if (!fileUrl) {
+			console.error('Missing file URL in request data');
 			return new Response(JSON.stringify({ error: 'Missing file URL' }), {
 				headers: { ...corsHeaders, 'Content-Type': 'application/json' },
 				status: 400,
@@ -72,6 +74,10 @@ serve(async (req) => {
 				}),
 			},
 		);
+
+		// Log Azure API response status and headers
+		console.log('Azure API response status:', response.status);
+		console.log('Azure API response headers:', response.headers);
 
 		// Check for API errors with detailed logging
 		if (!response.ok) {
@@ -125,6 +131,10 @@ serve(async (req) => {
 					'Ocp-Apim-Subscription-Key': AZURE_API_KEY,
 				},
 			});
+
+			console.log(
+				`Poll attempt ${attempts}: response status = ${pollResponse.status}`,
+			);
 
 			if (!pollResponse.ok) {
 				const pollErrorText = await pollResponse.text();
