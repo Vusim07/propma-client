@@ -56,6 +56,7 @@ const TenantDashboard: React.FC = () => {
 				fetchScreeningReport(user.id),
 				fetchAppointments(user.id),
 			]);
+			console.log(profile);
 		} catch (err) {
 			console.error('Error loading tenant data:', err);
 			showToast.error('Failed to load your profile information');
@@ -290,21 +291,6 @@ const TenantDashboard: React.FC = () => {
 								<p className='text-sm text-gray-500'>ID Number</p>
 								<p className='font-medium'>
 									{profile.id_number || 'Not provided'}
-								</p>
-							</div>
-							<div>
-								<p className='text-sm text-gray-500'>Date of Birth</p>
-								<p className='font-medium'>
-									{profile.date_of_birth
-										? new Date(profile.date_of_birth).toLocaleDateString(
-												'en-ZA',
-												{
-													day: '2-digit',
-													month: '2-digit',
-													year: 'numeric',
-												},
-										  )
-										: 'Not provided'}
 								</p>
 							</div>
 						</div>

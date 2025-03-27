@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export type Json =
 	| string
 	| number
@@ -309,43 +310,43 @@ export type Database = {
 				Row: {
 					created_at: string;
 					current_address: string;
-					date_of_birth: string;
 					email: string;
 					first_name: string;
 					id: string;
+					tenant_id: string;
 					id_number: string;
 					employment_status: string;
 					monthly_income: number;
 					last_name: string;
-					phone: string;
+					phone: any;
 					updated_at: string;
 				};
 				Insert: {
 					created_at?: string;
 					current_address: string;
-					date_of_birth: string;
 					email: string;
 					first_name: string;
 					id?: string;
+					tenant_id?: string;
 					id_number: string;
 					last_name: string;
 					employment_status?: string;
 					monthly_income?: number;
-					phone: string;
+					phone: any;
 					updated_at?: string;
 				};
 				Update: {
 					created_at?: string;
 					current_address?: string;
-					date_of_birth?: string;
 					email?: string;
 					first_name?: string;
 					id?: string;
+					tenant_id?: string;
 					id_number?: string;
 					employment_status?: string;
 					monthly_income?: number;
 					last_name?: string;
-					phone?: string;
+					phone?: any;
 					updated_at?: string;
 				};
 				Relationships: [];

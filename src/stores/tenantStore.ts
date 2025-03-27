@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand';
 import { supabase } from '../services/supabase';
 import { formatDate } from '../utils/formatters';
@@ -45,33 +44,58 @@ export const useTenantStore = create<TenantState>((set) => ({
 	fetchProfile: async (tenantId) => {
 		set({ isLoading: true, error: null });
 		try {
-			const { data, error } = await supabase
+			// First, get the basic user information
+			const { data: userData, error: userError } = await supabase
 				.from('users')
 				.select('*')
-				.eq('id', tenantId);
+				.eq('id', tenantId)
+				.single();
 
-			if (error) throw error;
+			if (userError) throw userError;
 
-			// If data is an empty array, no profile exists yet
-			if (!data || data.length === 0) {
-				set({
-					profile: null,
-					isLoading: false,
-				});
+			if (!userData) {
+				set({ profile: null, isLoading: false });
 				return;
 			}
 
-			// Use the first profile if multiple exist (though this shouldn't happen)
-			set({
-				profile: data[0] as any,
-				isLoading: false,
-			});
+			// Get tenant profile using tenant_id, use maybeSingle() instead of single()
+			const { data: tenantData, error: tenantError } = await supabase
+				.from('tenant_profiles')
+				.select('*')
+				.eq('tenant_id', tenantId)
+				.maybeSingle(); // Changed from single() to maybeSingle()
+
+			if (tenantError) throw tenantError;
+			console.log('Tenant profile:', tenantData);
+
+			// If no tenant profile exists yet, create a default one
+			if (!tenantData) {
+				const defaultProfile: TenantProfile = {
+					...userData,
+					current_address: '',
+					id_number: '',
+					employment_status: '',
+					monthly_income: 0,
+					tenant_id: tenantId,
+				};
+				set({ profile: defaultProfile, isLoading: false });
+				return;
+			}
+
+			// Merge existing user data with tenant profile data
+			const profileData: TenantProfile = {
+				...userData,
+				...tenantData,
+			};
+
+			set({ profile: profileData, isLoading: false });
+			console.log('Tenant profile:', profileData);
 		} catch (error) {
 			console.error('Error fetching tenant profile:', error);
 			set({
 				error: (error as Error).message,
 				isLoading: false,
-				profile: null, // Reset profile on error
+				profile: null,
 			});
 		}
 	},

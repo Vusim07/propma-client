@@ -43,6 +43,8 @@ const profileCompletionSchema = z
 		employment_status: z.string().optional(),
 		monthly_income: z.coerce.number().optional(),
 		current_address: z.string().optional(),
+
+		tenant_id: z.string().optional(),
 	})
 	.refine(
 		(data) => {
@@ -52,7 +54,8 @@ const profileCompletionSchema = z
 					!!data.id_number &&
 					!!data.employment_status &&
 					!!data.monthly_income &&
-					!!data.current_address
+					!!data.current_address &&
+					!!data.tenant_id
 				);
 			}
 			return true;
@@ -79,13 +82,14 @@ const ProfileCompletion: React.FC = () => {
 		defaultValues: {
 			firstName: '',
 			lastName: '',
-			role: 'tenant',
+			role: 'agent',
 			phone: '',
 			companyName: '',
 			id_number: '',
 			employment_status: '',
 			monthly_income: undefined,
 			current_address: '',
+			tenant_id: '',
 		},
 	});
 
@@ -246,6 +250,7 @@ const ProfileCompletion: React.FC = () => {
 				// Prepare tenant profile data
 				const tenantData = {
 					id: tenantProfile?.id, // Will be undefined for new profiles
+					tenant_id: session.user.id,
 					email: userEmail,
 					first_name: values.firstName,
 					last_name: values.lastName,
@@ -254,8 +259,6 @@ const ProfileCompletion: React.FC = () => {
 					employment_status: values.employment_status || '',
 					monthly_income: values.monthly_income || 0,
 					current_address: values.current_address || '',
-					date_of_birth:
-						tenantProfile?.date_of_birth || new Date().toISOString(), // Required field, use existing or default
 				};
 
 				// Check if tenant profile exists

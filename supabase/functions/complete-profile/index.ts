@@ -252,8 +252,6 @@ serve(async (req) => {
 						last_name: last_name || '',
 						phone: phone || '',
 						...tenant_profile,
-						date_of_birth:
-							tenant_profile.date_of_birth || new Date().toISOString(),
 					});
 
 				if (tenantError) {
