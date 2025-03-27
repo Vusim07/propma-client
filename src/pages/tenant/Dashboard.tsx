@@ -290,7 +290,14 @@ const TenantDashboard: React.FC = () => {
 							<div>
 								<p className='text-sm text-gray-500'>ID Number</p>
 								<p className='font-medium'>
-									{profile.id_number || 'Not provided'}
+									{profile.id_number
+										? `${profile.id_number.substring(
+												0,
+												3,
+										  )}******${profile.id_number.substring(
+												profile.id_number.length - 3,
+										  )}`
+										: 'Not provided'}
 								</p>
 							</div>
 						</div>
