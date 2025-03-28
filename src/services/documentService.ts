@@ -13,6 +13,7 @@ export interface DocumentAnalysisResult {
 		value: string;
 	}>;
 	documentType?: string;
+	filePath?: string; // Add this to store the file path from storage
 	processedDate?: string;
 }
 
@@ -27,7 +28,10 @@ export const documentService = {
 			console.log(`Using OCR provider: ${ocrProvider.getName()}`);
 
 			// Process the document using the provider
-			return await ocrProvider.analyzeDocument(file, userId);
+			const result = await ocrProvider.analyzeDocument(file, userId);
+			console.log('Document analysis result:', result);
+
+			return result;
 		} catch (error) {
 			console.error('Document analysis failed:', error);
 

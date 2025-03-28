@@ -26,7 +26,7 @@ interface TenantState {
 			Document,
 			'id' | 'created_at' | 'updated_at' | 'verification_status'
 		> & { file?: File },
-	) => Promise<void>;
+	) => Promise<Document>;
 	fetchScreeningReport: (applicationId: string) => Promise<void>;
 	fetchAppointments: (tenantId: string) => Promise<void>;
 	scheduleAppointment: (
@@ -142,7 +142,15 @@ export const useTenantStore = create<TenantState>((set) => ({
 		}
 	},
 
-	uploadDocument: async (document) => {
+	uploadDocument: async (
+		document: Omit<
+			Document,
+			'id' | 'created_at' | 'updated_at' | 'verification_status'
+		> & {
+			file?: File;
+			verification_status?: string;
+		},
+	): Promise<Document> => {
 		console.log('Starting uploadDocument in store with:', {
 			documentType: document.document_type,
 			fileName: document.file_name,
@@ -192,7 +200,7 @@ export const useTenantStore = create<TenantState>((set) => ({
 				notes: document.notes || null,
 				file_name: document.file_name,
 				file_size: document.file_size,
-				application_id: document.application_id || null,
+				application_id: document.application_id || (null as any),
 			};
 
 			console.log(
@@ -238,7 +246,7 @@ export const useTenantStore = create<TenantState>((set) => ({
 				isLoading: false,
 			}));
 
-			return verifyData;
+			return verifyData as Document;
 		} catch (error: any) {
 			console.error('Document upload failed:', {
 				error,

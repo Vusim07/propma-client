@@ -91,7 +91,7 @@ const DocumentUpload: React.FC = () => {
 				file_name: file.name,
 				file_size: file.size,
 				notes: null,
-				file_path: result.filePath,
+				file_path: result.filePath || file.name,
 				verification_status: 'pending',
 				extracted_data: {
 					text: result.content,
@@ -109,7 +109,7 @@ const DocumentUpload: React.FC = () => {
 			setIsProcessing(false);
 			setFile(null);
 
-			showToast.dismiss(toastId);
+			showToast.dismiss(toastId as any);
 			showToast.success('Document processed and uploaded successfully!');
 
 			// Refresh documents list
@@ -118,84 +118,10 @@ const DocumentUpload: React.FC = () => {
 			console.error('Document processing error:', err);
 			setError('Failed to process document. Please try again.');
 			setIsProcessing(false);
-			showToast.dismiss(toastId);
+			showToast.dismiss(toastId as any);
 			showToast.error('Failed to process document. Please try again.');
 		}
 	};
-
-	// const handleUpload = async () => {
-	// 	if (!file || !user) {
-	// 		console.error('Missing required data:', {
-	// 			file: !!file,
-	// 			user: !!user,
-	// 		});
-	// 		return;
-	// 	}
-
-	// 	try {
-	// 		console.log('Starting document upload process with:', {
-	// 			fileName: file.name,
-	// 			fileSize: file.size,
-	// 			userId: user.id,
-	// 			documentType,
-	// 		});
-
-	// 		// Use the file path that was already created during OCR processing
-	// 		const filePath = `/storage/documents/${user.id}/${file.name}`;
-	// 		console.log('Using file path:', filePath);
-
-	// 		// Create a document object with all required fields
-	// 		const documentData = {
-	// 			application_id: null,
-	// 			user_id: user.id,
-	// 			document_type: documentType,
-	// 			user_id: user.id,
-	// 			verification_status: 'pending',
-	// 			file_name: file.name,
-	// 			file_size: file.size,
-	// 			notes: null,
-	// 			file_path: filePath,
-	// 			extracted_data: {
-	// 				text: '',
-	// 				file_name: file.name,
-	// 				file_type: file.type,
-	// 				file_size: file.size,
-	// 				processed_at: new Date().toISOString(),
-	// 			},
-	// 		};
-
-	// 		console.log(
-	// 			'Calling uploadDocument with data:',
-	// 			JSON.stringify(documentData, null, 2),
-	// 		);
-
-	// 		// Call the uploadDocument function
-	// 		const result = await uploadDocument(documentData);
-	// 		console.log('Upload complete - Document data:', {
-	// 			result,
-	// 			documentsLength: documents.length,
-	// 			isLoading,
-	// 		});
-	// 		console.log('Upload result:', result);
-
-	// 		console.log('Document upload completed successfully');
-	// 		showToast.success('Document uploaded successfully!');
-
-	// 		console.log('Refreshing documents list...');
-	// 		await fetchDocuments(user.id);
-
-	// 		// Reset form
-	// 		setFile(null);
-	// 	} catch (err) {
-	// 		console.error('Upload error details:', {
-	// 			error: err,
-	// 			message: err.message,
-	// 			stack: err.stack,
-	// 		});
-	// 		setError('Failed to upload document. Please try again.');
-	// 		showToast.error('Failed to upload document. Please try again.');
-	// 	}
-	// };
 
 	// Update document type options to match database constraints
 	const documentTypeOptions = [
