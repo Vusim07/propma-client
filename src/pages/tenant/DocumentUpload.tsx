@@ -308,8 +308,7 @@ const DocumentUpload: React.FC = () => {
 											<FileText className='h-5 w-5 text-blue-500 mr-3' />
 											<div>
 												<p className='font-medium text-gray-900'>
-													{/* File name */}
-													{doc.file_path.split('/').pop()}
+													{doc.file_name}
 												</p>
 												<div className='flex items-center mt-1'>
 													<span className='text-sm text-gray-500 mr-3'>
