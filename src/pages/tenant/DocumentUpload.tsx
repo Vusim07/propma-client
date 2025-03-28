@@ -15,12 +15,9 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/Select';
-import { Upload, FileText, Trash2, Check } from 'lucide-react';
+import { Upload, FileText, Trash2 } from 'lucide-react';
 import { showToast } from '@/utils/toast';
-import {
-	documentService,
-	DocumentAnalysisResult,
-} from '@/services/documentService';
+import { documentService } from '@/services/documentService';
 import { getOcrProvider } from '@/services/ocr';
 
 const DocumentUpload: React.FC = () => {
@@ -31,13 +28,8 @@ const DocumentUpload: React.FC = () => {
 
 	const [file, setFile] = useState<File | null>(null);
 	const [documentType, setDocumentType] = useState<
-		'id' | 'bank_statement' | 'payslip' | 'other'
-	>('id');
-	const [ocrText, setOcrText] = useState('');
-	const [ocrResult, setOcrResult] = useState<DocumentAnalysisResult | null>(
-		null,
-	);
-	const [analysisProgress, setAnalysisProgress] = useState(0);
+		'id_document' | 'bank_statement' | 'payslip' | 'other'
+	>('id_document');
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [error, setError] = useState('');
 
@@ -50,6 +42,10 @@ const DocumentUpload: React.FC = () => {
 			fetchDocuments(user.id);
 		}
 	}, [user, fetchDocuments, setPageTitle]);
+
+	useEffect(() => {
+		console.log('Documents state changed:', documents);
+	}, [documents]);
 
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		accept: {
@@ -76,72 +72,29 @@ const DocumentUpload: React.FC = () => {
 		},
 	});
 
+	// Modify the processDocument function
 	const processDocument = async () => {
 		if (!file || !user) return;
 
 		setIsProcessing(true);
-		setAnalysisProgress(10); // Initial progress indicator
-
-		// Get the appropriate OCR provider based on file type
-		const ocrProvider = getOcrProvider('tesseract', file);
-		const providerName = ocrProvider.getName();
-
-		const toastId = showToast.loading(
-			`Processing document with ${providerName}...`,
-		);
+		const toastId = showToast.loading('Processing document...');
 
 		try {
-			// Simulate progress updates as processing happens in the background
-			const progressInterval = setInterval(() => {
-				setAnalysisProgress((prev) => {
-					const newProgress = prev + Math.floor(Math.random() * 10);
-					return newProgress > 90 ? 90 : newProgress;
-				});
-			}, 1000);
-
-			// Call document analysis service
+			// Get OCR provider and process document
 			const result = await documentService.analyzeDocument(file, user.id);
-			setOcrResult(result); // Store the result for later database insertion
 
-			clearInterval(progressInterval);
-			setAnalysisProgress(100);
-			setOcrText(result.content);
-			setIsProcessing(false);
-
-			showToast.dismiss(toastId as any);
-			showToast.success('Document processed successfully!');
-		} catch (err) {
-			console.error('Document analysis error:', err);
-			setError('Failed to process document. Please try again.');
-			setIsProcessing(false);
-			showToast.dismiss(toastId as any);
-			showToast.error('Failed to process document. Please try again.');
-		}
-	};
-
-	const handleUpload = async () => {
-		if (!file || !user || !ocrResult) return;
-
-		try {
-			console.log('Starting document upload process...');
-
-			// Use the file path that was already created during OCR processing
-			const filePath =
-				ocrResult.filePath || `/storage/documents/${user.id}/${file.name}`;
-
-			// Create a document object with all required fields
+			// Prepare document data - remove application_id if not needed
 			const documentData = {
-				application_id: user.id,
-				document_type: documentType,
 				user_id: user.id,
-				verification_status: 'pending',
+				application_id: null,
+				document_type: documentType,
 				file_name: file.name,
 				file_size: file.size,
 				notes: null,
-				// The file was already uploaded by the OCR provider, so we use the path
-				file_path: filePath,
+				file_path: result.filePath,
+				verification_status: 'pending',
 				extracted_data: {
-					text: ocrText,
+					text: result.content,
 					file_name: file.name,
 					file_type: file.type,
 					file_size: file.size,
@@ -149,31 +102,104 @@ const DocumentUpload: React.FC = () => {
 				},
 			};
 
-			console.log('Document data prepared:', documentData);
-
-			// Call the uploadDocument function
+			// Upload document to database
 			await uploadDocument(documentData);
 
-			console.log('Document upload completed successfully');
-			showToast.success('Document uploaded successfully!');
-
-			// Refresh documents list after upload
-			await fetchDocuments(user.id);
-
-			// Reset form
+			// Update UI state
+			setIsProcessing(false);
 			setFile(null);
-			setOcrText('');
-			setOcrResult(null);
-			setAnalysisProgress(0);
+
+			showToast.dismiss(toastId);
+			showToast.success('Document processed and uploaded successfully!');
+
+			// Refresh documents list
+			await fetchDocuments(user.id);
 		} catch (err) {
-			console.error('Upload error:', err);
-			setError('Failed to upload document. Please try again.');
-			showToast.error('Failed to upload document. Please try again.');
+			console.error('Document processing error:', err);
+			setError('Failed to process document. Please try again.');
+			setIsProcessing(false);
+			showToast.dismiss(toastId);
+			showToast.error('Failed to process document. Please try again.');
 		}
 	};
 
+	// const handleUpload = async () => {
+	// 	if (!file || !user) {
+	// 		console.error('Missing required data:', {
+	// 			file: !!file,
+	// 			user: !!user,
+	// 		});
+	// 		return;
+	// 	}
+
+	// 	try {
+	// 		console.log('Starting document upload process with:', {
+	// 			fileName: file.name,
+	// 			fileSize: file.size,
+	// 			userId: user.id,
+	// 			documentType,
+	// 		});
+
+	// 		// Use the file path that was already created during OCR processing
+	// 		const filePath = `/storage/documents/${user.id}/${file.name}`;
+	// 		console.log('Using file path:', filePath);
+
+	// 		// Create a document object with all required fields
+	// 		const documentData = {
+	// 			application_id: null,
+	// 			user_id: user.id,
+	// 			document_type: documentType,
+	// 			user_id: user.id,
+	// 			verification_status: 'pending',
+	// 			file_name: file.name,
+	// 			file_size: file.size,
+	// 			notes: null,
+	// 			file_path: filePath,
+	// 			extracted_data: {
+	// 				text: '',
+	// 				file_name: file.name,
+	// 				file_type: file.type,
+	// 				file_size: file.size,
+	// 				processed_at: new Date().toISOString(),
+	// 			},
+	// 		};
+
+	// 		console.log(
+	// 			'Calling uploadDocument with data:',
+	// 			JSON.stringify(documentData, null, 2),
+	// 		);
+
+	// 		// Call the uploadDocument function
+	// 		const result = await uploadDocument(documentData);
+	// 		console.log('Upload complete - Document data:', {
+	// 			result,
+	// 			documentsLength: documents.length,
+	// 			isLoading,
+	// 		});
+	// 		console.log('Upload result:', result);
+
+	// 		console.log('Document upload completed successfully');
+	// 		showToast.success('Document uploaded successfully!');
+
+	// 		console.log('Refreshing documents list...');
+	// 		await fetchDocuments(user.id);
+
+	// 		// Reset form
+	// 		setFile(null);
+	// 	} catch (err) {
+	// 		console.error('Upload error details:', {
+	// 			error: err,
+	// 			message: err.message,
+	// 			stack: err.stack,
+	// 		});
+	// 		setError('Failed to upload document. Please try again.');
+	// 		showToast.error('Failed to upload document. Please try again.');
+	// 	}
+	// };
+
+	// Update document type options to match database constraints
 	const documentTypeOptions = [
-		{ value: 'id', label: "ID/Driver's License" },
+		{ value: 'id_document', label: "ID/Driver's License" },
 		{ value: 'bank_statement', label: 'Bank Statement' },
 		{ value: 'payslip', label: 'Pay Slip' },
 		{ value: 'other', label: 'Other' },
@@ -243,7 +269,6 @@ const DocumentUpload: React.FC = () => {
 										onClick={(e) => {
 											e.stopPropagation();
 											setFile(null);
-											setOcrText('');
 										}}
 										className='text-gray-500 hover:text-red-500'
 										aria-label='Remove file'
@@ -277,46 +302,29 @@ const DocumentUpload: React.FC = () => {
 								</div>
 
 								<div className='mt-4'>
-									{!ocrText && !isProcessing ? (
+									{file && (
 										<Button
 											onClick={(e) => {
 												e.preventDefault();
 												e.stopPropagation();
 												processDocument();
 											}}
-											fullWidth
-										>
-											Analyze Document
-										</Button>
-									) : isProcessing ? (
-										<div>
-											<div className='flex items-center justify-between mb-2'>
-												<span className='text-sm text-gray-600'>
-													Analyzing document...
-												</span>
-												<span className='text-sm font-medium text-blue-600'>
-													{analysisProgress}%
-												</span>
-											</div>
-											<div className='w-full bg-gray-200 rounded-full h-2.5'>
-												<div
-													className='bg-blue-600 h-2.5 rounded-full'
-													style={{ width: `${analysisProgress}%` }}
-												></div>
-											</div>
-										</div>
-									) : (
-										<Button
-											onClick={(e) => {
-												e.preventDefault();
-												e.stopPropagation();
-												handleUpload();
-											}}
 											variant='primary'
 											fullWidth
-											isLoading={isLoading}
+											isLoading={isProcessing}
+											disabled={isProcessing}
 										>
-											<Check size={18} className='mr-2' /> Upload Document
+											{isProcessing ? (
+												<>
+													<Spinner size='sm' className='mr-2' />
+													Processing...
+												</>
+											) : (
+												<>
+													<Upload size={18} className='mr-2' />
+													Process & Upload
+												</>
+											)}
 										</Button>
 									)}
 								</div>
@@ -338,27 +346,16 @@ const DocumentUpload: React.FC = () => {
 									Analyzing document using {ocrProviderName}...
 								</p>
 							</div>
-						) : ocrText ? (
-							<div>
-								<div className='p-4 bg-gray-50 rounded-lg mb-4'>
-									<h3 className='font-medium text-gray-900 mb-2'>
-										Extracted Text:
-									</h3>
-									<div className='bg-white border border-gray-200 rounded p-3 max-h-64 overflow-y-auto'>
-										<pre className='text-sm text-gray-700 whitespace-pre-wrap'>
-											{ocrText}
-										</pre>
-									</div>
-								</div>
-								<Alert variant='info'>
-									Review the extracted text for accuracy before uploading.
-								</Alert>
+						) : file ? (
+							<div className='flex flex-col items-center justify-center h-64 text-center'>
+								<FileText className='h-12 w-12 text-gray-400 mb-4' />
+								<p className='text-gray-600'>Ready to process document</p>
 							</div>
 						) : (
 							<div className='flex flex-col items-center justify-center h-64 text-center'>
 								<FileText className='h-12 w-12 text-gray-300 mb-4' />
 								<p className='text-gray-500'>
-									Upload and analyze a document to see the extracted text here
+									Upload a document to begin processing
 								</p>
 							</div>
 						)}

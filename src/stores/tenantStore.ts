@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand';
 import { supabase } from '../services/supabase';
 import { formatDate } from '../utils/formatters';
@@ -19,7 +20,7 @@ interface TenantState {
 
 	fetchProfile: (tenantId: string) => Promise<void>;
 	updateProfile: (profile: UpdateTenantProfile) => Promise<void>;
-	fetchDocuments: (applicationId: string) => Promise<void>;
+	fetchDocuments: (userId: string) => Promise<void>;
 	uploadDocument: (
 		document: Omit<
 			Document,
@@ -125,13 +126,13 @@ export const useTenantStore = create<TenantState>((set) => ({
 		}
 	},
 
-	fetchDocuments: async (applicationId) => {
+	fetchDocuments: async (userId) => {
 		set({ isLoading: true, error: null });
 		try {
 			const { data, error } = await supabase
 				.from('documents')
 				.select('*')
-				.eq('application_id', applicationId);
+				.eq('user_id', userId);
 
 			if (error) throw error;
 
@@ -142,22 +143,29 @@ export const useTenantStore = create<TenantState>((set) => ({
 	},
 
 	uploadDocument: async (document) => {
+		console.log('Starting uploadDocument in store with:', {
+			documentType: document.document_type,
+			fileName: document.file_name,
+			userId: document.user_id,
+		});
+
 		set({ isLoading: true, error: null });
+
 		try {
-			console.log('Starting document upload with data:', document);
+			console.log('Preparing document record:', document);
 
 			let filePath = document.file_path;
+			console.log('Initial file path:', filePath);
 
 			// If we have a file object, upload it to storage
 			if (document.file) {
-				// Get file extension from the File object
+				console.log('File object present, uploading to storage');
 				const fileName = document.file.name;
 				const fileExt = fileName.split('.').pop();
 				filePath = `${document.application_id}/${Date.now()}.${fileExt}`;
 
-				console.log('Uploading file to storage path:', filePath);
+				console.log('Uploading to storage path:', filePath);
 
-				// Upload to storage
 				const { data: fileData, error: fileError } = await supabase.storage
 					.from('tenant_documents')
 					.upload(filePath, document.file, {
@@ -170,51 +178,78 @@ export const useTenantStore = create<TenantState>((set) => ({
 					throw fileError;
 				}
 
-				console.log('File uploaded successfully to storage, data:', fileData);
+				console.log('File uploaded successfully:', fileData);
 				filePath = fileData?.path || filePath;
-			} else if (!filePath) {
-				throw new Error('Either file or file_path must be provided');
 			}
 
-			// Prepare document record data
+			// Prepare document record with explicit typing
 			const documentRecord = {
-				application_id: document.application_id,
+				user_id: document.user_id,
 				document_type: document.document_type,
 				file_path: filePath,
-				verification_status: document.verification_status || 'pending',
-				extracted_data: document.extracted_data || null,
+				verification_status: 'pending',
+				extracted_data: document.extracted_data,
 				notes: document.notes || null,
-				user_id: document.user_id,
-				file_name:
-					document.file_name ||
-					(document.file ? document.file.name : 'Unknown'),
-				file_size:
-					document.file_size || (document.file ? document.file.size : 0),
+				file_name: document.file_name,
+				file_size: document.file_size,
+				application_id: document.application_id || null,
 			};
 
-			console.log('Inserting document record into database:', documentRecord);
+			console.log(
+				'Attempting database insert with record:',
+				JSON.stringify(documentRecord, null, 2),
+			);
 
-			// Now save the document metadata to the database
-			const { data, error } = await supabase
+			// Split the insert operation to debug
+			const insertResponse = await supabase
 				.from('documents')
-				.insert(documentRecord)
-				.select()
-				.single();
+				.insert(documentRecord);
 
-			if (error) {
-				console.error('Database insert error:', error);
-				throw error;
+			// Log the raw response
+			console.log('Raw insert response:', insertResponse);
+
+			if (insertResponse.error) {
+				console.error('Database insert error details:', {
+					error: insertResponse.error,
+					message: insertResponse.error.message,
+					details: insertResponse.error.details,
+					hint: insertResponse.error.hint,
+				});
+				throw insertResponse.error;
 			}
 
-			console.log('Document saved to database successfully:', data);
+			// Separate select to verify insertion
+			const { data: verifyData, error: verifyError } = await supabase
+				.from('documents')
+				.select('*')
+				.eq('user_id', document.user_id)
+				.eq('file_name', document.file_name)
+				.single();
+
+			if (verifyError) {
+				console.error('Verification query error:', verifyError);
+				throw verifyError;
+			}
+
+			console.log('Document successfully inserted and verified:', verifyData);
 
 			set((state) => ({
-				documents: [...state.documents, data],
+				documents: [...state.documents, verifyData],
 				isLoading: false,
 			}));
-		} catch (error) {
-			console.error('Document upload failed:', error);
+
+			return verifyData;
+		} catch (error: any) {
+			console.error('Document upload failed:', {
+				error,
+				name: error.name,
+				message: error.message,
+				stack: error.stack,
+				details: error.details,
+				code: error.code,
+			});
 			set({ error: (error as Error).message, isLoading: false });
+			throw error;
 		}
 	},
 

@@ -82,7 +82,7 @@ export type Database = {
 			};
 			documents: {
 				Row: {
-					application_id: string;
+					application_id: string | null;
 					created_at: string;
 					document_type: string;
 					extracted_data: Json | null;
@@ -96,7 +96,7 @@ export type Database = {
 					file_size: number;
 				};
 				Insert: {
-					application_id: string;
+					application_id?: string;
 					created_at?: string;
 					document_type: string;
 					extracted_data?: Json | null;
