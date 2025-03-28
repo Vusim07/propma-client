@@ -17,7 +17,11 @@ import {
 } from '@/components/ui/Select';
 import { Upload, FileText, Trash2, Check } from 'lucide-react';
 import { showToast } from '@/utils/toast';
-import { documentService } from '@/services/documentService';
+import {
+	documentService,
+	DocumentAnalysisResult,
+} from '@/services/documentService';
+import { getOcrProvider } from '@/services/ocr';
 
 const DocumentUpload: React.FC = () => {
 	const { user } = useAuthStore();
@@ -30,9 +34,15 @@ const DocumentUpload: React.FC = () => {
 		'id' | 'bank_statement' | 'payslip' | 'other'
 	>('id');
 	const [ocrText, setOcrText] = useState('');
+	const [ocrResult, setOcrResult] = useState<DocumentAnalysisResult | null>(
+		null,
+	);
 	const [analysisProgress, setAnalysisProgress] = useState(0);
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [error, setError] = useState('');
+
+	// Get the current OCR provider name for display
+	const ocrProviderName = getOcrProvider().getName();
 
 	useEffect(() => {
 		setPageTitle('Documents');
@@ -72,10 +82,16 @@ const DocumentUpload: React.FC = () => {
 		setIsProcessing(true);
 		setAnalysisProgress(10); // Initial progress indicator
 
-		const toastId = showToast.loading('Processing document...');
+		// Get the appropriate OCR provider based on file type
+		const ocrProvider = getOcrProvider('tesseract', file);
+		const providerName = ocrProvider.getName();
+
+		const toastId = showToast.loading(
+			`Processing document with ${providerName}...`,
+		);
 
 		try {
-			// Simulate progress updates as Azure processes in the background
+			// Simulate progress updates as processing happens in the background
 			const progressInterval = setInterval(() => {
 				setAnalysisProgress((prev) => {
 					const newProgress = prev + Math.floor(Math.random() * 10);
@@ -83,8 +99,9 @@ const DocumentUpload: React.FC = () => {
 				});
 			}, 1000);
 
-			// Call Azure Document Intelligence via our Edge Function
+			// Call document analysis service
 			const result = await documentService.analyzeDocument(file, user.id);
+			setOcrResult(result); // Store the result for later database insertion
 
 			clearInterval(progressInterval);
 			setAnalysisProgress(100);
@@ -103,17 +120,26 @@ const DocumentUpload: React.FC = () => {
 	};
 
 	const handleUpload = async () => {
-		if (!file || !user) return;
+		if (!file || !user || !ocrResult) return;
 
 		try {
-			// Create a document object that matches the expected InsertDocument type
-			await uploadDocument({
+			console.log('Starting document upload process...');
+
+			// Use the file path that was already created during OCR processing
+			const filePath =
+				ocrResult.filePath || `/storage/documents/${user.id}/${file.name}`;
+
+			// Create a document object with all required fields
+			const documentData = {
 				application_id: user.id,
 				document_type: documentType,
 				user_id: user.id,
 				verification_status: 'pending',
 				file_name: file.name,
-				file_path: `/storage/documents/${user.id}/${file.name}`,
+				file_size: file.size,
+				notes: null,
+				// The file was already uploaded by the OCR provider, so we use the path
+				file_path: filePath,
 				extracted_data: {
 					text: ocrText,
 					file_name: file.name,
@@ -121,13 +147,23 @@ const DocumentUpload: React.FC = () => {
 					file_size: file.size,
 					processed_at: new Date().toISOString(),
 				},
-			} as any);
+			};
 
+			console.log('Document data prepared:', documentData);
+
+			// Call the uploadDocument function
+			await uploadDocument(documentData);
+
+			console.log('Document upload completed successfully');
 			showToast.success('Document uploaded successfully!');
+
+			// Refresh documents list after upload
+			await fetchDocuments(user.id);
 
 			// Reset form
 			setFile(null);
 			setOcrText('');
+			setOcrResult(null);
 			setAnalysisProgress(0);
 		} catch (err) {
 			console.error('Upload error:', err);
@@ -280,8 +316,7 @@ const DocumentUpload: React.FC = () => {
 											fullWidth
 											isLoading={isLoading}
 										>
-											<Check size={18} className='mr-2' />
-											Upload Document
+											<Check size={18} className='mr-2' /> Upload Document
 										</Button>
 									)}
 								</div>
@@ -300,7 +335,7 @@ const DocumentUpload: React.FC = () => {
 							<div className='flex flex-col items-center justify-center h-64'>
 								<Spinner size='lg' className='mb-4' />
 								<p className='text-gray-600'>
-									Analyzing document using Azure AI...
+									Analyzing document using {ocrProviderName}...
 								</p>
 							</div>
 						) : ocrText ? (
