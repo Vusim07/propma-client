@@ -72,37 +72,30 @@ serve(async (req) => {
 
 		// Call Azure Document Intelligence API
 		const response = await fetch(
-			`${AZURE_ENDPOINT}/documentintelligence/documentModels/prebuilt-document:analyze?api-version=2023-07-31`,
+			`${AZURE_ENDPOINT}/documentintelligence/documentModels/prebuilt-layout:analyze?api-version=2024-02-29-preview`,
 			{
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 					'Ocp-Apim-Subscription-Key': AZURE_API_KEY,
+					Accept: 'application/json', // Added to match SDK example
 				},
 				body: JSON.stringify({
-					urlSource: fileUrl,
+					urlSource: fileUrl, // Keep URL source if using public URL
+					features: ['ocr.highResolution'], // Add recommended feature
 				}),
 			},
 		);
 
-		// Log Azure API response status and headers
-		console.log('Azure API response status:', response.status);
-		console.log('Azure API response headers:', response.headers);
-
-		// Check for API errors with detailed logging
-		if (!response.ok) {
-			const errorText = await response.text();
-			console.error(`Azure API error: ${response.status} - ${errorText}`);
+		if (response.status >= 400) {
+			const errorData = await response.json();
+			console.error('Azure API error:', errorData.error);
 			return new Response(
 				JSON.stringify({
-					error: 'Azure Document Intelligence API error',
-					status: response.status,
-					details: errorText,
+					error: 'Azure API Error',
+					details: errorData.error,
 				}),
-				{
-					headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-					status: 502, // Bad Gateway to indicate upstream service failure
-				},
+				{ headers: corsHeaders, status: 502 },
 			);
 		}
 
@@ -122,61 +115,30 @@ serve(async (req) => {
 		}
 
 		// Poll the operation with timeout protection
+		// Replace the polling loop with:
 		let result;
-		let status = 'running';
-		let attempts = 0;
-		const MAX_ATTEMPTS = 30; // 30 seconds timeout
+		const startTime = Date.now();
+		const TIMEOUT = 120000; // 2 minutes
 
-		console.log('Polling operation at:', operationLocation);
-
-		while (
-			(status === 'running' || status === 'notStarted') &&
-			attempts < MAX_ATTEMPTS
-		) {
-			attempts++;
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-
+		do {
 			const pollResponse = await fetch(operationLocation, {
 				headers: {
 					'Ocp-Apim-Subscription-Key': AZURE_API_KEY,
+					Accept: 'application/json',
 				},
 			});
 
-			console.log(
-				`Poll attempt ${attempts}: response status = ${pollResponse.status}`,
-			);
-
 			if (!pollResponse.ok) {
-				const pollErrorText = await pollResponse.text();
-				console.error(`Poll error: ${pollResponse.status} - ${pollErrorText}`);
-				return new Response(
-					JSON.stringify({
-						error: 'Azure polling failed',
-						status: pollResponse.status,
-						details: pollErrorText,
-					}),
-					{
-						headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-						status: 502,
-					},
-				);
+				const errorData = await pollResponse.json();
+				throw new Error(`Polling failed: ${errorData.error.message}`);
 			}
 
 			result = await pollResponse.json();
-			status = result.status;
-			console.log(`Poll attempt ${attempts}: status = ${status}`);
-		}
-
-		if (attempts >= MAX_ATTEMPTS) {
-			console.error('Document processing timed out');
-			return new Response(
-				JSON.stringify({ error: 'Document processing timed out' }),
-				{
-					headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-					status: 504, // Gateway Timeout
-				},
-			);
-		}
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+		} while (
+			(result.status === 'running' || result.status === 'notStarted') &&
+			Date.now() - startTime < TIMEOUT
+		);
 
 		// Format the data following SA context requirements (POPI Act compliance)
 		const sanitizedResult = sanitizeDocumentData(result);
