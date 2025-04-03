@@ -109,7 +109,6 @@ export class AzureOcrProvider implements OcrProvider {
 				documentType: 'document',
 				processedDate: currentDate,
 				filePath: uploadData?.path || filePath,
-				// Add original file name and metadata
 				fileName: originalFileName,
 				fileSize: file.size,
 				fileType: file.type,
