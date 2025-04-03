@@ -12,7 +12,12 @@ export interface OcrResult {
 	}>;
 	documentType?: string;
 	processedDate?: string;
-	filePath?: string; // Add this to store the file path from storage
+	filePath?: string; // Path in storage
+	fileName?: string; // Original file name
+	fileSize?: number; // File size in bytes
+	fileType?: string; // MIME type
+	operationId?: string; // Unique ID for this operation
+	processedBy?: string; // Which OCR engine processed this
 }
 
 export interface OcrProvider {

@@ -15,6 +15,11 @@ export interface DocumentAnalysisResult {
 	documentType?: string;
 	filePath?: string; // Add this to store the file path from storage
 	processedDate?: string;
+	fileName?: string;
+	fileSize?: number;
+	fileType?: string;
+	operationId?: string;
+	processedBy?: string;
 }
 
 export const documentService = {
@@ -50,6 +55,7 @@ function generateFallbackAnalysis(file: File): DocumentAnalysisResult {
 	});
 
 	const fileSizeKB = (file.size / 1024).toFixed(2);
+	const operationId = crypto.randomUUID();
 
 	return {
 		content: `Document Analysis (Offline Mode)\nProcessed on: ${currentDate}\nFile: ${file.name}\nSize: ${fileSizeKB} KB`,
@@ -66,5 +72,10 @@ function generateFallbackAnalysis(file: File): DocumentAnalysisResult {
 		],
 		documentType: 'document',
 		processedDate: currentDate,
+		fileName: file.name,
+		fileSize: file.size,
+		fileType: file.type,
+		operationId: operationId,
+		processedBy: 'Offline Fallback',
 	};
 }

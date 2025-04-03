@@ -22,13 +22,20 @@ export class TesseractOcrProvider implements OcrProvider {
 
 			console.log('Processing document with Tesseract OCR');
 
-			// Upload file to persistent storage first (not temporary)
-			// This ensures the file is stored even if we're using Tesseract
-			const fileExt = file.name.split('.').pop();
-			const fileName = `${userId}_${Date.now()}.${fileExt}`;
-			const filePath = `${userId}/${fileName}`; // Not using temp folder - permanent storage
+			// Generate a unique ID for this document operation
+			const operationId = crypto.randomUUID();
 
-			console.log('Uploading file to permanent storage:', filePath);
+			// Create a unique filename using timestamp and operation ID
+			const fileExt = file.name.split('.').pop();
+			const originalFileName = file.name;
+			// Include operation ID in the file path to ensure uniqueness
+			const fileName = `${userId}_${Date.now()}_${operationId}.${fileExt}`;
+			const filePath = `${userId}/${fileName}`;
+
+			console.log(
+				'Uploading file to permanent storage with unique path:',
+				filePath,
+			);
 
 			// Upload file - using upsert to prevent conflicts
 			const { data: uploadData, error: uploadError } = await supabase.storage
@@ -45,6 +52,11 @@ export class TesseractOcrProvider implements OcrProvider {
 			}
 
 			console.log('File uploaded successfully to storage:', uploadData);
+
+			// Check file size - Azure Document Intelligence has a 5MB limit for PDFs
+			if (file.size > 5 * 1024 * 1024) {
+				console.log('File exceeds 5MB, using Tesseract for processing');
+			}
 
 			// Proceed with Tesseract OCR for image files
 			const worker = await createWorker('eng');
@@ -85,8 +97,13 @@ export class TesseractOcrProvider implements OcrProvider {
 				keyValuePairs,
 				documentType: 'document',
 				processedDate: currentDate,
-				// Add file path to result so it can be used when saving to database
 				filePath: uploadData?.path || filePath,
+				// Add original file name and metadata
+				fileName: originalFileName,
+				fileSize: file.size,
+				fileType: file.type,
+				operationId: operationId,
+				processedBy: 'Tesseract OCR',
 			};
 		} catch (error) {
 			console.error('Tesseract OCR analysis failed:', error);
@@ -120,6 +137,8 @@ export class TesseractOcrProvider implements OcrProvider {
 
 		const fileSizeKB = (file.size / 1024).toFixed(2);
 
+		const operationId = crypto.randomUUID();
+
 		return {
 			content: `Document Analysis (Offline Mode)\nProcessed on: ${currentDate}\nFile: ${file.name}\nSize: ${fileSizeKB} KB`,
 			paragraphs: [
@@ -135,6 +154,11 @@ export class TesseractOcrProvider implements OcrProvider {
 			],
 			documentType: 'document',
 			processedDate: currentDate,
+			fileName: file.name,
+			fileSize: file.size,
+			fileType: file.type,
+			operationId: operationId,
+			processedBy: 'Tesseract OCR (Offline)',
 		};
 	}
 }

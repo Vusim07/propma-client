@@ -5,6 +5,9 @@ import { TesseractOcrProvider } from './tesseractOcrProvider';
 // Default to Tesseract as requested
 const DEFAULT_PROVIDER = 'tesseract';
 
+// Azure Document Intelligence has a 5MB limit for PDFs
+const MAX_AZURE_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
 /**
  * Factory function to get the appropriate OCR provider
  * @param providerName Optional provider name, defaults to Tesseract
@@ -15,17 +18,22 @@ export function getOcrProvider(
 	providerName: string = DEFAULT_PROVIDER,
 	file?: File,
 ): OcrProvider {
-	// If a file is provided, check if it's a PDF and Tesseract is requested
-	if (file && providerName.toLowerCase() === 'tesseract') {
+	// If a file is provided, make intelligent provider selection
+	if (file) {
 		const isPdf =
 			file.type === 'application/pdf' ||
 			(file.name && file.name.toLowerCase().endsWith('.pdf'));
 
-		if (isPdf) {
-			console.log(
-				'PDF detected - automatically using Azure provider for better PDF support',
-			);
+		// Use Azure for PDFs (if not too large)
+		if (isPdf && file.size <= MAX_AZURE_FILE_SIZE) {
+			console.log('PDF detected - using Azure provider for better PDF support');
 			return new AzureOcrProvider();
+		}
+
+		// For large files, use Tesseract
+		if (file.size > MAX_AZURE_FILE_SIZE) {
+			console.log('Large file detected - using Tesseract for better handling');
+			return new TesseractOcrProvider();
 		}
 	}
 

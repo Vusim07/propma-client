@@ -72,7 +72,7 @@ serve(async (req) => {
 
 		// Call Azure Document Intelligence API
 		const response = await fetch(
-			`${AZURE_ENDPOINT}/documentintelligence/documentModels/prebuilt-layout:analyze?api-version=2024-02-29-preview`,
+			`https://amara-di.cognitiveservices.azure.com/documentintelligence/documentModels/prebuilt-layout:analyze?api-version=2024-02-29-preview`,
 			{
 				method: 'POST',
 				headers: {
