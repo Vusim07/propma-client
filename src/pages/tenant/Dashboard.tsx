@@ -15,13 +15,25 @@ import {
 	Calendar,
 	ArrowRight,
 	RefreshCw,
+	Home,
 } from 'lucide-react';
 import { showToast } from '../../utils/toast';
+import { supabase } from '../../services/supabase';
+
+interface ApplicationInfo {
+	id: string;
+	property_address: string;
+	property_id: string;
+	status: string;
+	submitted_at: string;
+	agent_name?: string;
+}
 
 const TenantDashboard: React.FC = () => {
 	const { user } = useAuthStore();
 	const { setPageTitle } = usePageTitle();
 	const [refreshing, setRefreshing] = useState(false);
+	const [applications, setApplications] = useState<ApplicationInfo[]>([]);
 	const {
 		profile,
 		documents,
@@ -57,9 +69,54 @@ const TenantDashboard: React.FC = () => {
 				fetchAppointments(user.id),
 			]);
 			console.log(profile);
+
+			// Fetch applications
+			await fetchApplications();
 		} catch (err) {
 			console.error('Error loading tenant data:', err);
 			showToast.error('Failed to load your profile information');
+		}
+	};
+
+	const fetchApplications = async () => {
+		if (!profile?.id) {
+			console.error('No tenant profile found');
+			return;
+		}
+
+		try {
+			// Query applications for the current tenant including property and agent details
+			const { data, error } = await supabase
+				.from('applications')
+				.select(
+					`
+					*,
+					properties (*),
+					users:agent_id (first_name, last_name)
+				`,
+				)
+				.eq('tenant_id', profile.id);
+
+			if (error) throw error;
+
+			if (data) {
+				const formattedApplications: ApplicationInfo[] = data.map(
+					(app: any) => ({
+						id: app.id,
+						property_address: app.properties?.address || 'Unknown property',
+						property_id: app.properties?.id || '',
+						status: app.status,
+						submitted_at: new Date(app.created_at).toLocaleDateString('en-ZA'),
+						agent_name: app.users
+							? `${app.users.first_name} ${app.users.last_name}`
+							: undefined,
+					}),
+				);
+
+				setApplications(formattedApplications);
+			}
+		} catch (err) {
+			console.error('Error fetching applications:', err);
 		}
 	};
 
@@ -136,6 +193,55 @@ const TenantDashboard: React.FC = () => {
 					Refresh
 				</Button>
 			</div>
+
+			{/* Applications Section */}
+			{applications.length > 0 && (
+				<Card className='mb-8'>
+					<CardHeader className='flex flex-row items-center justify-between'>
+						<h2 className='text-lg font-semibold'>Your Applications</h2>
+						<Home className='h-5 w-5 text-blue-600' />
+					</CardHeader>
+					<CardContent>
+						<div className='space-y-4'>
+							{applications.map((app) => (
+								<div
+									key={app.id}
+									className='p-4 border border-gray-100 rounded-lg hover:bg-gray-50'
+								>
+									<div className='flex justify-between items-start mb-2'>
+										<h3 className='font-medium'>{app.property_address}</h3>
+										<Badge
+											variant={
+												app.status === 'approved'
+													? 'success'
+													: app.status === 'rejected'
+													? 'danger'
+													: 'warning'
+											}
+										>
+											{app.status.toUpperCase()}
+										</Badge>
+									</div>
+									<div className='text-sm text-gray-600 mb-2'>
+										Submitted on: {app.submitted_at}
+									</div>
+									{app.agent_name && (
+										<div className='text-sm text-gray-600 mb-3'>
+											Agent: {app.agent_name}
+										</div>
+									)}
+									<Link to={`/tenant/screening?application=${app.id}`}>
+										<Button variant='outline' size='sm' className='w-full mt-2'>
+											View Details
+											<ArrowRight size={16} className='ml-2' />
+										</Button>
+									</Link>
+								</div>
+							))}
+						</div>
+					</CardContent>
+				</Card>
+			)}
 
 			{/* Documents Card */}
 			<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'>

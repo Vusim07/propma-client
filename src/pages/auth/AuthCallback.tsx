@@ -23,6 +23,10 @@ const AuthCallback: React.FC = () => {
 				console.log('URL hash:', window.location.hash);
 				console.log('URL search:', window.location.search);
 
+				// Check for stored return path
+				const returnTo = sessionStorage.getItem('auth_return_path');
+				console.log('Return path:', returnTo);
+
 				// If we have a access_token or code in the URL, exchange it
 				const hasAccessToken = hashParams.has('access_token');
 				const hasCode = queryParams.has('code');
@@ -103,6 +107,15 @@ const AuthCallback: React.FC = () => {
 							} else {
 								// Profile updated successfully, skip the rest
 								await checkAuth();
+
+								// Check if we need to redirect to a specific path
+								if (returnTo) {
+									console.log('Redirecting to stored return path:', returnTo);
+									sessionStorage.removeItem('auth_return_path');
+									window.location.href = returnTo;
+									return;
+								}
+
 								navigate('/profile-completion');
 								return;
 							}
@@ -158,6 +171,15 @@ const AuthCallback: React.FC = () => {
 
 					// Redirect to profile completion for additional details
 					await checkAuth();
+
+					// Check if we need to redirect to a specific path after profile completion
+					if (returnTo) {
+						console.log('Redirecting to stored return path:', returnTo);
+						sessionStorage.removeItem('auth_return_path');
+						window.location.href = returnTo;
+						return;
+					}
+
 					console.log('Redirecting to profile completion');
 					window.location.href = '/profile-completion';
 					return;
@@ -171,13 +193,29 @@ const AuthCallback: React.FC = () => {
 				) {
 					console.log('Profile exists but needs completion');
 					await checkAuth();
+
+					// Check if we need to redirect to a specific path after profile completion
+					if (returnTo) {
+						console.log('Setting redirect path for after profile completion');
+						sessionStorage.setItem('post_profile_redirect', returnTo);
+					}
+
 					console.log('Redirecting to profile completion');
 					window.location.href = '/profile-completion';
 					return;
 				}
 
-				// Profile exists and is complete, proceed to the appropriate dashboard
+				// Profile exists and is complete, check for return path
 				await checkAuth();
+
+				if (returnTo) {
+					console.log('Redirecting to stored return path:', returnTo);
+					sessionStorage.removeItem('auth_return_path');
+					window.location.href = returnTo;
+					return;
+				}
+
+				// No return path, proceed to the appropriate dashboard
 				if (profileData.role === 'tenant') {
 					console.log('Redirecting to tenant dashboard');
 					window.location.href = '/tenant';

@@ -24,7 +24,6 @@ export type Database = {
 					tenant_id: string;
 					updated_at: string;
 					decision_at: string | null; // Add this field
-					submitted_at: string; // Add this field which is used in formatting
 				};
 				Insert: {
 					agent_id: string;
@@ -39,7 +38,6 @@ export type Database = {
 					tenant_id: string;
 					updated_at?: string;
 					decision_at?: string | null; // Add this field
-					submitted_at?: string; // Add this field
 				};
 				Update: {
 					agent_id?: string;
@@ -54,7 +52,6 @@ export type Database = {
 					tenant_id?: string;
 					updated_at?: string;
 					decision_at?: string | null; // Add this field
-					submitted_at?: string; // Add this field
 				};
 				Relationships: [
 					{

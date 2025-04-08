@@ -301,15 +301,22 @@ const ProfileCompletion: React.FC = () => {
 
 			showToast.success('Profile updated successfully!');
 
-			// Add a small delay to ensure state updates propagate
-			setTimeout(() => {
-				// Redirect based on role
-				if (values.role === 'tenant') {
-					window.location.href = '/tenant';
-				} else {
-					window.location.href = '/agent';
-				}
-			}, 100);
+			// Check if there's a post-profile completion redirect path
+			const redirectPath = sessionStorage.getItem('post_profile_redirect');
+			if (redirectPath) {
+				sessionStorage.removeItem('post_profile_redirect');
+				navigate(redirectPath);
+				return;
+			}
+
+			// Default navigation based on role
+			if (values.role === 'tenant') {
+				navigate('/tenant');
+			} else if (['agent', 'landlord'].includes(values.role)) {
+				navigate('/agent');
+			} else {
+				navigate('/');
+			}
 		} catch (error: any) {
 			console.error('Profile completion error:', error);
 			showToast.error(error.message || 'Failed to complete your profile');

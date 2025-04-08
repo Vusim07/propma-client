@@ -17,6 +17,9 @@ import AuthCallback from './pages/auth/AuthCallback';
 import ProfileCompletion from './pages/auth/ProfileCompletion';
 import AuthLayout from './components/layout/AuthLayout';
 
+// Add this import
+import PropertyApplication from './pages/tenant/PropertyApplication';
+
 // Tenant Pages
 import TenantDashboard from './pages/tenant/Dashboard';
 import DocumentUpload from './pages/tenant/DocumentUpload';
@@ -192,6 +195,9 @@ function App() {
 							</AuthLayout>
 						}
 					/>
+
+					{/* Property Application Route - Add this */}
+					<Route path='/apply/:token' element={<PropertyApplication />} />
 
 					{/* Tenant Routes */}
 					<Route

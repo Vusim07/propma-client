@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand';
 import { supabase } from '../services/supabase';
@@ -8,6 +9,8 @@ import {
 	ScreeningReport,
 	Appointment,
 	UpdateTenantProfile,
+	Property,
+	Application,
 } from '../types';
 
 interface TenantState {
@@ -32,6 +35,16 @@ interface TenantState {
 	scheduleAppointment: (
 		appointment: Omit<Appointment, 'id' | 'created_at'>,
 	) => Promise<void>;
+	fetchPropertyByToken: (token: string) => Promise<Property | null>;
+	submitApplication: (application: {
+		property_id: string;
+		agent_id: string;
+		tenant_id: string;
+		employer: string;
+		employment_duration: number;
+		monthly_income: number;
+		notes?: string;
+	}) => Promise<Application | null>;
 }
 
 export const useTenantStore = create<TenantState>((set) => ({
@@ -318,59 +331,161 @@ export const useTenantStore = create<TenantState>((set) => ({
 		}
 	},
 
-	scheduleAppointment: async (appointment) => {
+	scheduleAppointment: async (
+		appointment: Omit<Appointment, 'id' | 'created_at'>,
+	): Promise<void> => {
 		set({ isLoading: true, error: null });
 		try {
-			// Make sure all required fields are present
-			if (
-				!appointment.employer ||
-				!appointment.employment_duration ||
-				!appointment.monthly_income
-			) {
-				throw new Error('Missing required employment information');
-			}
-
-			const { data, error } = await supabase
-				.from('appointments')
-				.insert({
-					tenant_id: appointment.tenant_id,
-					agent_id: appointment.agent_id,
-					property_id: appointment.property_id,
-					date: appointment.date,
-					time: appointment.time,
-					status: appointment.status,
-					notes: appointment.notes || null,
-					employer: appointment.employer,
-					employment_duration: appointment.employment_duration,
-					monthly_income: appointment.monthly_income,
-				})
-				.select()
-				.single();
+			const { error } = await supabase.from('appointments').insert(appointment);
 
 			if (error) throw error;
 
-			// Format date for display and ensure we have the correct type
-			const formattedAppointment: Appointment = {
-				id: data.id,
-				tenant_id: data.tenant_id,
-				agent_id: data.agent_id,
-				property_id: data.property_id,
-				date: formatDate(data.date),
-				time: data.time,
-				status: data.status as Appointment['status'],
-				notes: data.notes || null,
-				employer: data.employer,
-				employment_duration: data.employment_duration,
-				monthly_income: data.monthly_income,
-				created_at: data.created_at,
-			};
-
-			set((state) => ({
-				appointments: [...state.appointments, formattedAppointment],
-				isLoading: false,
-			}));
+			set({ isLoading: false });
 		} catch (error) {
 			set({ error: (error as Error).message, isLoading: false });
+		}
+	},
+
+	fetchPropertyByToken: async (token: string): Promise<Property | null> => {
+		set({ isLoading: true, error: null });
+		try {
+			// Try to use the stored function first (this bypasses RLS)
+			const { data: rpcData, error: rpcError } = await supabase.rpc<Property[]>(
+				'get_property_by_token',
+				{ token_param: token },
+			);
+
+			if (!rpcError && rpcData && rpcData.length > 0) {
+				set({ isLoading: false });
+				return rpcData[0];
+			}
+
+			// Fallback to direct query if RPC fails or returns empty
+			if (rpcError) {
+				console.log(
+					'RPC get_property_by_token failed, using fallback query:',
+					rpcError,
+				);
+			}
+
+			// Fallback to standard query
+			const { data, error } = await supabase
+				.from('properties')
+				.select('*')
+				.ilike('application_link', `%${token}%`)
+				.maybeSingle();
+
+			set({ isLoading: false });
+
+			if (error) {
+				console.error('Error fetching property:', error);
+				throw error;
+			}
+
+			return data;
+		} catch (error) {
+			set({ error: (error as Error).message, isLoading: false });
+			return null;
+		}
+	},
+
+	submitApplication: async (application: {
+		property_id: string;
+		agent_id: string;
+		tenant_id: string;
+		employer: string;
+		employment_duration: number;
+		monthly_income: number;
+		notes?: string;
+	}): Promise<Application | null> => {
+		set({ isLoading: true, error: null });
+		try {
+			// Validate the numeric fields to ensure they are numbers, not NaN
+			if (
+				isNaN(application.employment_duration) ||
+				isNaN(application.monthly_income)
+			) {
+				throw new Error(
+					'Employment duration and monthly income must be valid numbers',
+				);
+			}
+
+			// Ensure numeric fields are actually numbers, not strings
+			const employmentDuration = Number(application.employment_duration);
+			const monthlyIncome = Number(application.monthly_income);
+
+			console.log('Submitting application to Supabase:', {
+				...application,
+				employment_duration: employmentDuration,
+				monthly_income: monthlyIncome,
+			});
+
+			// First try to use the RPC function to bypass RLS
+			try {
+				const { data: applicationId, error: rpcError } =
+					await supabase.rpc<string>('insert_application', {
+						p_property_id: application.property_id,
+						p_agent_id: application.agent_id,
+						p_tenant_id: application.tenant_id,
+						p_employer: application.employer,
+						p_employment_duration: employmentDuration,
+						p_monthly_income: monthlyIncome,
+						p_notes: application.notes || null,
+					});
+
+				if (rpcError) {
+					console.log(
+						'RPC insert_application failed, falling back to direct insert:',
+						rpcError,
+					);
+					throw rpcError; // Throw to trigger the fallback
+				}
+
+				// Fetch the created application
+				const { data: createdApplication, error: fetchError } = await supabase
+					.from('applications')
+					.select('*')
+					.eq('id', applicationId)
+					.single();
+
+				if (fetchError) {
+					throw fetchError;
+				}
+
+				set({ isLoading: false });
+				return createdApplication;
+			} catch (_) {
+				// Use underscore to indicate unused variable
+				console.log('Using fallback for application submission');
+
+				// Fallback to direct insert (may still trigger RLS errors)
+				const applicationData = {
+					...application,
+					employment_duration: employmentDuration,
+					monthly_income: monthlyIncome,
+					status: 'pending',
+					created_at: new Date().toISOString(),
+				};
+
+				// Create the application record
+				const { data, error } = await supabase
+					.from('applications')
+					.insert(applicationData)
+					.select()
+					.single();
+
+				if (error) {
+					console.error('Supabase error on application insert:', error);
+					throw error;
+				}
+
+				set({ isLoading: false });
+				return data;
+			}
+		} catch (error) {
+			console.error('Application submission error:', error);
+			set({ error: (error as Error).message, isLoading: false });
+			return null;
 		}
 	},
 }));

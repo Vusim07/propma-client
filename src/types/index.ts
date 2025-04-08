@@ -73,7 +73,7 @@ export type UpdateApplication = UpdateTables<'applications'>;
 export type ApplicationWithRelations = Application & {
 	property?: PropertyWithFormatting;
 	tenant?: TenantProfile;
-	submitted_at_formatted: string;
+	created_at_formatted: string;
 	decision_at_formatted: string | null;
 };
 
@@ -96,6 +96,55 @@ export type UpdateEmailWorkflow = UpdateTables<'email_workflows'>;
 export type WorkflowLog = Tables<'workflow_logs'>;
 export type InsertWorkflowLog = InsertTables<'workflow_logs'>;
 export type UpdateWorkflowLog = UpdateTables<'workflow_logs'>;
+
+// RPC Function types
+export interface RpcFunctions {
+	get_property_by_token: (params: {
+		token_param: string;
+	}) => Promise<Property[]>;
+	get_tenant_profile_for_user: (params: {
+		user_id: string;
+	}) => Promise<TenantProfile[]>;
+	create_tenant_profile: (params: {
+		p_tenant_id: string;
+		p_first_name: string;
+		p_last_name: string;
+		p_email: string;
+		p_phone?: string;
+		p_current_address?: string;
+		p_id_number?: string;
+		p_employment_status?: string;
+		p_monthly_income?: number;
+	}) => Promise<string>;
+	get_tenant_applications_for_property: (params: {
+		tenant_id_param: string;
+		property_id_param: string;
+	}) => Promise<Application[]>;
+	insert_application: (params: {
+		p_property_id: string;
+		p_agent_id: string;
+		p_tenant_id: string;
+		p_employer: string;
+		p_employment_duration: number;
+		p_monthly_income: number;
+		p_notes?: string | null;
+	}) => Promise<string>; // Returns the application ID
+	check_application_exists: (params: {
+		tenant_id_param: string;
+		property_id_param: string;
+	}) => Promise<boolean>; // Returns true if an application exists
+}
+
+// Extend the Supabase client type for rpc
+declare module '@supabase/supabase-js' {
+	interface SupabaseClient {
+		rpc<T = unknown>(
+			fn: keyof RpcFunctions | string,
+			params?: object,
+			options?: object,
+		): Promise<{ data: T; error: Error | null }>;
+	}
+}
 
 export function formatProperty(property: Property): PropertyWithFormatting {
 	return {
@@ -125,11 +174,11 @@ export function formatApplication(
 		...application,
 		property: property ? formatProperty(property) : undefined,
 		tenant,
-		submitted_at_formatted: new Intl.DateTimeFormat('en-ZA', {
+		created_at_formatted: new Intl.DateTimeFormat('en-ZA', {
 			day: '2-digit',
 			month: '2-digit',
 			year: 'numeric',
-		}).format(new Date(application.submitted_at || application.created_at)),
+		}).format(new Date(application.created_at)),
 		decision_at_formatted: application.decision_at
 			? new Intl.DateTimeFormat('en-ZA', {
 					day: '2-digit',
