@@ -54,7 +54,13 @@ interface PropertyApplicationState {
 	loading: boolean;
 	property: Property | null;
 	error: string | null;
-	step: 'loading' | 'auth' | 'application' | 'documents' | 'complete';
+	step:
+		| 'loading'
+		| 'welcome'
+		| 'auth'
+		| 'application'
+		| 'documents'
+		| 'complete';
 	existingApplication: Application | null;
 }
 
@@ -153,12 +159,12 @@ const PropertyApplication: React.FC = () => {
 						}));
 					}
 				} else {
-					// User not logged in, show auth screen
+					// User not logged in, show welcome screen first
 					setState((prev) => ({
 						...prev,
 						loading: false,
 						property,
-						step: 'auth',
+						step: 'welcome',
 					}));
 				}
 			} catch (error) {
@@ -426,136 +432,182 @@ const PropertyApplication: React.FC = () => {
 						<p>Loading property information...</p>
 					</div>
 				);
+			case 'welcome':
+				return (
+					<div className='space-y-6 text-center py-2 md:py-6'>
+						<h3 className='text-xl font-semibold mb-4'>Ready to Apply?</h3>
+						<p className='text-gray-600 mb-6 md:mb-8 px-2 md:px-8'>
+							You're about to start your application for this property. You'll
+							need to create a free account or sign in to continue.
+						</p>
+						<div className='flex justify-center'>
+							<Button
+								className='w-full md:w-auto px-6 py-2 text-base'
+								onClick={() => setState((prev) => ({ ...prev, step: 'auth' }))}
+							>
+								Continue with Application
+							</Button>
+						</div>
+					</div>
+				);
 			case 'auth':
 				return (
-					<AuthLayout title='Property Application'>
-						{authStep === 'login' ? (
-							<>
-								<Login />
-								<p className='text-center mt-4'>
-									<button
-										onClick={() => setAuthStep('register')}
-										className='text-blue-600 hover:text-blue-800 underline'
-									>
-										Don't have an account? Register here
-									</button>
-								</p>
-							</>
-						) : (
-							<>
-								<Register />
-								<p className='text-center mt-4'>
-									<button
-										onClick={() => setAuthStep('login')}
-										className='text-blue-600 hover:text-blue-800 underline'
-									>
-										Already have an account? Sign in
-									</button>
-								</p>
-							</>
-						)}
-					</AuthLayout>
+					<div className='px-2 md:px-4'>
+						<div className='bg-blue-50 p-4 rounded-md mb-6'>
+							<p className='text-sm text-blue-800'>
+								Please sign in or create an account to continue with your
+								application.
+							</p>
+						</div>
+						<AuthLayout
+							title=''
+							className='py-0 min-h-0'
+							wrapperClassName='mt-0'
+							contentClassName='py-4'
+						>
+							{authStep === 'login' ? (
+								<>
+									<Login />
+									<p className='text-center mt-4'>
+										<button
+											onClick={() => setAuthStep('register')}
+											className='text-blue-600 hover:text-blue-800 underline text-sm md:text-base px-4 py-2'
+										>
+											Don't have an account? Register here
+										</button>
+									</p>
+								</>
+							) : (
+								<>
+									<Register />
+									<p className='text-center mt-4'>
+										<button
+											onClick={() => setAuthStep('login')}
+											className='text-blue-600 hover:text-blue-800 underline text-sm md:text-base px-4 py-2'
+										>
+											Already have an account? Sign in
+										</button>
+									</p>
+								</>
+							)}
+						</AuthLayout>
+					</div>
 				);
 			case 'application':
 				return (
 					<form onSubmit={handleApplicationSubmit} className='space-y-6'>
-						<div>
-							<p className='text-sm text-gray-600 mb-4'>
+						<div className='bg-blue-50 p-4 rounded-md mb-6'>
+							<p className='text-sm text-blue-800'>
 								Please provide your employment and income details to complete
 								your rental application.
 							</p>
 						</div>
 
-						<div>
-							<label
-								htmlFor='employer'
-								className='block text-sm font-medium text-gray-700 mb-1'
-							>
-								Current Employer
-							</label>
-							<Input
-								id='employer'
-								value={applicationForm.employer}
-								onChange={(e) =>
-									setApplicationForm({
-										...applicationForm,
-										employer: e.target.value,
-									})
-								}
-								required
-							/>
+						<div className='space-y-4 md:space-y-6'>
+							<div>
+								<label
+									htmlFor='employer'
+									className='block text-sm font-medium text-gray-700 mb-1'
+								>
+									Current Employer
+								</label>
+								<Input
+									id='employer'
+									value={applicationForm.employer}
+									onChange={(e) =>
+										setApplicationForm({
+											...applicationForm,
+											employer: e.target.value,
+										})
+									}
+									className='w-full'
+									placeholder='Company name'
+									required
+								/>
+							</div>
+
+							<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+								<div>
+									<label
+										htmlFor='employment_duration'
+										className='block text-sm font-medium text-gray-700 mb-1'
+									>
+										Employment Duration (months)
+									</label>
+									<Input
+										id='employment_duration'
+										type='number'
+										min='0'
+										value={applicationForm.employment_duration}
+										onChange={(e) => {
+											const value =
+												e.target.value === ''
+													? 0
+													: parseInt(e.target.value, 10);
+											setApplicationForm({
+												...applicationForm,
+												employment_duration: isNaN(value) ? 0 : value,
+											});
+										}}
+										className='w-full'
+										placeholder='0'
+										required
+									/>
+								</div>
+
+								<div>
+									<label
+										htmlFor='monthly_income'
+										className='block text-sm font-medium text-gray-700 mb-1'
+									>
+										Monthly Income (ZAR)
+									</label>
+									<Input
+										id='monthly_income'
+										type='number'
+										min='0'
+										value={applicationForm.monthly_income}
+										onChange={(e) => {
+											const value =
+												e.target.value === ''
+													? 0
+													: parseInt(e.target.value, 10);
+											setApplicationForm({
+												...applicationForm,
+												monthly_income: isNaN(value) ? 0 : value,
+											});
+										}}
+										className='w-full'
+										placeholder='0'
+										required
+									/>
+								</div>
+							</div>
+
+							<div>
+								<label
+									htmlFor='notes'
+									className='block text-sm font-medium text-gray-700 mb-1'
+								>
+									Additional Notes (optional)
+								</label>
+								<textarea
+									id='notes'
+									className='w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+									rows={3}
+									value={applicationForm.notes}
+									onChange={(e) =>
+										setApplicationForm({
+											...applicationForm,
+											notes: e.target.value,
+										})
+									}
+									placeholder='Any additional information that might help your application'
+								/>
+							</div>
 						</div>
 
-						<div>
-							<label
-								htmlFor='employment_duration'
-								className='block text-sm font-medium text-gray-700 mb-1'
-							>
-								Employment Duration (months)
-							</label>
-							<Input
-								id='employment_duration'
-								type='number'
-								min='0'
-								value={applicationForm.employment_duration}
-								onChange={(e) => {
-									const value =
-										e.target.value === '' ? 0 : parseInt(e.target.value, 10);
-									setApplicationForm({
-										...applicationForm,
-										employment_duration: isNaN(value) ? 0 : value,
-									});
-								}}
-								required
-							/>
-						</div>
-
-						<div>
-							<label
-								htmlFor='monthly_income'
-								className='block text-sm font-medium text-gray-700 mb-1'
-							>
-								Monthly Income (ZAR)
-							</label>
-							<Input
-								id='monthly_income'
-								type='number'
-								min='0'
-								value={applicationForm.monthly_income}
-								onChange={(e) => {
-									const value =
-										e.target.value === '' ? 0 : parseInt(e.target.value, 10);
-									setApplicationForm({
-										...applicationForm,
-										monthly_income: isNaN(value) ? 0 : value,
-									});
-								}}
-								required
-							/>
-						</div>
-
-						<div>
-							<label
-								htmlFor='notes'
-								className='block text-sm font-medium text-gray-700 mb-1'
-							>
-								Additional Notes (optional)
-							</label>
-							<textarea
-								id='notes'
-								className='w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-								rows={3}
-								value={applicationForm.notes}
-								onChange={(e) =>
-									setApplicationForm({
-										...applicationForm,
-										notes: e.target.value,
-									})
-								}
-							/>
-						</div>
-
-						<div className='pt-4'>
+						<div className='pt-6 md:pt-8'>
 							<Button type='submit' className='w-full' isLoading={submitting}>
 								Next: Upload Documents
 							</Button>
@@ -565,14 +617,17 @@ const PropertyApplication: React.FC = () => {
 			case 'documents':
 				return (
 					<div className='space-y-6'>
-						<p className='text-sm text-gray-600'>
-							Please upload the required documents to support your application.
-						</p>
+						<div className='bg-blue-50 p-4 rounded-md mb-6'>
+							<p className='text-sm text-blue-800'>
+								Please upload the required documents to support your
+								application.
+							</p>
+						</div>
 
 						<div className='text-center py-4'>
-							<p className='mb-6'>
+							<p className='mb-6 text-gray-600'>
 								You'll be redirected to our document upload system where you can
-								submit your documents.
+								submit your documents securely.
 							</p>
 							<Button
 								onClick={() =>
@@ -580,7 +635,7 @@ const PropertyApplication: React.FC = () => {
 										`/tenant/documents?application=${state.existingApplication?.id}`,
 									)
 								}
-								className='w-full md:w-auto'
+								className='w-full md:w-auto px-6'
 							>
 								<FileText size={16} className='mr-2' />
 								Proceed to Document Upload
@@ -596,9 +651,14 @@ const PropertyApplication: React.FC = () => {
 	// Render loading state
 	if (state.loading) {
 		return (
-			<div className='flex items-center justify-center min-h-screen'>
-				<Spinner size='lg' />
-				<p className='ml-3 text-gray-600'>Loading property information...</p>
+			<div className='flex flex-col items-center justify-center min-h-screen p-4'>
+				<Card className='w-full max-w-md text-center p-8 shadow-lg'>
+					<Spinner size='lg' className='mx-auto mb-4' />
+					<p className='text-gray-600'>Loading property information...</p>
+					<p className='text-xs text-gray-500 mt-4'>
+						This may take a few moments
+					</p>
+				</Card>
 			</div>
 		);
 	}
@@ -606,25 +666,29 @@ const PropertyApplication: React.FC = () => {
 	// Render error state
 	if (state.error) {
 		return (
-			<div className='container mx-auto px-4 py-16 max-w-3xl'>
-				<Card>
+			<div className='container mx-auto px-4 py-8 max-w-3xl min-h-screen flex items-center justify-center'>
+				<Card className='w-full shadow-lg'>
 					<CardHeader>
-						<h1 className='text-2xl font-bold text-red-600'>Error</h1>
+						<h1 className='text-xl md:text-2xl font-bold text-red-600'>
+							Error
+						</h1>
 					</CardHeader>
-					<CardContent>
+					<CardContent className='p-4 md:p-6'>
 						<Alert variant='error' className='mb-6'>
 							{state.error}
 						</Alert>
-						<p className='mb-4'>
+						<p className='mb-6 text-gray-600'>
 							The application link you followed appears to be invalid or
 							expired.
 						</p>
-						<div className='flex gap-4'>
-							<Link to='/login'>
-								<Button>Login to your account</Button>
+						<div className='flex flex-col sm:flex-row gap-4'>
+							<Link to='/login' className='w-full sm:w-auto'>
+								<Button className='w-full'>Login to your account</Button>
 							</Link>
-							<Link to='/'>
-								<Button variant='outline'>Go to homepage</Button>
+							<Link to='/' className='w-full sm:w-auto'>
+								<Button variant='outline' className='w-full'>
+									Go to homepage
+								</Button>
 							</Link>
 						</div>
 					</CardContent>
@@ -635,149 +699,170 @@ const PropertyApplication: React.FC = () => {
 
 	// Render property and appropriate step
 	return (
-		<div className='container mx-auto px-4 py-8 max-w-4xl'>
-			{/* Property Details Card */}
-			{state.property && (
-				<Card className='mb-8'>
-					<CardContent className='p-6'>
-						<div className='flex flex-col md:flex-row gap-6'>
-							{/* Property Image */}
-							<div className='w-full md:w-1/3'>
-								{state.property.images && state.property.images.length > 0 ? (
-									<img
-										src={state.property.images[0]}
-										alt={state.property.address}
-										className='w-full h-40 object-cover rounded-md'
-									/>
-								) : (
-									<div className='w-full h-40 bg-gray-200 flex items-center justify-center rounded-md'>
-										<Home size={48} className='text-gray-400' />
-									</div>
-								)}
-							</div>
+		<div className='container mx-auto px-4 py-8 max-w-6xl'>
+			{/* Two column layout on desktop, stacked on mobile */}
+			<div className='flex flex-col lg:flex-row gap-6'>
+				{/* Property Details Column - Left side on desktop, top on mobile */}
+				<div className='w-full lg:w-5/12'>
+					{state.property && (
+						<Card className='sticky top-6'>
+							<CardHeader>
+								<h2 className='text-xl font-semibold'>Property Details</h2>
+							</CardHeader>
+							<CardContent className='p-4 md:p-6'>
+								{/* Property Image */}
+								<div className='mb-6'>
+									{state.property.images && state.property.images.length > 0 ? (
+										<img
+											src={state.property.images[0]}
+											alt={state.property.address}
+											className='w-full h-48 md:h-56 object-cover rounded-md'
+										/>
+									) : (
+										<div className='w-full h-48 md:h-56 bg-gray-200 flex items-center justify-center rounded-md'>
+											<Home size={64} className='text-gray-400' />
+										</div>
+									)}
+								</div>
 
-							{/* Property Details */}
-							<div className='w-full md:w-2/3'>
-								<h1 className='text-2xl font-bold text-gray-900 mb-2'>
-									{state.property.address}
-								</h1>
-								<div className='flex items-start mb-2'>
-									<MapPin size={18} className='text-gray-500 mr-2 mt-1' />
-									<p className='text-gray-600'>
-										{state.property.city}, {state.property.province}{' '}
-										{state.property.postal_code}
-									</p>
+								{/* Property Details */}
+								<div>
+									<h1 className='text-xl md:text-2xl font-bold text-gray-900 mb-2'>
+										{state.property.address}
+									</h1>
+									<div className='flex items-start mb-4'>
+										<MapPin
+											size={18}
+											className='text-gray-500 mr-2 mt-1 flex-shrink-0'
+										/>
+										<p className='text-gray-600'>
+											{state.property.city}, {state.property.province}{' '}
+											{state.property.postal_code}
+										</p>
+									</div>
+									<div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4'>
+										<div className='flex items-center'>
+											<DollarSign className='h-5 w-5 text-blue-500 mr-2 flex-shrink-0' />
+											<div>
+												<p className='text-sm text-gray-500'>Monthly Rent</p>
+												<p className='font-semibold'>
+													R{state.property.monthly_rent.toLocaleString()}
+												</p>
+											</div>
+										</div>
+										<div className='flex items-center'>
+											<Calendar className='h-5 w-5 text-blue-500 mr-2 flex-shrink-0' />
+											<div>
+												<p className='text-sm text-gray-500'>Available From</p>
+												<p className='font-semibold'>
+													{new Date(
+														state.property.available_from,
+													).toLocaleDateString()}
+												</p>
+											</div>
+										</div>
+										<div className='flex items-center'>
+											<Home className='h-5 w-5 text-blue-500 mr-2 flex-shrink-0' />
+											<div>
+												<p className='text-sm text-gray-500'>Property Type</p>
+												<p className='font-semibold capitalize'>
+													{state.property.property_type.replace('_', ' ')}
+												</p>
+											</div>
+										</div>
+									</div>
 								</div>
-								<div className='grid grid-cols-2 md:grid-cols-3 gap-4 mt-4'>
-									<div className='flex items-center'>
-										<DollarSign className='h-5 w-5 text-blue-500 mr-2' />
-										<div>
-											<p className='text-sm text-gray-500'>Monthly Rent</p>
-											<p className='font-semibold'>
-												R{state.property.monthly_rent.toLocaleString()}
-											</p>
-										</div>
-									</div>
-									<div className='flex items-center'>
-										<Calendar className='h-5 w-5 text-blue-500 mr-2' />
-										<div>
-											<p className='text-sm text-gray-500'>Available From</p>
-											<p className='font-semibold'>
-												{new Date(
-													state.property.available_from,
-												).toLocaleDateString()}
-											</p>
-										</div>
-									</div>
-									<div className='flex items-center'>
-										<Home className='h-5 w-5 text-blue-500 mr-2' />
-										<div>
-											<p className='text-sm text-gray-500'>Property Type</p>
-											<p className='font-semibold capitalize'>
-												{state.property.property_type.replace('_', ' ')}
-											</p>
-										</div>
-									</div>
-								</div>
+							</CardContent>
+						</Card>
+					)}
+				</div>
+
+				{/* Application Steps Column - Right side on desktop, bottom on mobile */}
+				<div className='w-full lg:w-7/12 mt-6 lg:mt-0'>
+					{/* Application Steps Progress */}
+					<div className='flex justify-between mb-6 relative px-4'>
+						{/* Step Line */}
+						<div className='absolute top-4 left-0 right-0 h-1 bg-gray-200 -z-10'></div>
+
+						{/* Step Circles */}
+						<div
+							className={`flex flex-col items-center relative ${
+								state.step === 'welcome' ||
+								state.step === 'auth' ||
+								state.step === 'loading'
+									? 'text-blue-600'
+									: 'text-gray-400'
+							}`}
+						>
+							<div
+								className={`w-8 h-8 rounded-full flex items-center justify-center ${
+									state.step === 'welcome'
+										? 'bg-blue-600 text-white'
+										: state.step === 'auth' || state.step === 'loading'
+										? 'bg-blue-600 text-white'
+										: 'bg-gray-200'
+								}`}
+							>
+								<User size={16} />
 							</div>
+							<span className='text-xs mt-2'>
+								{state.step === 'welcome' ? 'Get Started' : 'Account'}
+							</span>
 						</div>
-					</CardContent>
-				</Card>
-			)}
 
-			{/* Application Steps */}
-			<div className='flex justify-between mb-8 relative'>
-				{/* Step Line */}
-				<div className='absolute top-4 left-0 right-0 h-1 bg-gray-200 -z-10'></div>
+						<div
+							className={`flex flex-col items-center relative ${
+								state.step === 'application' ? 'text-blue-600' : 'text-gray-400'
+							}`}
+						>
+							<div
+								className={`w-8 h-8 rounded-full flex items-center justify-center ${
+									state.step === 'application'
+										? 'bg-blue-600 text-white'
+										: state.step === 'documents'
+										? 'bg-green-500 text-white'
+										: 'bg-gray-200'
+								}`}
+							>
+								<Home size={16} />
+							</div>
+							<span className='text-xs mt-2'>Application</span>
+						</div>
 
-				{/* Step Circles */}
-				<div
-					className={`flex flex-col items-center relative ${
-						state.step === 'auth' || state.step === 'loading'
-							? 'text-blue-600'
-							: 'text-gray-400'
-					}`}
-				>
-					<div
-						className={`w-8 h-8 rounded-full flex items-center justify-center ${
-							state.step === 'auth' || state.step === 'loading'
-								? 'bg-blue-600 text-white'
-								: 'bg-gray-200'
-						}`}
-					>
-						<User size={16} />
+						<div
+							className={`flex flex-col items-center relative ${
+								state.step === 'documents' ? 'text-blue-600' : 'text-gray-400'
+							}`}
+						>
+							<div
+								className={`w-8 h-8 rounded-full flex items-center justify-center ${
+									state.step === 'documents'
+										? 'bg-blue-600 text-white'
+										: 'bg-gray-200'
+								}`}
+							>
+								<FileText size={16} />
+							</div>
+							<span className='text-xs mt-2'>Documents</span>
+						</div>
 					</div>
-					<span className='text-xs mt-2'>Authentication</span>
-				</div>
 
-				<div
-					className={`flex flex-col items-center relative ${
-						state.step === 'application' ? 'text-blue-600' : 'text-gray-400'
-					}`}
-				>
-					<div
-						className={`w-8 h-8 rounded-full flex items-center justify-center ${
-							state.step === 'application'
-								? 'bg-blue-600 text-white'
-								: state.step === 'documents'
-								? 'bg-green-500 text-white'
-								: 'bg-gray-200'
-						}`}
-					>
-						<Home size={16} />
-					</div>
-					<span className='text-xs mt-2'>Application</span>
-				</div>
-
-				<div
-					className={`flex flex-col items-center relative ${
-						state.step === 'documents' ? 'text-blue-600' : 'text-gray-400'
-					}`}
-				>
-					<div
-						className={`w-8 h-8 rounded-full flex items-center justify-center ${
-							state.step === 'documents'
-								? 'bg-blue-600 text-white'
-								: 'bg-gray-200'
-						}`}
-					>
-						<FileText size={16} />
-					</div>
-					<span className='text-xs mt-2'>Documents</span>
+					{/* Step Content */}
+					<Card className='shadow-lg'>
+						<CardHeader>
+							<h2 className='text-xl font-semibold'>
+								{state.step === 'welcome' && 'Property Application'}
+								{state.step === 'auth' && 'Sign in or Create Account'}
+								{state.step === 'application' && 'Rental Application'}
+								{state.step === 'documents' && 'Upload Required Documents'}
+							</h2>
+						</CardHeader>
+						<CardContent className='p-4 md:p-6'>
+							{renderStepContent()}
+						</CardContent>
+					</Card>
 				</div>
 			</div>
-
-			{/* Step Content */}
-			<Card>
-				<CardHeader>
-					<h2 className='text-xl font-semibold'>
-						{state.step === 'auth' && 'Sign in or Create Account'}
-						{state.step === 'application' && 'Rental Application'}
-						{state.step === 'documents' && 'Upload Required Documents'}
-					</h2>
-				</CardHeader>
-				<CardContent>{renderStepContent()}</CardContent>
-			</Card>
 		</div>
 	);
 };
