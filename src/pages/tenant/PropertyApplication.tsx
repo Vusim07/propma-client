@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, createContext, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
@@ -9,6 +9,7 @@ import Spinner from '../../components/ui/Spinner';
 import Alert from '../../components/ui/Alert';
 import { Property, Application } from '../../types';
 import { showToast } from '../../utils/toast';
+import { Input } from '../../components/ui/Input';
 import {
 	Calendar,
 	Home,
@@ -18,34 +19,37 @@ import {
 	FileText,
 } from 'lucide-react';
 
-// Auth form components
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import {
-	loginSchema,
-	LoginFormValues,
-	registerSchema,
-} from '../../schemas/auth';
-import {
-	Form,
-	FormControl,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from '../../components/ui/form';
-import { Input } from '../../components/ui/Input';
+// Import AuthLayout and auth components
+import AuthLayout from '../../components/layout/AuthLayout';
+import LoginComponent from '../auth/Login';
+import RegisterComponent from '../auth/Register';
 
-// Define extended register form values
-interface RegisterFormValues {
-	email: string;
-	password: string;
-	confirmPassword: string;
-	first_name: string;
-	last_name: string;
-	phone: string;
-}
+// Create context for auth flow type
+export const AuthFlowContext = createContext<{ isPropertyFlow: boolean }>({
+	isPropertyFlow: false,
+});
 
+// Provide a hook to use the context safely
+export const useAuthFlowContext = () => {
+	const context = useContext(AuthFlowContext);
+	// If context is used outside the provider, it will return the default value
+	return context;
+};
+
+// Create wrapper components that provide context
+const Login = () => (
+	<AuthFlowContext.Provider value={{ isPropertyFlow: true }}>
+		<LoginComponent />
+	</AuthFlowContext.Provider>
+);
+
+const Register = () => (
+	<AuthFlowContext.Provider value={{ isPropertyFlow: true }}>
+		<RegisterComponent />
+	</AuthFlowContext.Provider>
+);
+
+// Define property application state type
 interface PropertyApplicationState {
 	loading: boolean;
 	property: Property | null;
@@ -57,7 +61,7 @@ interface PropertyApplicationState {
 const PropertyApplication: React.FC = () => {
 	const { token } = useParams<{ token: string }>();
 	const navigate = useNavigate();
-	const { user, login, signup, loginWithSocial } = useAuthStore();
+	const { user } = useAuthStore();
 	const { fetchPropertyByToken, submitApplication } = useTenantStore();
 
 	const [state, setState] = useState<PropertyApplicationState>({
@@ -68,7 +72,7 @@ const PropertyApplication: React.FC = () => {
 		existingApplication: null,
 	});
 
-	const [loginMode, setLoginMode] = useState(true);
+	// Add form state variables back
 	const [submitting, setSubmitting] = useState(false);
 	const [applicationForm, setApplicationForm] = useState({
 		employer: '',
@@ -77,37 +81,8 @@ const PropertyApplication: React.FC = () => {
 		notes: '',
 	});
 
-	// Login form setup using react-hook-form with zod validation
-	const loginForm = useForm<LoginFormValues>({
-		resolver: zodResolver(loginSchema),
-		defaultValues: {
-			email: '',
-			password: '',
-		},
-	});
-
-	// Register form setup using react-hook-form with zod validation
-	const registerForm = useForm<RegisterFormValues>({
-		resolver: zodResolver(registerSchema),
-		defaultValues: {
-			email: '',
-			password: '',
-			confirmPassword: '',
-			first_name: '',
-			last_name: '',
-			phone: '',
-		},
-	});
-
-	// Enhance loginWithSocial to store return path
-	const handleSocialLogin = (provider: 'google' | 'facebook') => {
-		// Store the current URL with the token for return after auth
-		const currentPath = window.location.pathname;
-		sessionStorage.setItem('auth_return_path', currentPath);
-
-		// Proceed with social login
-		loginWithSocial(provider);
-	};
+	// Add authStep state to switch between login and register
+	const [authStep, setAuthStep] = useState<'login' | 'register'>('login');
 
 	// Fetch property based on the application token
 	useEffect(() => {
@@ -276,93 +251,6 @@ const PropertyApplication: React.FC = () => {
 		}
 	};
 
-	// Handle login form submission
-	const handleLogin = async (values: LoginFormValues) => {
-		setSubmitting(true);
-
-		try {
-			showToast.info('Signing you in...');
-
-			const loggedInUser = await login(values.email, values.password);
-
-			if (!loggedInUser) {
-				showToast.error('Failed to retrieve user data');
-				return;
-			}
-
-			if (state.property) {
-				try {
-					// Get or create tenant profile
-					const tenantProfileId = await ensureTenantProfile(loggedInUser.id);
-
-					// Check if an existing application exists for this property and tenant
-					const existingApplication = await checkForExistingApplications(
-						tenantProfileId,
-						state.property.id,
-					);
-
-					if (existingApplication) {
-						console.log('Found existing application after login');
-						// There's an existing application, move to the document upload step
-						setState((prev) => ({
-							...prev,
-							step: 'documents', // Skip to document upload
-						}));
-					} else {
-						// No existing application, go to application form
-						setState((prev) => ({
-							...prev,
-							step: 'application',
-						}));
-					}
-				} catch (profileError) {
-					console.error('Error with tenant profile after login:', profileError);
-					// Still proceed to application form
-					setState((prev) => ({
-						...prev,
-						step: 'application',
-					}));
-				}
-			}
-		} catch (error) {
-			const errorMessage =
-				error instanceof Error ? error.message : 'Login failed';
-			showToast.error(errorMessage);
-		} finally {
-			setSubmitting(false);
-		}
-	};
-
-	// Handle registration form submission
-	const handleRegister = async (values: RegisterFormValues) => {
-		setSubmitting(true);
-
-		try {
-			await signup(values.email, values.password, {
-				first_name: values.first_name,
-				last_name: values.last_name,
-				phone: values.phone,
-				role: 'tenant', // Force tenant role for property application
-			});
-
-			showToast.success('Account created successfully');
-
-			if (state.property) {
-				// After registration, move to application form
-				setState((prev) => ({
-					...prev,
-					step: 'application',
-				}));
-			}
-		} catch (error) {
-			const errorMessage =
-				error instanceof Error ? error.message : 'Registration failed';
-			showToast.error(errorMessage);
-		} finally {
-			setSubmitting(false);
-		}
-	};
-
 	// Add this function to create a tenant profile if needed
 	const ensureTenantProfile = async (userId: string): Promise<string> => {
 		try {
@@ -526,6 +414,182 @@ const PropertyApplication: React.FC = () => {
 			showToast.error(errorMessage);
 		} finally {
 			setSubmitting(false);
+		}
+	};
+
+	// Render the appropriate step content
+	const renderStepContent = () => {
+		switch (state.step) {
+			case 'loading':
+				return (
+					<div className='text-center'>
+						<p>Loading property information...</p>
+					</div>
+				);
+			case 'auth':
+				return (
+					<AuthLayout title='Property Application'>
+						{authStep === 'login' ? (
+							<>
+								<Login />
+								<p className='text-center mt-4'>
+									<button
+										onClick={() => setAuthStep('register')}
+										className='text-blue-600 hover:text-blue-800 underline'
+									>
+										Don't have an account? Register here
+									</button>
+								</p>
+							</>
+						) : (
+							<>
+								<Register />
+								<p className='text-center mt-4'>
+									<button
+										onClick={() => setAuthStep('login')}
+										className='text-blue-600 hover:text-blue-800 underline'
+									>
+										Already have an account? Sign in
+									</button>
+								</p>
+							</>
+						)}
+					</AuthLayout>
+				);
+			case 'application':
+				return (
+					<form onSubmit={handleApplicationSubmit} className='space-y-6'>
+						<div>
+							<p className='text-sm text-gray-600 mb-4'>
+								Please provide your employment and income details to complete
+								your rental application.
+							</p>
+						</div>
+
+						<div>
+							<label
+								htmlFor='employer'
+								className='block text-sm font-medium text-gray-700 mb-1'
+							>
+								Current Employer
+							</label>
+							<Input
+								id='employer'
+								value={applicationForm.employer}
+								onChange={(e) =>
+									setApplicationForm({
+										...applicationForm,
+										employer: e.target.value,
+									})
+								}
+								required
+							/>
+						</div>
+
+						<div>
+							<label
+								htmlFor='employment_duration'
+								className='block text-sm font-medium text-gray-700 mb-1'
+							>
+								Employment Duration (months)
+							</label>
+							<Input
+								id='employment_duration'
+								type='number'
+								min='0'
+								value={applicationForm.employment_duration}
+								onChange={(e) => {
+									const value =
+										e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+									setApplicationForm({
+										...applicationForm,
+										employment_duration: isNaN(value) ? 0 : value,
+									});
+								}}
+								required
+							/>
+						</div>
+
+						<div>
+							<label
+								htmlFor='monthly_income'
+								className='block text-sm font-medium text-gray-700 mb-1'
+							>
+								Monthly Income (ZAR)
+							</label>
+							<Input
+								id='monthly_income'
+								type='number'
+								min='0'
+								value={applicationForm.monthly_income}
+								onChange={(e) => {
+									const value =
+										e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+									setApplicationForm({
+										...applicationForm,
+										monthly_income: isNaN(value) ? 0 : value,
+									});
+								}}
+								required
+							/>
+						</div>
+
+						<div>
+							<label
+								htmlFor='notes'
+								className='block text-sm font-medium text-gray-700 mb-1'
+							>
+								Additional Notes (optional)
+							</label>
+							<textarea
+								id='notes'
+								className='w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+								rows={3}
+								value={applicationForm.notes}
+								onChange={(e) =>
+									setApplicationForm({
+										...applicationForm,
+										notes: e.target.value,
+									})
+								}
+							/>
+						</div>
+
+						<div className='pt-4'>
+							<Button type='submit' className='w-full' isLoading={submitting}>
+								Next: Upload Documents
+							</Button>
+						</div>
+					</form>
+				);
+			case 'documents':
+				return (
+					<div className='space-y-6'>
+						<p className='text-sm text-gray-600'>
+							Please upload the required documents to support your application.
+						</p>
+
+						<div className='text-center py-4'>
+							<p className='mb-6'>
+								You'll be redirected to our document upload system where you can
+								submit your documents.
+							</p>
+							<Button
+								onClick={() =>
+									navigate(
+										`/tenant/documents?application=${state.existingApplication?.id}`,
+									)
+								}
+								className='w-full md:w-auto'
+							>
+								<FileText size={16} className='mr-2' />
+								Proceed to Document Upload
+							</Button>
+						</div>
+					</div>
+				);
+			default:
+				return null;
 		}
 	};
 
@@ -712,370 +776,7 @@ const PropertyApplication: React.FC = () => {
 						{state.step === 'documents' && 'Upload Required Documents'}
 					</h2>
 				</CardHeader>
-				<CardContent>
-					{/* Auth Step */}
-					{state.step === 'auth' && (
-						<div>
-							<div className='flex justify-center mb-6'>
-								<div className='flex border border-gray-300 rounded overflow-hidden'>
-									<button
-										className={`px-4 py-2 ${
-											loginMode
-												? 'bg-blue-600 text-white'
-												: 'bg-white text-gray-700'
-										}`}
-										onClick={() => setLoginMode(true)}
-									>
-										Login
-									</button>
-									<button
-										className={`px-4 py-2 ${
-											!loginMode
-												? 'bg-blue-600 text-white'
-												: 'bg-white text-gray-700'
-										}`}
-										onClick={() => setLoginMode(false)}
-									>
-										Register
-									</button>
-								</div>
-							</div>
-
-							{/* Social Login Buttons */}
-							<div className='space-y-3 mb-6'>
-								<Button
-									type='button'
-									variant='outline'
-									onClick={() => handleSocialLogin('google')}
-									disabled={submitting}
-									className='w-full flex items-center justify-center'
-								>
-									<img
-										src='/assets/icons8-google.svg'
-										alt='Google'
-										className='h-5 w-5 mr-2'
-									/>
-									<span>Continue with Google</span>
-								</Button>
-								<Button
-									type='button'
-									variant='outline'
-									onClick={() => handleSocialLogin('facebook')}
-									disabled={submitting}
-									className='w-full flex items-center justify-center bg-[#1877F2] text-neutral-800 hover:bg-[#166FE5]'
-								>
-									<img
-										src='/assets/icons8-facebook.svg'
-										alt='Facebook'
-										className='h-5 w-5 mr-2'
-									/>
-									<span>Continue with Facebook</span>
-								</Button>
-
-								<div className='relative my-6'>
-									<div className='absolute inset-0 flex items-center'>
-										<div className='w-full border-t border-gray-300'></div>
-									</div>
-									<div className='relative flex justify-center text-sm'>
-										<span className='px-2 bg-white text-gray-500'>
-											Or continue with email
-										</span>
-									</div>
-								</div>
-							</div>
-
-							{loginMode ? (
-								<Form {...loginForm}>
-									<form
-										onSubmit={loginForm.handleSubmit(handleLogin)}
-										className='space-y-4'
-									>
-										<FormField
-											control={loginForm.control}
-											name='email'
-											render={({ field }) => (
-												<FormItem>
-													<FormLabel>Email</FormLabel>
-													<FormControl>
-														<Input
-															type='email'
-															placeholder='you@example.com'
-															{...field}
-														/>
-													</FormControl>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-										<FormField
-											control={loginForm.control}
-											name='password'
-											render={({ field }) => (
-												<FormItem>
-													<FormLabel>Password</FormLabel>
-													<FormControl>
-														<Input
-															type='password'
-															placeholder='••••••'
-															{...field}
-														/>
-													</FormControl>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-										<Button
-											type='submit'
-											className='w-full'
-											isLoading={submitting}
-										>
-											Login
-										</Button>
-									</form>
-								</Form>
-							) : (
-								<Form {...registerForm}>
-									<form
-										onSubmit={registerForm.handleSubmit(handleRegister)}
-										className='space-y-4'
-									>
-										<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-											<FormField
-												control={registerForm.control}
-												name='first_name'
-												render={({ field }) => (
-													<FormItem>
-														<FormLabel>First Name</FormLabel>
-														<FormControl>
-															<Input {...field} />
-														</FormControl>
-														<FormMessage />
-													</FormItem>
-												)}
-											/>
-											<FormField
-												control={registerForm.control}
-												name='last_name'
-												render={({ field }) => (
-													<FormItem>
-														<FormLabel>Last Name</FormLabel>
-														<FormControl>
-															<Input {...field} />
-														</FormControl>
-														<FormMessage />
-													</FormItem>
-												)}
-											/>
-										</div>
-										<FormField
-											control={registerForm.control}
-											name='email'
-											render={({ field }) => (
-												<FormItem>
-													<FormLabel>Email</FormLabel>
-													<FormControl>
-														<Input
-															type='email'
-															placeholder='you@example.com'
-															{...field}
-														/>
-													</FormControl>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-										<FormField
-											control={registerForm.control}
-											name='phone'
-											render={({ field }) => (
-												<FormItem>
-													<FormLabel>Phone</FormLabel>
-													<FormControl>
-														<Input
-															type='tel'
-															placeholder='+27 12 345 6789'
-															{...field}
-														/>
-													</FormControl>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-										<FormField
-											control={registerForm.control}
-											name='password'
-											render={({ field }) => (
-												<FormItem>
-													<FormLabel>Password</FormLabel>
-													<FormControl>
-														<Input type='password' {...field} />
-													</FormControl>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-										<FormField
-											control={registerForm.control}
-											name='confirmPassword'
-											render={({ field }) => (
-												<FormItem>
-													<FormLabel>Confirm Password</FormLabel>
-													<FormControl>
-														<Input type='password' {...field} />
-													</FormControl>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-
-										<Button
-											type='submit'
-											className='w-full'
-											isLoading={submitting}
-										>
-											Create Account
-										</Button>
-									</form>
-								</Form>
-							)}
-						</div>
-					)}
-
-					{/* Application Step */}
-					{state.step === 'application' && (
-						<form onSubmit={handleApplicationSubmit} className='space-y-6'>
-							<div>
-								<p className='text-sm text-gray-600 mb-4'>
-									Please provide your employment and income details to complete
-									your rental application.
-								</p>
-							</div>
-
-							<div>
-								<label
-									htmlFor='employer'
-									className='block text-sm font-medium text-gray-700 mb-1'
-								>
-									Current Employer
-								</label>
-								<Input
-									id='employer'
-									value={applicationForm.employer}
-									onChange={(e) =>
-										setApplicationForm({
-											...applicationForm,
-											employer: e.target.value,
-										})
-									}
-									required
-								/>
-							</div>
-
-							<div>
-								<label
-									htmlFor='employment_duration'
-									className='block text-sm font-medium text-gray-700 mb-1'
-								>
-									Employment Duration (months)
-								</label>
-								<Input
-									id='employment_duration'
-									type='number'
-									min='0'
-									value={applicationForm.employment_duration}
-									onChange={(e) => {
-										const value =
-											e.target.value === '' ? 0 : parseInt(e.target.value, 10);
-										setApplicationForm({
-											...applicationForm,
-											employment_duration: isNaN(value) ? 0 : value,
-										});
-									}}
-									required
-								/>
-							</div>
-
-							<div>
-								<label
-									htmlFor='monthly_income'
-									className='block text-sm font-medium text-gray-700 mb-1'
-								>
-									Monthly Income (ZAR)
-								</label>
-								<Input
-									id='monthly_income'
-									type='number'
-									min='0'
-									value={applicationForm.monthly_income}
-									onChange={(e) => {
-										const value =
-											e.target.value === '' ? 0 : parseInt(e.target.value, 10);
-										setApplicationForm({
-											...applicationForm,
-											monthly_income: isNaN(value) ? 0 : value,
-										});
-									}}
-									required
-								/>
-							</div>
-
-							<div>
-								<label
-									htmlFor='notes'
-									className='block text-sm font-medium text-gray-700 mb-1'
-								>
-									Additional Notes (optional)
-								</label>
-								<textarea
-									id='notes'
-									className='w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-									rows={3}
-									value={applicationForm.notes}
-									onChange={(e) =>
-										setApplicationForm({
-											...applicationForm,
-											notes: e.target.value,
-										})
-									}
-								/>
-							</div>
-
-							<div className='pt-4'>
-								<Button type='submit' className='w-full' isLoading={submitting}>
-									Next: Upload Documents
-								</Button>
-							</div>
-						</form>
-					)}
-
-					{/* Documents Step - Redirect to DocumentUpload instead of duplicating */}
-					{state.step === 'documents' && state.existingApplication && (
-						<div className='space-y-6'>
-							<p className='text-sm text-gray-600'>
-								Please upload the required documents to support your
-								application.
-							</p>
-
-							<div className='text-center py-4'>
-								<p className='mb-6'>
-									You'll be redirected to our document upload system where you
-									can submit your documents.
-								</p>
-								<Button
-									onClick={() =>
-										navigate(
-											`/tenant/documents?application=${state.existingApplication?.id}`,
-										)
-									}
-									className='w-full md:w-auto'
-								>
-									<FileText size={16} className='mr-2' />
-									Proceed to Document Upload
-								</Button>
-							</div>
-						</div>
-					)}
-				</CardContent>
+				<CardContent>{renderStepContent()}</CardContent>
 			</Card>
 		</div>
 	);

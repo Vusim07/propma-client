@@ -17,8 +17,10 @@ import {
 } from '../../components/ui/form';
 import { Input } from '../../components/ui/Input';
 import { LockIcon, MailIcon } from 'lucide-react';
+import { useAuthFlowContext } from '../tenant/PropertyApplication';
 
 const Login: React.FC = () => {
+	const { isPropertyFlow } = useAuthFlowContext();
 	const { login, loginWithSocial, isLoading, error } = useAuthStore();
 	const navigate = useNavigate();
 
@@ -70,22 +72,6 @@ const Login: React.FC = () => {
 			console.error('Login error:', err);
 			showToast.error(err.message || 'Login failed. Please try again.');
 		}
-	};
-
-	// Demo login shortcuts
-	const loginAsTenant = () => {
-		form.setValue('email', 'tenant@example.com');
-		form.setValue('password', 'password');
-	};
-
-	const loginAsAgent = () => {
-		form.setValue('email', 'agent@example.com');
-		form.setValue('password', 'password');
-	};
-
-	const loginAsLandlord = () => {
-		form.setValue('email', 'landlord@example.com');
-		form.setValue('password', 'password');
 	};
 
 	return (
@@ -213,34 +199,19 @@ const Login: React.FC = () => {
 				</form>
 			</Form>
 
-			<div className='text-center'>
-				<p className='text-sm text-gray-600'>
-					Don't have an account?{' '}
-					<Link
-						to='/register'
-						className='font-medium text-blue-600 hover:text-blue-500'
-					>
-						Register here
-					</Link>
-				</p>
-			</div>
-
-			<div className='border-t border-gray-200 pt-4'>
-				<p className='text-center text-sm font-medium text-gray-500 mb-3'>
-					Demo Accounts
-				</p>
-				<div className='grid grid-cols-3 gap-3'>
-					<Button variant='outline' size='sm' onClick={loginAsTenant}>
-						Tenant
-					</Button>
-					<Button variant='outline' size='sm' onClick={loginAsAgent}>
-						Agent
-					</Button>
-					<Button variant='outline' size='sm' onClick={loginAsLandlord}>
-						Landlord
-					</Button>
+			{!isPropertyFlow && (
+				<div className='text-center'>
+					<p className='text-sm text-gray-600'>
+						Don't have an account?{' '}
+						<Link
+							to='/register'
+							className='font-medium text-blue-600 hover:text-blue-500'
+						>
+							Register here
+						</Link>
+					</p>
 				</div>
-			</div>
+			)}
 		</div>
 	);
 };

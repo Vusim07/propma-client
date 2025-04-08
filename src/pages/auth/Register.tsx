@@ -16,10 +16,12 @@ import {
 	FormMessage,
 } from '../../components/ui/form';
 import { Input } from '../../components/ui/Input';
+import { useAuthFlowContext } from '../tenant/PropertyApplication';
 
 import { EyeIcon, EyeOffIcon, LockIcon, MailIcon } from 'lucide-react';
 
 const Register: React.FC = () => {
+	const { isPropertyFlow } = useAuthFlowContext();
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const {
@@ -280,17 +282,19 @@ const Register: React.FC = () => {
 				</form>
 			</Form>
 
-			<div className='text-center'>
-				<p className='text-sm text-gray-600'>
-					Already have an account?{' '}
-					<Link
-						to='/login'
-						className='font-medium text-blue-600 hover:text-blue-500'
-					>
-						Sign in
-					</Link>
-				</p>
-			</div>
+			{!isPropertyFlow && (
+				<div className='text-center'>
+					<p className='text-sm text-gray-600'>
+						Already have an account?{' '}
+						<Link
+							to='/login'
+							className='font-medium text-blue-600 hover:text-blue-500'
+						>
+							Sign in
+						</Link>
+					</p>
+				</div>
+			)}
 		</div>
 	);
 };
