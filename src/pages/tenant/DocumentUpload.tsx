@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { showToast } from '@/utils/toast';
 import { documentService } from '@/services/documentService';
+import { supabase } from '@/services/supabase';
 // import { getOcrProvider } from '@/services/ocr';
 
 // Interface for files in the upload queue
@@ -372,8 +373,22 @@ const DocumentUpload: React.FC = () => {
 
 			if (result) {
 				showToast.success('Application completed successfully!');
-				// Navigate to screening results page
-				navigate(`/tenant/screening-results?application=${applicationId}`);
+
+				// Verify session is still active before navigating
+				try {
+					// Check if we still have a valid session
+					const { data } = await supabase.auth.getSession();
+					if (!data.session) {
+						console.error('Session lost during application completion');
+						// Refresh auth state before redirecting
+						await useAuthStore.getState().checkAuth();
+					}
+				} catch (sessionError) {
+					console.error('Error checking session:', sessionError);
+				}
+
+				// Navigate to dashboard
+				navigate('/tenant/dashboard');
 			} else {
 				showToast.error(
 					'Please upload all required documents before completing your application.',
@@ -450,7 +465,7 @@ const DocumentUpload: React.FC = () => {
 					</div>
 					<div>Missing Types: {checkRequiredDocuments().join(', ')}</div>
 
-					<div className='mt-2 flex space-x-2'>
+					<div className='mt-2 flex flex-wrap gap-2'>
 						<Button
 							size='sm'
 							variant='outline'
@@ -462,6 +477,13 @@ const DocumentUpload: React.FC = () => {
 							disabled={!applicationId}
 						>
 							Skip to Results
+						</Button>
+						<Button
+							size='sm'
+							variant='outline'
+							onClick={() => navigate('/tenant/dashboard')}
+						>
+							Dashboard
 						</Button>
 						<Button
 							size='sm'

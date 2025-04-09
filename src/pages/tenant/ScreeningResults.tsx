@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useTenantStore } from '../../stores/tenantStore';
 import { usePageTitle } from '../../context/PageTitleContext';
@@ -41,6 +41,44 @@ const ScreeningResults: React.FC = () => {
 		}
 	}, [user, fetchScreeningReport, fetchProfile, setPageTitle]);
 
+	// Add mock data for development environment
+	useEffect(() => {
+		// If in development and no screening report, add a mock one
+		if (
+			process.env.NODE_ENV === 'development' &&
+			!screeningReport &&
+			!isLoading
+		) {
+			console.log('Adding mock screening report for development');
+			// This doesn't modify the store, just provides UI mock data
+			// You'd need to actually save this to the database in a real implementation
+		}
+	}, [screeningReport, isLoading]);
+
+	// Use a local variable to hold either the real or mock report
+	const reportData = useMemo(() => {
+		// If we have real data, use it
+		if (screeningReport) return screeningReport;
+
+		// If in development mode and no real data, use mock data
+		if (process.env.NODE_ENV === 'development') {
+			console.log('Using mock screening report for development UI');
+			return {
+				id: 'mock-report',
+				user_id: user?.id || 'unknown',
+				pre_approval_status: 'approved',
+				credit_score: 720,
+				affordability_score: 0.28,
+				income_verification: true,
+				background_check_status: 'passed',
+				created_at: new Date().toISOString(),
+			};
+		}
+
+		// No real or mock data
+		return null;
+	}, [screeningReport, user?.id]);
+
 	if (isLoading) {
 		return (
 			<div className='flex justify-center items-center h-64'>
@@ -49,7 +87,7 @@ const ScreeningResults: React.FC = () => {
 		);
 	}
 
-	if (!screeningReport) {
+	if (!reportData) {
 		return (
 			<div className='mb-6'>
 				<h1 className='text-2xl font-bold text-gray-900 mb-6'>
@@ -78,17 +116,24 @@ const ScreeningResults: React.FC = () => {
 		return { label: 'Poor', color: 'danger' };
 	};
 
-	const creditCategory = getCreditScoreCategory(
-		screeningReport.credit_score || 0,
-	);
+	const creditCategory = getCreditScoreCategory(reportData.credit_score || 0);
 	const affordabilityCategory = getAffordabilityCategory(
-		screeningReport.affordability_score || 0,
+		reportData.affordability_score || 0,
 	);
+
+	// Add a flag to show when we're using mock data
+	const isUsingMockData =
+		process.env.NODE_ENV === 'development' && !screeningReport;
 
 	return (
 		<div>
 			<div className='mb-6'>
-				<h1 className='text-2xl font-bold text-gray-900'>Screening Results</h1>
+				<h1 className='text-2xl font-bold text-gray-900'>
+					Screening Results
+					{isUsingMockData && (
+						<span className='text-xs text-blue-500 ml-2'>(MOCK DATA)</span>
+					)}
+				</h1>
 				<p className='text-gray-600 mt-1'>
 					Review your rental application screening report
 				</p>
@@ -98,41 +143,41 @@ const ScreeningResults: React.FC = () => {
 			<div className='mb-8'>
 				<div
 					className={`p-6 rounded-lg border ${
-						screeningReport.pre_approval_status === 'approved'
+						reportData.pre_approval_status === 'approved'
 							? 'bg-green-50 border-green-200'
-							: screeningReport.pre_approval_status === 'rejected'
+							: reportData.pre_approval_status === 'rejected'
 							? 'bg-red-50 border-red-200'
 							: 'bg-yellow-50 border-yellow-200'
 					}`}
 				>
 					<div className='flex items-center'>
-						{screeningReport.pre_approval_status === 'approved' ? (
+						{reportData.pre_approval_status === 'approved' ? (
 							<CheckCircle className='h-8 w-8 text-green-500 mr-4' />
-						) : screeningReport.pre_approval_status === 'rejected' ? (
+						) : reportData.pre_approval_status === 'rejected' ? (
 							<XCircle className='h-8 w-8 text-red-500 mr-4' />
 						) : (
 							<AlertCircle className='h-8 w-8 text-yellow-500 mr-4' />
 						)}
 						<div>
 							<h2 className='text-lg font-semibold'>
-								{screeningReport.pre_approval_status === 'approved'
+								{reportData.pre_approval_status === 'approved'
 									? 'Pre-Approved'
-									: screeningReport.pre_approval_status === 'rejected'
+									: reportData.pre_approval_status === 'rejected'
 									? 'Not Approved'
 									: 'Pending Review'}
 							</h2>
 							<p
 								className={`${
-									screeningReport.pre_approval_status === 'approved'
+									reportData.pre_approval_status === 'approved'
 										? 'text-green-700'
-										: screeningReport.pre_approval_status === 'rejected'
+										: reportData.pre_approval_status === 'rejected'
 										? 'text-red-700'
 										: 'text-yellow-700'
 								}`}
 							>
-								{screeningReport.pre_approval_status === 'approved'
+								{reportData.pre_approval_status === 'approved'
 									? 'Congratulations! Your application has been pre-approved.'
-									: screeningReport.pre_approval_status === 'rejected'
+									: reportData.pre_approval_status === 'rejected'
 									? 'Unfortunately, your application did not meet our current criteria.'
 									: 'Your application is currently under review.'}
 							</p>
@@ -140,7 +185,7 @@ const ScreeningResults: React.FC = () => {
 					</div>
 
 					{/* Add Schedule Viewing button for approved applications */}
-					{screeningReport.pre_approval_status === 'approved' && (
+					{reportData.pre_approval_status === 'approved' && (
 						<div className='mt-6 flex justify-end'>
 							<Button
 								variant='primary'
@@ -164,9 +209,7 @@ const ScreeningResults: React.FC = () => {
 					<CardContent>
 						<div className='flex items-center justify-between mb-4'>
 							<div>
-								<p className='text-3xl font-bold'>
-									{screeningReport.credit_score}
-								</p>
+								<p className='text-3xl font-bold'>{reportData.credit_score}</p>
 								<Badge variant={creditCategory.color as any}>
 									{creditCategory.label}
 								</Badge>
@@ -183,10 +226,7 @@ const ScreeningResults: React.FC = () => {
 								}}
 							>
 								<span className='text-lg font-bold'>
-									{Math.round(
-										((screeningReport.credit_score || 0) / 850) * 100,
-									)}
-									%
+									{Math.round(((reportData.credit_score || 0) / 850) * 100)}%
 								</span>
 							</div>
 						</div>
@@ -194,9 +234,7 @@ const ScreeningResults: React.FC = () => {
 							<div
 								className='h-2.5 rounded-full'
 								style={{
-									width: `${
-										((screeningReport.credit_score || 0) / 850) * 100
-									}%`,
+									width: `${((reportData.credit_score || 0) / 850) * 100}%`,
 									backgroundColor:
 										creditCategory.color === 'success'
 											? '#10b981'
@@ -226,7 +264,7 @@ const ScreeningResults: React.FC = () => {
 						<div className='flex items-center justify-between mb-4'>
 							<div>
 								<p className='text-3xl font-bold'>
-									{(screeningReport.affordability_score || 0 * 100).toFixed(0)}%
+									{(reportData.affordability_score || 0 * 100).toFixed(0)}%
 								</p>
 								<Badge variant={affordabilityCategory.color as any}>
 									{affordabilityCategory.label}
@@ -238,7 +276,7 @@ const ScreeningResults: React.FC = () => {
 									{profile
 										? `R${(
 												profile.monthly_income *
-												(screeningReport.affordability_score || 0)
+												(reportData.affordability_score || 0)
 										  ).toFixed(0)}/R${profile.monthly_income}`
 										: 'N/A'}
 								</p>
@@ -248,7 +286,7 @@ const ScreeningResults: React.FC = () => {
 							<div
 								className='h-2.5 rounded-full'
 								style={{
-									width: `${(screeningReport.affordability_score || 0) * 100}%`,
+									width: `${(reportData.affordability_score || 0) * 100}%`,
 									backgroundColor:
 										affordabilityCategory.color === 'success'
 											? '#10b981'
@@ -283,21 +321,19 @@ const ScreeningResults: React.FC = () => {
 								<h3 className='font-medium'>Income Verification</h3>
 							</div>
 							<div className='flex items-center mt-2'>
-								{screeningReport.income_verification ? (
+								{reportData.income_verification ? (
 									<CheckCircle className='h-5 w-5 text-green-500 mr-2' />
 								) : (
 									<XCircle className='h-5 w-5 text-red-500 mr-2' />
 								)}
 								<span
 									className={
-										screeningReport.income_verification
+										reportData.income_verification
 											? 'text-green-700'
 											: 'text-red-700'
 									}
 								>
-									{screeningReport.income_verification
-										? 'Verified'
-										: 'Not Verified'}
+									{reportData.income_verification ? 'Verified' : 'Not Verified'}
 								</span>
 							</div>
 						</div>
@@ -309,27 +345,27 @@ const ScreeningResults: React.FC = () => {
 								<h3 className='font-medium'>Background Check</h3>
 							</div>
 							<div className='flex items-center mt-2'>
-								{screeningReport.background_check_status === 'passed' ? (
+								{reportData.background_check_status === 'passed' ? (
 									<CheckCircle className='h-5 w-5 text-green-500 mr-2' />
-								) : screeningReport.background_check_status === 'failed' ? (
+								) : reportData.background_check_status === 'failed' ? (
 									<XCircle className='h-5 w-5 text-red-500 mr-2' />
 								) : (
 									<AlertCircle className='h-5 w-5 text-yellow-500 mr-2' />
 								)}
 								<span
 									className={
-										screeningReport.background_check_status === 'passed'
+										reportData.background_check_status === 'passed'
 											? 'text-green-700'
-											: screeningReport.background_check_status === 'failed'
+											: reportData.background_check_status === 'failed'
 											? 'text-red-700'
 											: 'text-yellow-700'
 									}
 								>
-									{screeningReport.background_check_status
-										? screeningReport.background_check_status
+									{reportData.background_check_status
+										? reportData.background_check_status
 												.charAt(0)
 												.toUpperCase() +
-										  screeningReport.background_check_status.slice(1)
+										  reportData.background_check_status.slice(1)
 										: 'Pending'}
 								</span>
 							</div>
@@ -363,7 +399,7 @@ const ScreeningResults: React.FC = () => {
 				</CardHeader>
 				<CardContent>
 					<div className='space-y-4'>
-						{screeningReport.pre_approval_status === 'approved' ? (
+						{reportData.pre_approval_status === 'approved' ? (
 							<>
 								<div className='flex items-start'>
 									<CheckCircle className='h-5 w-5 text-green-500 mr-3 mt-0.5' />
@@ -386,7 +422,7 @@ const ScreeningResults: React.FC = () => {
 									</div>
 								</div>
 							</>
-						) : screeningReport.pre_approval_status === 'rejected' ? (
+						) : reportData.pre_approval_status === 'rejected' ? (
 							<>
 								<div className='flex items-start'>
 									<AlertCircle className='h-5 w-5 text-yellow-500 mr-3 mt-0.5' />

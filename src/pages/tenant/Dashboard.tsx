@@ -16,9 +16,19 @@ import {
 	ArrowRight,
 	RefreshCw,
 	Home,
+	ExternalLink,
 } from 'lucide-react';
 import { showToast } from '../../utils/toast';
 import { supabase } from '../../services/supabase';
+import {
+	Table,
+	TableBody,
+	TableCaption,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from '../../components/ui/Table';
 
 interface ApplicationInfo {
 	id: string;
@@ -54,6 +64,13 @@ const TenantDashboard: React.FC = () => {
 		}
 	}, [user, setPageTitle]);
 
+	// Add an effect to fetch applications when profile is loaded
+	useEffect(() => {
+		if (profile?.id && !isLoading) {
+			fetchApplications();
+		}
+	}, [profile]);
+
 	const loadTenantData = async () => {
 		if (!user) return;
 		console.log(user);
@@ -62,16 +79,13 @@ const TenantDashboard: React.FC = () => {
 			// First fetch profile to check if it exists
 			await fetchProfile(user.id);
 
-			// Then fetch other data
+			// Then fetch other data regardless of profile status
+			// Applications will be fetched by the profile effect when it's ready
 			await Promise.all([
 				fetchDocuments(user.id),
 				fetchScreeningReport(user.id),
 				fetchAppointments(user.id),
 			]);
-			console.log(profile);
-
-			// Fetch applications
-			await fetchApplications();
 		} catch (err) {
 			console.error('Error loading tenant data:', err);
 			showToast.error('Failed to load your profile information');
@@ -79,8 +93,15 @@ const TenantDashboard: React.FC = () => {
 	};
 
 	const fetchApplications = async () => {
+		if (isLoading) {
+			// Still loading profile data, wait for it
+			return;
+		}
+
 		if (!profile?.id) {
-			console.error('No tenant profile found');
+			console.log(
+				'Profile not loaded yet or not found - skipping application fetch',
+			);
 			return;
 		}
 
@@ -194,55 +215,6 @@ const TenantDashboard: React.FC = () => {
 				</Button>
 			</div>
 
-			{/* Applications Section */}
-			{applications.length > 0 && (
-				<Card className='mb-8'>
-					<CardHeader className='flex flex-row items-center justify-between'>
-						<h2 className='text-lg font-semibold'>Your Applications</h2>
-						<Home className='h-5 w-5 text-blue-600' />
-					</CardHeader>
-					<CardContent>
-						<div className='space-y-4'>
-							{applications.map((app) => (
-								<div
-									key={app.id}
-									className='p-4 border border-gray-100 rounded-lg hover:bg-gray-50'
-								>
-									<div className='flex justify-between items-start mb-2'>
-										<h3 className='font-medium'>{app.property_address}</h3>
-										<Badge
-											variant={
-												app.status === 'approved'
-													? 'success'
-													: app.status === 'rejected'
-													? 'danger'
-													: 'warning'
-											}
-										>
-											{app.status.toUpperCase()}
-										</Badge>
-									</div>
-									<div className='text-sm text-gray-600 mb-2'>
-										Submitted on: {app.submitted_at}
-									</div>
-									{app.agent_name && (
-										<div className='text-sm text-gray-600 mb-3'>
-											Agent: {app.agent_name}
-										</div>
-									)}
-									<Link to={`/tenant/screening?application=${app.id}`}>
-										<Button variant='outline' size='sm' className='w-full mt-2'>
-											View Details
-											<ArrowRight size={16} className='ml-2' />
-										</Button>
-									</Link>
-								</div>
-							))}
-						</div>
-					</CardContent>
-				</Card>
-			)}
-
 			{/* Documents Card */}
 			<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'>
 				<Card>
@@ -339,6 +311,127 @@ const TenantDashboard: React.FC = () => {
 					</CardContent>
 				</Card>
 			</div>
+
+			{/* Applications Section */}
+			{applications.length > 0 && (
+				<Card className='mb-8'>
+					<CardHeader className='flex flex-row items-center justify-between'>
+						<h2 className='text-lg font-semibold'>Your Applications</h2>
+						<Home className='h-5 w-5 text-blue-600' />
+					</CardHeader>
+					<CardContent>
+						<div className='w-full overflow-auto'>
+							<Table>
+								<TableHeader className='hidden md:table-header-group'>
+									<TableRow className='hover:bg-transparent'>
+										<TableHead>Property</TableHead>
+										<TableHead>Status</TableHead>
+										<TableHead>Submitted</TableHead>
+										<TableHead>Agent</TableHead>
+										<TableHead className='text-right'>Actions</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{applications.map((app) => (
+										<TableRow
+											key={app.id}
+											className='flex flex-col md:table-row border-b'
+										>
+											{/* Mobile view card header with status badge */}
+											<TableCell className='md:hidden flex justify-between items-center py-2 px-0 border-b border-gray-100'>
+												<span className='font-medium'>Property</span>
+												<Badge
+													variant={
+														app.status === 'approved'
+															? 'success'
+															: app.status === 'rejected'
+															? 'danger'
+															: 'warning'
+													}
+												>
+													{app.status.toUpperCase()}
+												</Badge>
+											</TableCell>
+
+											{/* Property column */}
+											<TableCell
+												data-label='Property'
+												className='flex flex-col md:table-cell pb-1 md:pb-4'
+											>
+												<span className='block md:hidden text-xs text-gray-500 mb-1 md:hidden'>
+													Property
+												</span>
+												<span className='font-medium'>
+													{app.property_address}
+												</span>
+											</TableCell>
+
+											{/* Status column - hidden on mobile (shown in header) */}
+											<TableCell
+												data-label='Status'
+												className='hidden md:table-cell'
+											>
+												<Badge
+													variant={
+														app.status === 'approved'
+															? 'success'
+															: app.status === 'rejected'
+															? 'danger'
+															: 'warning'
+													}
+												>
+													{app.status.toUpperCase()}
+												</Badge>
+											</TableCell>
+
+											{/* Submitted date column */}
+											<TableCell
+												data-label='Submitted'
+												className='flex flex-col md:table-cell py-1 md:py-4'
+											>
+												<span className='block md:hidden text-xs text-gray-500 mb-1'>
+													Submitted
+												</span>
+												<span className='text-sm'>{app.submitted_at}</span>
+											</TableCell>
+
+											{/* Agent name column */}
+											<TableCell
+												data-label='Agent'
+												className='flex flex-col md:table-cell py-1 md:py-4'
+											>
+												<span className='block md:hidden text-xs text-gray-500 mb-1'>
+													Agent
+												</span>
+												<span className='text-sm'>
+													{app.agent_name || 'Unassigned'}
+												</span>
+											</TableCell>
+
+											{/* Actions column */}
+											<TableCell className='flex flex-col md:table-cell py-2 md:py-4 text-left md:text-right'>
+												<span className='block md:hidden text-xs text-gray-500 mb-1'>
+													Actions
+												</span>
+												<Link to={`/tenant/screening?application=${app.id}`}>
+													<Button
+														variant='outline'
+														size='sm'
+														className='w-full md:w-auto flex justify-between items-center'
+													>
+														<span>View Details</span>
+														<ExternalLink size={14} className='ml-2' />
+													</Button>
+												</Link>
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						</div>
+					</CardContent>
+				</Card>
+			)}
 
 			{/* Profile Information */}
 			<Card>
