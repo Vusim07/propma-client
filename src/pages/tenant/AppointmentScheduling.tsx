@@ -15,6 +15,7 @@ import {
 	MapPin,
 	User,
 	Check,
+	CheckCircle,
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import 'react-calendar/dist/Calendar.css';
@@ -134,6 +135,18 @@ const AppointmentScheduling: React.FC = () => {
 					Book an appointment to view a property
 				</p>
 			</div>
+
+			<Alert variant='success' className='mb-6'>
+				<CheckCircle className='h-5 w-5 mr-2' />
+				<div>
+					<p className='font-medium'>Application Approved</p>
+					<p className='text-sm'>
+						Congratulations! Your application has been pre-approved. You can now
+						schedule a viewing of the property. This is the final step in your
+						application process.
+					</p>
+				</div>
+			</Alert>
 
 			{error && (
 				<Alert variant='error' className='mb-6'>

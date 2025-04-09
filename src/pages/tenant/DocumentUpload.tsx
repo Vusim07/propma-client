@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { useTenantStore } from '@/stores/tenantStore';
 import { usePageTitle } from '@/context/PageTitleContext';
@@ -16,30 +16,56 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/Select';
-import { Upload, FileText, Trash2, CheckCircle } from 'lucide-react';
+import {
+	Upload,
+	FileText,
+	Trash2,
+	CheckCircle,
+	Plus,
+	ChevronRight,
+} from 'lucide-react';
 import { showToast } from '@/utils/toast';
 import { documentService } from '@/services/documentService';
-import { getOcrProvider } from '@/services/ocr';
+// import { getOcrProvider } from '@/services/ocr';
+
+// Interface for files in the upload queue
+interface QueuedFile {
+	file: File;
+	documentType: string;
+	isProcessing: boolean;
+	error?: string;
+}
+
+// Required document types for a complete application
+const REQUIRED_DOCUMENT_TYPES = ['id_document', 'bank_statement', 'payslip'];
 
 const DocumentUpload: React.FC = () => {
 	const { user } = useAuthStore();
 	const { setPageTitle } = usePageTitle();
-	const { documents, fetchDocuments, uploadDocument, isLoading } =
-		useTenantStore();
+	const navigate = useNavigate();
+	const {
+		documents,
+		fetchDocuments,
+		uploadDocument,
+		completeApplicationWithDocuments,
+		isLoading,
+	} = useTenantStore();
 	const location = useLocation();
 
-	const [file, setFile] = useState<File | null>(null);
+	// Use a queue of files instead of a single file
+	const [fileQueue, setFileQueue] = useState<QueuedFile[]>([]);
 	const [documentType, setDocumentType] = useState<
 		'id_document' | 'bank_statement' | 'payslip' | 'other'
 	>('id_document');
 	const [isProcessing, setIsProcessing] = useState(false);
+	const [isCompleting, setIsCompleting] = useState(false);
 	const [error, setError] = useState('');
 	const [showProfileCompletionMessage, setShowProfileCompletionMessage] =
 		useState(false);
 	const [applicationId, setApplicationId] = useState<string | null>(null);
 
-	// Get the current OCR provider name for display
-	const ocrProviderName = getOcrProvider().getName();
+	// // Get the current OCR provider name for display
+	// const ocrProviderName = getOcrProvider().getName();
 
 	// Parse query parameters
 	useEffect(() => {
@@ -86,16 +112,29 @@ const DocumentUpload: React.FC = () => {
 		console.log('Documents state changed:', documents);
 	}, [documents]);
 
+	// Add this effect to log applicationId changes
+	useEffect(() => {
+		if (applicationId) {
+			console.log('Current application ID:', applicationId);
+		}
+	}, [applicationId]);
+
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		accept: {
 			'image/*': ['.jpeg', '.jpg', '.png'],
 			'application/pdf': ['.pdf'],
 		},
 		maxSize: 5242880, // 5MB
-		maxFiles: 1,
 		onDrop: (acceptedFiles) => {
 			if (acceptedFiles.length > 0) {
-				setFile(acceptedFiles[0]);
+				// Add accepted files to queue with current document type
+				const newQueueItems = acceptedFiles.map((file) => ({
+					file,
+					documentType,
+					isProcessing: false,
+				}));
+
+				setFileQueue((prev) => [...prev, ...newQueueItems]);
 				setError('');
 			}
 		},
@@ -111,54 +150,241 @@ const DocumentUpload: React.FC = () => {
 		},
 	});
 
-	// Modify the processDocument function
-	const processDocument = async () => {
-		if (!file || !user) return;
+	// Remove file from queue
+	const removeFromQueue = (index: number) => {
+		setFileQueue((prev) => prev.filter((_, i) => i !== index));
+	};
 
-		setIsProcessing(true);
-		const toastId = showToast.loading('Processing document...');
+	// Update document type for a queued file
+	const updateQueueItemType = (index: number, newType: string) => {
+		setFileQueue((prev) =>
+			prev.map((item, i) =>
+				i === index ? { ...item, documentType: newType as any } : item,
+			),
+		);
+	};
+
+	// Process a single document
+	const processDocument = async (queueItem: QueuedFile, index: number) => {
+		if (!user) {
+			showToast.error('No user found. Please log in again.');
+			return;
+		}
+
+		if (!applicationId) {
+			showToast.error('Application ID is missing. Please try again.');
+			console.error('Missing application ID when processing document');
+			return;
+		}
+
+		console.log('Processing document for application:', applicationId);
+
+		// Update queue item status
+		setFileQueue((prev) =>
+			prev.map((item, i) =>
+				i === index ? { ...item, isProcessing: true, error: undefined } : item,
+			),
+		);
 
 		try {
 			// Get OCR provider and process document
-			const result = await documentService.analyzeDocument(file, user.id);
+			const result = await documentService.analyzeDocument(
+				queueItem.file,
+				user.id,
+			);
 
-			// Prepare document data
+			// Prepare document data with explicit application ID
 			const documentData = {
 				user_id: user.id,
-				application_id: applicationId !== 'placeholder' ? applicationId : null,
-				document_type: documentType,
-				file_name: file.name,
-				file_size: file.size,
+				application_id: applicationId,
+				document_type: queueItem.documentType,
+				file_name: queueItem.file.name,
+				file_size: queueItem.file.size,
 				notes: null,
-				file_path: result.filePath || file.name,
+				file_path: result.filePath || queueItem.file.name,
 				verification_status: 'pending',
+				file: queueItem.file,
 				extracted_data: {
 					text: result.content,
-					file_name: file.name,
-					file_type: file.type,
-					file_size: file.size,
+					file_name: queueItem.file.name,
+					file_type: queueItem.file.type,
+					file_size: queueItem.file.size,
 					processed_at: new Date().toISOString(),
+					application_id: applicationId, // Add applicationId here too
 				},
 			};
+
+			console.log('Uploading document with data:', {
+				type: documentData.document_type,
+				application_id: documentData.application_id,
+				file_name: documentData.file_name,
+			});
 
 			// Upload document to database
 			await uploadDocument(documentData);
 
-			// Update UI state
-			setIsProcessing(false);
-			setFile(null);
+			// Update queue item as processed
+			setFileQueue((prev) =>
+				prev.map((item, i) =>
+					i === index ? { ...item, isProcessing: false } : item,
+				),
+			);
 
-			showToast.dismiss(toastId as any);
-			showToast.success('Document processed and uploaded successfully!');
+			// Remove processed item from queue
+			setTimeout(() => {
+				setFileQueue((prev) => prev.filter((_, i) => i !== index));
+			}, 1000);
+
+			showToast.success(
+				`Document ${queueItem.file.name} processed successfully!`,
+			);
 
 			// Refresh documents list
 			await fetchDocuments(user.id);
 		} catch (err) {
 			console.error('Document processing error:', err);
-			setError('Failed to process document. Please try again.');
-			setIsProcessing(false);
+			// Update queue item with error
+			setFileQueue((prev) =>
+				prev.map((item, i) =>
+					i === index
+						? {
+								...item,
+								isProcessing: false,
+								error: 'Failed to process document',
+						  }
+						: item,
+				),
+			);
+			showToast.error(
+				`Failed to process ${queueItem.file.name}. Please try again.`,
+			);
+		}
+	};
+
+	// Process all queued documents
+	const processAllDocuments = async () => {
+		if (fileQueue.length === 0 || !user) return;
+
+		setIsProcessing(true);
+		const toastId = showToast.loading('Processing documents...');
+
+		try {
+			// Process each document in the queue sequentially
+			for (let i = 0; i < fileQueue.length; i++) {
+				await processDocument(fileQueue[i], i);
+			}
+
 			showToast.dismiss(toastId as any);
-			showToast.error('Failed to process document. Please try again.');
+			showToast.success('All documents processed successfully!');
+			setIsProcessing(false);
+
+			// Clear the queue
+			setFileQueue([]);
+		} catch (err) {
+			console.error('Batch processing error:', err);
+			showToast.dismiss(toastId as any);
+			showToast.error('Some documents failed to process. Please try again.');
+			setIsProcessing(false);
+		}
+	};
+
+	// Helper function to normalize document types for comparison
+	const normalizeDocType = (type: string): string =>
+		type.toLowerCase().replace(/[_\s-]/g, '');
+
+	// Check which required documents are missing
+	const checkRequiredDocuments = () => {
+		// Get all document types, normalize to lowercase
+		const uploadedTypes = documents
+			.filter((doc) => doc.application_id === applicationId) // Filter by current application
+			.map((doc) => normalizeDocType(doc.document_type));
+
+		console.log(
+			'Normalized uploaded types for this application:',
+			uploadedTypes,
+		);
+
+		// Normalize required types
+		const normalizedRequiredTypes = REQUIRED_DOCUMENT_TYPES.map((type) =>
+			normalizeDocType(type),
+		);
+		console.log('Normalized required types:', normalizedRequiredTypes);
+
+		// Check which required types are missing
+		return REQUIRED_DOCUMENT_TYPES.filter(
+			(requiredType) =>
+				!uploadedTypes.some(
+					(uploadedType) =>
+						normalizeDocType(uploadedType).includes(
+							normalizeDocType(requiredType),
+						) ||
+						normalizeDocType(requiredType).includes(
+							normalizeDocType(uploadedType),
+						),
+				),
+		);
+	};
+
+	// Complete the application process
+	const completeApplication = async (forceComplete = false) => {
+		if (!applicationId || !user) {
+			showToast.error('Missing application information');
+			return;
+		}
+
+		console.log('Attempting to complete application:', applicationId);
+		console.log('Document count:', documents.length);
+		console.log(
+			'Documents for this application:',
+			documents.filter((doc) => doc.application_id === applicationId),
+		);
+
+		// Skip document check if forcing completion
+		if (!forceComplete) {
+			// Check for missing documents before API call
+			const missingDocs = checkRequiredDocuments();
+			if (missingDocs.length > 0) {
+				showToast.error(
+					`Missing documents: ${missingDocs
+						.map((type) => getDocumentTypeLabel(type))
+						.join(', ')}`,
+				);
+				return;
+			}
+		}
+
+		setIsCompleting(true);
+		const toastId = showToast.loading(
+			forceComplete
+				? 'Force completing application...'
+				: 'Finalizing your application...',
+		);
+
+		try {
+			// Check if we have all required document types
+			const result = await completeApplicationWithDocuments(
+				applicationId,
+				REQUIRED_DOCUMENT_TYPES,
+				forceComplete,
+			);
+
+			showToast.dismiss(toastId as any);
+
+			if (result) {
+				showToast.success('Application completed successfully!');
+				// Navigate to screening results page
+				navigate(`/tenant/screening-results?application=${applicationId}`);
+			} else {
+				showToast.error(
+					'Please upload all required documents before completing your application.',
+				);
+				setIsCompleting(false);
+			}
+		} catch (err) {
+			console.error('Error completing application:', err);
+			showToast.dismiss(toastId as any);
+			showToast.error('Failed to complete application. Please try again.');
+			setIsCompleting(false);
 		}
 	};
 
@@ -169,6 +395,13 @@ const DocumentUpload: React.FC = () => {
 		{ value: 'payslip', label: 'Pay Slip' },
 		{ value: 'other', label: 'Other' },
 	];
+
+	// Get label for document type
+	const getDocumentTypeLabel = (type: string) => {
+		return (
+			documentTypeOptions.find((option) => option.value === type)?.label || type
+		);
+	};
 
 	return (
 		<div>
@@ -198,13 +431,107 @@ const DocumentUpload: React.FC = () => {
 				</Alert>
 			)}
 
+			{/* Debug information - only shown in development */}
+			{process.env.NODE_ENV === 'development' && (
+				<div className='bg-gray-100 p-3 rounded-lg mb-6 text-xs font-mono'>
+					<h4 className='font-bold mb-1'>Debug Info:</h4>
+					<div>Application ID: {applicationId || 'Not set'}</div>
+					<div>Total Documents: {documents.length}</div>
+					<div>
+						Application Documents:{' '}
+						{documents.filter((d) => d.application_id === applicationId).length}
+					</div>
+					<div>
+						Doc Types:{' '}
+						{documents
+							.filter((d) => d.application_id === applicationId)
+							.map((d) => d.document_type)
+							.join(', ')}
+					</div>
+					<div>Missing Types: {checkRequiredDocuments().join(', ')}</div>
+
+					<div className='mt-2 flex space-x-2'>
+						<Button
+							size='sm'
+							variant='outline'
+							onClick={() =>
+								navigate(
+									`/tenant/screening-results?application=${applicationId}`,
+								)
+							}
+							disabled={!applicationId}
+						>
+							Skip to Results
+						</Button>
+						<Button
+							size='sm'
+							variant='outline'
+							onClick={() => {
+								if (applicationId) {
+									// Log all docs for debugging
+									console.log('All documents:', documents);
+									console.log(
+										'Documents with this application:',
+										documents.filter((d) => d.application_id === applicationId),
+									);
+									console.log(
+										'Document types:',
+										documents
+											.filter((d) => d.application_id === applicationId)
+											.map((d) => d.document_type),
+									);
+								}
+							}}
+						>
+							Log Docs
+						</Button>
+						<Button
+							size='sm'
+							variant='outline'
+							className='bg-yellow-100'
+							onClick={() => completeApplication(true)}
+							disabled={!applicationId}
+						>
+							Force Complete
+						</Button>
+					</div>
+				</div>
+			)}
+
 			<div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
 				{/* Upload Section */}
 				<Card>
 					<CardHeader>
-						<h2 className='text-lg font-semibold'>Upload Document</h2>
+						<h2 className='text-lg font-semibold'>Upload Documents</h2>
 					</CardHeader>
 					<CardContent>
+						<div className='mb-4'>
+							<label
+								htmlFor='document-type'
+								className='text-sm font-medium text-gray-700 block mb-1'
+							>
+								Document Type
+							</label>
+							<Select
+								value={documentType}
+								onValueChange={(value) => setDocumentType(value as any)}
+							>
+								<SelectTrigger className='w-full'>
+									<SelectValue placeholder='Select document type' />
+								</SelectTrigger>
+								<SelectContent>
+									{documentTypeOptions.map((option) => (
+										<SelectItem key={option.value} value={option.value}>
+											{option.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+							<p className='text-sm text-gray-500 mt-1'>
+								Select document type before uploading
+							</p>
+						</div>
+
 						<div
 							{...getRootProps()}
 							className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
@@ -216,11 +543,11 @@ const DocumentUpload: React.FC = () => {
 							<input {...getInputProps()} />
 							<Upload className='h-12 w-12 text-gray-400 mx-auto mb-4' />
 							{isDragActive ? (
-								<p className='text-blue-500'>Drop the file here...</p>
+								<p className='text-blue-500'>Drop the files here...</p>
 							) : (
 								<div>
 									<p className='text-gray-600 mb-2'>
-										Drag & drop a file here, or click to select
+										Drag & drop files here, or click to select
 									</p>
 									<p className='text-sm text-gray-500'>
 										Supported formats: JPG, PNG, PDF (max 5MB)
@@ -229,112 +556,181 @@ const DocumentUpload: React.FC = () => {
 							)}
 						</div>
 
-						{file && (
-							<div className='mt-4 p-4 bg-gray-50 rounded-lg'>
-								<div className='flex items-center justify-between'>
-									<div className='flex items-center'>
-										<FileText className='h-5 w-5 text-blue-500 mr-2' />
-										<div>
-											<p className='font-medium text-gray-900 truncate max-w-xs'>
-												{file.name}
-											</p>
-											<p className='text-sm text-gray-500'>
-												{(file.size / 1024).toFixed(1)} KB
-											</p>
-										</div>
-									</div>
-									<button
-										onClick={(e) => {
-											e.stopPropagation();
-											setFile(null);
-										}}
-										className='text-gray-500 hover:text-red-500'
-										aria-label='Remove file'
+						{/* Queued Files */}
+						{fileQueue.length > 0 && (
+							<div className='mt-4'>
+								<div className='flex justify-between items-center mb-2'>
+									<h3 className='font-medium'>Files to Process</h3>
+									<Button
+										variant='outline'
+										size='sm'
+										onClick={processAllDocuments}
+										disabled={isProcessing}
 									>
-										<Trash2 size={18} />
-									</button>
+										{isProcessing ? (
+											<>
+												<Spinner size='sm' className='mr-2' />
+												Processing...
+											</>
+										) : (
+											<>
+												<Upload size={16} className='mr-2' />
+												Process All
+											</>
+										)}
+									</Button>
 								</div>
-
-								<div className='mt-4'>
-									<label
-										htmlFor='document-type'
-										className='text-sm font-medium text-gray-700 block mb-1'
-									>
-										Document Type
-									</label>
-									<Select
-										value={documentType}
-										onValueChange={(value) => setDocumentType(value as any)}
-									>
-										<SelectTrigger className='w-full'>
-											<SelectValue placeholder='Select document type' />
-										</SelectTrigger>
-										<SelectContent>
-											{documentTypeOptions.map((option) => (
-												<SelectItem key={option.value} value={option.value}>
-													{option.label}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								</div>
-
-								<div className='mt-4'>
-									{file && (
-										<Button
-											onClick={(e) => {
-												e.preventDefault();
-												e.stopPropagation();
-												processDocument();
-											}}
-											variant='primary'
-											fullWidth
-											isLoading={isProcessing}
-											disabled={isProcessing}
+								<div className='space-y-3 max-h-60 overflow-y-auto'>
+									{fileQueue.map((queueItem, index) => (
+										<div
+											key={`${queueItem.file.name}-${index}`}
+											className='p-3 bg-gray-50 rounded-lg'
 										>
-											{isProcessing ? (
-												<>
+											<div className='flex items-center justify-between'>
+												<div className='flex items-center flex-grow mr-2'>
+													<FileText className='h-5 w-5 text-blue-500 mr-2 flex-shrink-0' />
+													<div className='min-w-0'>
+														<p className='font-medium text-gray-900 truncate'>
+															{queueItem.file.name}
+														</p>
+														<p className='text-xs text-gray-500'>
+															{(queueItem.file.size / 1024).toFixed(1)} KB
+														</p>
+													</div>
+												</div>
+												<div className='flex items-center'>
+													<Select
+														value={queueItem.documentType}
+														onValueChange={(value) =>
+															updateQueueItemType(index, value)
+														}
+													>
+														<SelectTrigger className='h-8 mr-2 px-2'>
+															<SelectValue
+																placeholder='Type'
+																className='text-xs'
+															/>
+														</SelectTrigger>
+														<SelectContent>
+															{documentTypeOptions.map((option) => (
+																<SelectItem
+																	key={option.value}
+																	value={option.value}
+																>
+																	{option.label}
+																</SelectItem>
+															))}
+														</SelectContent>
+													</Select>
+													<button
+														onClick={() => removeFromQueue(index)}
+														className='text-gray-500 hover:text-red-500 p-1'
+														aria-label='Remove file'
+													>
+														<Trash2 size={16} />
+													</button>
+												</div>
+											</div>
+											{queueItem.isProcessing && (
+												<div className='flex items-center mt-2 text-sm text-blue-600'>
 													<Spinner size='sm' className='mr-2' />
 													Processing...
-												</>
-											) : (
-												<>
-													<Upload size={18} className='mr-2' />
-													Process & Upload
-												</>
+												</div>
 											)}
-										</Button>
-									)}
+											{queueItem.error && (
+												<div className='mt-2 text-sm text-red-600'>
+													{queueItem.error}
+												</div>
+											)}
+											<div className='mt-2'>
+												<Button
+													onClick={() => processDocument(queueItem, index)}
+													variant='outline'
+													size='sm'
+													className='w-full'
+													disabled={queueItem.isProcessing}
+												>
+													Process Document
+												</Button>
+											</div>
+										</div>
+									))}
 								</div>
 							</div>
 						)}
 					</CardContent>
 				</Card>
 
-				{/* Document Preview */}
+				{/* Document Status */}
 				<Card>
 					<CardHeader>
-						<h2 className='text-lg font-semibold'>Document Preview</h2>
+						<h2 className='text-lg font-semibold'>Required Documents</h2>
 					</CardHeader>
 					<CardContent>
-						{isProcessing ? (
-							<div className='flex flex-col items-center justify-center h-64'>
-								<Spinner size='lg' className='mb-4' />
-								<p className='text-gray-600'>
-									Analyzing document using {ocrProviderName}...
-								</p>
-							</div>
-						) : file ? (
-							<div className='flex flex-col items-center justify-center h-64 text-center'>
-								<FileText className='h-12 w-12 text-gray-400 mb-4' />
-								<p className='text-gray-600'>Ready to process document</p>
-							</div>
-						) : (
-							<div className='flex flex-col items-center justify-center h-64 text-center'>
-								<FileText className='h-12 w-12 text-gray-300 mb-4' />
-								<p className='text-gray-500'>
-									Upload a document to begin processing
-								</p>
+						<div className='space-y-4'>
+							{REQUIRED_DOCUMENT_TYPES.map((type) => {
+								const isUploaded = documents.some(
+									(doc) =>
+										doc.application_id === applicationId &&
+										normalizeDocType(doc.document_type).includes(
+											normalizeDocType(type),
+										),
+								);
+								return (
+									<div
+										key={type}
+										className={`p-4 rounded-lg border ${
+											isUploaded
+												? 'border-green-200 bg-green-50'
+												: 'border-gray-200 bg-gray-50'
+										}`}
+									>
+										<div className='flex items-center'>
+											{isUploaded ? (
+												<CheckCircle className='h-5 w-5 text-green-500 mr-3 flex-shrink-0' />
+											) : (
+												<Plus className='h-5 w-5 text-gray-400 mr-3 flex-shrink-0' />
+											)}
+											<div>
+												<p className='font-medium'>
+													{getDocumentTypeLabel(type)}
+												</p>
+												<p className='text-sm text-gray-600'>
+													{isUploaded ? 'Uploaded' : 'Required'}
+												</p>
+											</div>
+										</div>
+									</div>
+								);
+							})}
+						</div>
+
+						{documents.length > 0 && (
+							<div className='mt-6'>
+								<Button
+									onClick={() => completeApplication()}
+									variant='primary'
+									className='w-full'
+									isLoading={isCompleting}
+									disabled={isCompleting || checkRequiredDocuments().length > 0}
+								>
+									{checkRequiredDocuments().length > 0 ? (
+										'Upload All Required Documents to Continue'
+									) : (
+										<>
+											Complete Application{' '}
+											<ChevronRight className='ml-2 h-4 w-4' />
+										</>
+									)}
+								</Button>
+								{checkRequiredDocuments().length > 0 && (
+									<p className='text-sm text-orange-600 mt-2'>
+										Missing required documents:{' '}
+										{checkRequiredDocuments()
+											.map((type) => getDocumentTypeLabel(type))
+											.join(', ')}
+									</p>
+								)}
 							</div>
 						)}
 					</CardContent>
@@ -367,14 +763,26 @@ const DocumentUpload: React.FC = () => {
 														{new Date(doc.created_at).toLocaleDateString()}
 													</span>
 													<span className='text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full'>
-														{doc.document_type.replace('_', ' ')}
+														{getDocumentTypeLabel(doc.document_type)}
 													</span>
 												</div>
 											</div>
 										</div>
-										<Button variant='outline' size='sm'>
-											View
-										</Button>
+										<div className='flex items-center'>
+											{doc.verification_status === 'pending' && (
+												<span className='text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full mr-3'>
+													Pending Verification
+												</span>
+											)}
+											{doc.verification_status === 'verified' && (
+												<span className='text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full mr-3'>
+													Verified
+												</span>
+											)}
+											<Button variant='outline' size='sm'>
+												View
+											</Button>
+										</div>
 									</div>
 								</div>
 							))}

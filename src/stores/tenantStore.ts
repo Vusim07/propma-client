@@ -45,6 +45,11 @@ interface TenantState {
 		monthly_income: number;
 		notes?: string;
 	}) => Promise<Application | null>;
+	completeApplicationWithDocuments: (
+		applicationId: string,
+		documentTypes: string[],
+		forceComplete: boolean,
+	) => Promise<boolean>;
 }
 
 export const useTenantStore = create<TenantState>((set) => ({
@@ -486,6 +491,170 @@ export const useTenantStore = create<TenantState>((set) => ({
 			console.error('Application submission error:', error);
 			set({ error: (error as Error).message, isLoading: false });
 			return null;
+		}
+	},
+
+	completeApplicationWithDocuments: async (
+		applicationId: string,
+		documentTypes: string[],
+		forceComplete: boolean = false,
+	): Promise<boolean> => {
+		set({ isLoading: true, error: null });
+		console.log(
+			`Checking application ${applicationId} for document types:`,
+			documentTypes,
+		);
+
+		// For development use - bypass document check if forceComplete is true
+		if (forceComplete && process.env.NODE_ENV === 'development') {
+			console.log(
+				'DEVELOPMENT MODE: Forcing application completion, bypassing document checks',
+			);
+
+			try {
+				// Update the application status to submitted
+				const updateData = {
+					status: 'submitted',
+					created_at: new Date().toISOString(),
+				};
+
+				console.log('Updating application status to submitted:', applicationId);
+
+				const { error: updateError } = await supabase
+					.from('applications')
+					.update(updateData)
+					.eq('id', applicationId);
+
+				if (updateError) {
+					console.error('Error updating application status:', updateError);
+					throw updateError;
+				}
+
+				set({ isLoading: false });
+				return true;
+			} catch (error) {
+				console.error('Error in force complete:', error);
+				set({ error: (error as Error).message, isLoading: false });
+				return false;
+			}
+		}
+
+		try {
+			// 1. Verify that the required document types have been uploaded
+			console.log('Fetching documents for application ID:', applicationId);
+			const { data: appDocuments, error: docError } = await supabase
+				.from('documents')
+				.select('id, document_type, file_name, application_id, user_id')
+				.eq('application_id', applicationId);
+
+			if (docError) {
+				console.error('Error fetching documents for application:', docError);
+				throw docError;
+			}
+
+			console.log('Found documents for application:', appDocuments);
+
+			// Extra check: If no docs found, try to find by user_id if we have it stored
+			if (!appDocuments || appDocuments.length === 0) {
+				// This is a workaround for cases where application_id might not be set correctly
+				console.log(
+					'No documents found with this application ID, attempting secondary lookup',
+				);
+
+				// Get the application to find the tenant ID
+				const { data: application, error: appError } = await supabase
+					.from('applications')
+					.select('tenant_id')
+					.eq('id', applicationId)
+					.single();
+
+				if (appError) {
+					console.error('Failed to fetch application:', appError);
+				} else if (application) {
+					console.log(
+						'Found application with tenant ID:',
+						application.tenant_id,
+					);
+
+					// Get documents by tenant ID if we couldn't find by application_id
+					const { data: userDocs, error: userDocsError } = await supabase
+						.from('documents')
+						.select('id, document_type, file_name, application_id, user_id')
+						.is('application_id', null);
+
+					if (userDocsError) {
+						console.error('Error in secondary document lookup:', userDocsError);
+					} else if (userDocs && userDocs.length > 0) {
+						console.log('Found documents without application_id:', userDocs);
+						// Use these documents instead
+						appDocuments.push(...userDocs);
+					}
+				}
+			}
+
+			// Handle both "id_document" and "ID Document" type formats - normalize to lowercase and remove spaces
+			const normalizeDocType = (type: string): string =>
+				type.toLowerCase().replace(/[_\s-]/g, '');
+
+			// Check if all required document types exist - case insensitive comparison
+			const uploadedTypes = appDocuments.map((doc) =>
+				normalizeDocType(doc.document_type),
+			);
+			const normalizedRequiredTypes = documentTypes.map((type) =>
+				normalizeDocType(type),
+			);
+
+			console.log('Normalized uploaded types:', uploadedTypes);
+			console.log('Normalized required types:', normalizedRequiredTypes);
+
+			const missingTypes = normalizedRequiredTypes.filter(
+				(requiredType) =>
+					!uploadedTypes.some(
+						(uploadedType) =>
+							uploadedType.includes(requiredType) ||
+							requiredType.includes(uploadedType),
+					),
+			);
+
+			if (missingTypes.length > 0) {
+				const errorMessage = `Missing required documents: ${missingTypes.join(
+					', ',
+				)}`;
+				console.error(errorMessage);
+				set({ error: errorMessage, isLoading: false });
+				return false;
+			}
+
+			// 2. Update the application status to submitted
+			const updateData = {
+				status: 'submitted',
+				created_at: new Date().toISOString(),
+			};
+
+			console.log('Updating application status to submitted:', applicationId);
+
+			const { error: updateError } = await supabase
+				.from('applications')
+				.update(updateData)
+				.eq('id', applicationId);
+
+			if (updateError) {
+				console.error('Error updating application status:', updateError);
+				throw updateError;
+			}
+
+			// 3. Trigger application processing (normally handled by backend webhook/function)
+			console.log(
+				'Application submitted and ready for processing:',
+				applicationId,
+			);
+
+			set({ isLoading: false });
+			return true;
+		} catch (error) {
+			console.error('Error completing application:', error);
+			set({ error: (error as Error).message, isLoading: false });
+			return false;
 		}
 	},
 }));

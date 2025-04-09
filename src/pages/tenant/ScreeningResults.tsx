@@ -16,7 +16,10 @@ import {
 	FileText,
 	User,
 	Briefcase,
+	Calendar,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import Button from '@/components/ui/Button';
 
 const ScreeningResults: React.FC = () => {
 	const { user } = useAuthStore();
@@ -28,6 +31,7 @@ const ScreeningResults: React.FC = () => {
 		fetchProfile,
 		isLoading,
 	} = useTenantStore();
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		setPageTitle('Screening');
@@ -134,6 +138,19 @@ const ScreeningResults: React.FC = () => {
 							</p>
 						</div>
 					</div>
+
+					{/* Add Schedule Viewing button for approved applications */}
+					{screeningReport.pre_approval_status === 'approved' && (
+						<div className='mt-6 flex justify-end'>
+							<Button
+								variant='primary'
+								onClick={() => navigate('/tenant/appointments')}
+							>
+								<Calendar className='mr-2 h-5 w-5' />
+								Schedule a Viewing
+							</Button>
+						</div>
+					)}
 				</div>
 			</div>
 
@@ -326,7 +343,13 @@ const ScreeningResults: React.FC = () => {
 							</div>
 							<div className='flex items-center mt-2'>
 								<CheckCircle className='h-5 w-5 text-green-500 mr-2' />
-								<span className='text-green-700'>Verified</span>
+								<div>
+									<span className='text-green-700'>Verified</span>
+									<p className='text-xs text-gray-600 mt-1'>
+										Required documents uploaded in the previous step have been
+										processed successfully
+									</p>
+								</div>
 							</div>
 						</div>
 					</div>
