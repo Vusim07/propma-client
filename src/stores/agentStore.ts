@@ -20,6 +20,38 @@ interface WorkflowUpdateFields {
 	email_template?: string;
 }
 
+// Helper function to diagnose database schema issues
+const logTableSchema = async (
+	tableName:
+		| 'applications'
+		| 'properties'
+		| 'tenant_profiles'
+		| 'users'
+		| 'documents'
+		| 'screening_reports'
+		| 'appointments'
+		| 'email_workflows'
+		| 'workflow_logs',
+) => {
+	console.log(`Checking schema for table: ${tableName}`);
+	try {
+		const { data, error } = await supabase.from(tableName).select('*').limit(1);
+
+		if (error) {
+			console.error(`Error querying ${tableName}:`, error);
+			return;
+		}
+
+		if (data && data.length > 0) {
+			console.log(`${tableName} schema fields:`, Object.keys(data[0]));
+		} else {
+			console.log(`${tableName} has no data to inspect schema`);
+		}
+	} catch (err) {
+		console.error(`Failed to inspect ${tableName} schema:`, err);
+	}
+};
+
 interface AgentState {
 	applications: Application[];
 	properties: Property[];
@@ -51,6 +83,7 @@ interface AgentState {
 	) => Promise<void>; // Changed type
 	deleteWorkflow: (id: string) => Promise<void>;
 	fetchWorkflowLogs: (workflowId?: string) => Promise<void>;
+	diagnosticCheck: () => Promise<void>; // New diagnostic function
 }
 
 export const useAgentStore = create<AgentState>((set) => ({
@@ -64,23 +97,50 @@ export const useAgentStore = create<AgentState>((set) => ({
 	fetchApplications: async (agentId) => {
 		set({ isLoading: true, error: null });
 		try {
+			console.log('Fetching applications for agent:', agentId);
+
+			// Update the select query to use tenant_profiles instead of tenants
+			// The tenants(*) relation doesn't exist, use tenant_profiles via join instead
 			const { data, error } = await supabase
 				.from('applications')
-				.select('*, properties(*), tenants(*)')
+				.select(
+					`
+					*,
+					properties(*),
+					tenant_profiles:tenant_id(*)
+				`,
+				)
 				.eq('agent_id', agentId);
 
-			if (error) throw error;
+			if (error) {
+				console.error('Error fetching applications:', error);
+				throw error;
+			}
 
 			// Format dates for display
-			const formattedApplications = data?.map((app) => ({
-				...app,
-				// Map created_at to submitted_at if submitted_at doesn't exist
-				submitted_at: formatDate(app.submitted_at || app.created_at),
-				decision_at: app.decision_at ? formatDate(app.decision_at) : null,
-			}));
+			const formattedApplications = data?.map((app) => {
+				// Use type assertion to handle properties that might not be in the base type
+				const appWithDates = app as any;
+				return {
+					...app,
+					// Map created_at to submitted_at if submitted_at doesn't exist
+					submitted_at: formatDate(appWithDates.submitted_at || app.created_at),
+					decision_at: app.decision_at ? formatDate(app.decision_at) : null,
+				};
+			});
 
+			console.log(
+				'Applications fetched successfully:',
+				formattedApplications?.length || 0,
+			);
 			set({ applications: formattedApplications || [], isLoading: false });
 		} catch (error) {
+			// Enhanced error logging
+			console.error('Failed to fetch applications:', {
+				error,
+				message: (error as Error).message,
+				stack: (error as Error).stack,
+			});
 			set({ error: (error as Error).message, isLoading: false });
 		}
 	},
@@ -103,10 +163,11 @@ export const useAgentStore = create<AgentState>((set) => ({
 
 			if (error) throw error;
 
-			// Format dates for display
+			// Format dates for display using type assertion for submitted_at property
+			const appData = data as any;
 			const formattedApplication = {
 				...data,
-				submitted_at: formatDate(data.submitted_at || data.created_at),
+				submitted_at: formatDate(appData.submitted_at || data.created_at),
 				decision_at: data.decision_at ? formatDate(data.decision_at) : null,
 			};
 
@@ -394,6 +455,31 @@ export const useAgentStore = create<AgentState>((set) => ({
 			set({ workflowLogs: formattedLogs || [], isLoading: false });
 		} catch (error) {
 			set({ error: (error as Error).message, isLoading: false });
+		}
+	},
+
+	// Add a diagnostic function to help troubleshoot database issues
+	diagnosticCheck: async () => {
+		try {
+			console.log('Running diagnostic checks on database schema...');
+			await logTableSchema('applications');
+			await logTableSchema('properties');
+			await logTableSchema('tenant_profiles');
+			await logTableSchema('users');
+
+			// Test a simple query to check RLS policies
+			const { data, error } = await supabase
+				.from('applications')
+				.select('count')
+				.single();
+			if (error) {
+				console.error('RLS policy test error:', error);
+			} else {
+				console.log('RLS policy test successful:', data);
+			}
+			console.log('Diagnostic check complete');
+		} catch (err) {
+			console.error('Diagnostic check failed:', err);
 		}
 	},
 }));

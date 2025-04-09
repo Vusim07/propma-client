@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
@@ -64,9 +65,6 @@ const DocumentUpload: React.FC = () => {
 	const [showProfileCompletionMessage, setShowProfileCompletionMessage] =
 		useState(false);
 	const [applicationId, setApplicationId] = useState<string | null>(null);
-
-	// // Get the current OCR provider name for display
-	// const ocrProviderName = getOcrProvider().getName();
 
 	// Parse query parameters
 	useEffect(() => {
@@ -447,7 +445,7 @@ const DocumentUpload: React.FC = () => {
 			)}
 
 			{/* Debug information - only shown in development */}
-			{process.env.NODE_ENV === 'development' && (
+			{import.meta.env.VITE_NODE_ENV === 'development' && (
 				<div className='bg-gray-100 p-3 rounded-lg mb-6 text-xs font-mono'>
 					<h4 className='font-bold mb-1'>Debug Info:</h4>
 					<div>Application ID: {applicationId || 'Not set'}</div>
@@ -527,7 +525,7 @@ const DocumentUpload: React.FC = () => {
 						<h2 className='text-lg font-semibold'>Upload Documents</h2>
 					</CardHeader>
 					<CardContent>
-						<div className='mb-4'>
+						{/* <div className='mb-4'>
 							<label
 								htmlFor='document-type'
 								className='text-sm font-medium text-gray-700 block mb-1'
@@ -552,7 +550,7 @@ const DocumentUpload: React.FC = () => {
 							<p className='text-sm text-gray-500 mt-1'>
 								Select document type before uploading
 							</p>
-						</div>
+						</div> */}
 
 						<div
 							{...getRootProps()}

@@ -18,8 +18,88 @@ import {
 	Search,
 	ArrowRight,
 	Home,
+	User,
+	Phone,
+	Mail,
+	MapPin,
+	Briefcase,
+	DollarSign,
+	Calendar,
 } from 'lucide-react';
 import { showToast } from '../../utils/toast';
+import { formatCurrency } from '../../utils/formatters';
+
+// Define interface for tenant profile
+interface TenantProfile {
+	first_name?: string;
+	last_name?: string;
+	phone?: string | null;
+	email?: string;
+	current_address?: string;
+}
+
+// Define interface for property
+interface Property {
+	monthly_rent?: number;
+}
+
+// Define interface for enhanced application
+interface EnhancedApplication {
+	id: string;
+	tenant_id: string;
+	property_id: string;
+	status: 'pending' | 'approved' | 'rejected';
+	monthly_income: number;
+	employer: string;
+	employment_duration: number;
+	notes?: string;
+	created_at: string;
+	submitted_at?: string;
+	tenant_profiles?: TenantProfile;
+	properties?: Property;
+}
+
+// Format phone number for display
+const formatPhoneNumber = (phone: string | null): string => {
+	if (!phone) return 'Not provided';
+
+	// Remove any non-digit characters
+	const digits = phone.replace(/\D/g, '');
+
+	// Handle international format (+27)
+	if (digits.startsWith('27')) {
+		const mobile = digits.slice(2);
+		if (mobile.length === 9) {
+			return `+27 ${mobile.slice(0, 2)} ${mobile.slice(2, 5)} ${mobile.slice(
+				5,
+			)}`;
+		}
+	}
+
+	// Handle local format (0XX)
+	if (digits.startsWith('0')) {
+		if (digits.length === 10) {
+			return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+		}
+	}
+
+	// Fallback to basic formatting if number doesn't match expected patterns
+	return phone;
+};
+
+// Format employment duration in years/months
+const formatEmploymentDuration = (months: number): string => {
+	if (months < 1) return 'Less than a month';
+	const years = Math.floor(months / 12);
+	const remainingMonths = months % 12;
+
+	if (years === 0)
+		return `${remainingMonths} month${remainingMonths !== 1 ? 's' : ''}`;
+	if (remainingMonths === 0) return `${years} year${years !== 1 ? 's' : ''}`;
+	return `${years} year${years !== 1 ? 's' : ''}, ${remainingMonths} month${
+		remainingMonths !== 1 ? 's' : ''
+	}`;
+};
 
 const ReviewApplications: React.FC = () => {
 	const { user } = useAuthStore();
@@ -62,10 +142,12 @@ const ReviewApplications: React.FC = () => {
 
 			// Clear success message after 3 seconds
 			setTimeout(() => setSuccess(''), 3000);
-		} catch (err: any) {
+		} catch (err: unknown) {
+			const errorMessage =
+				err instanceof Error ? err.message : 'Unknown error occurred';
 			showToast.error('Failed to update application status');
 			setError(
-				`Failed to update application status. Please try again: ${err.message}`,
+				`Failed to update application status. Please try again: ${errorMessage}`,
 			);
 
 			// Clear error message after 3 seconds
@@ -81,12 +163,20 @@ const ReviewApplications: React.FC = () => {
 		.filter((app) => {
 			if (!searchTerm) return true;
 
-			// In a real app, we would search through tenant name, property address, etc.
-			// For MVP, we'll just search through the IDs
+			// Enhanced search that includes tenant names
+			const appWithProfile = app as EnhancedApplication; // Type assertion with our specific interface
+			const tenantProfile = appWithProfile.tenant_profiles;
+			const fullName = tenantProfile
+				? `${tenantProfile.first_name || ''} ${
+						tenantProfile.last_name || ''
+				  }`.toLowerCase()
+				: '';
+
 			return (
-				app.id.includes(searchTerm) ||
-				app.tenant_id.includes(searchTerm) ||
-				app.property_id.includes(searchTerm)
+				app.id.includes(searchTerm.toLowerCase()) ||
+				app.tenant_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				app.property_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				fullName.includes(searchTerm.toLowerCase())
 			);
 		});
 
@@ -101,9 +191,8 @@ const ReviewApplications: React.FC = () => {
 	return (
 		<div>
 			<div className='mb-6'>
-				<p className='text-gray-600 mt-1'>
-					Manage and review tenant applications
-				</p>
+				<h1 className='text-2xl font-bold mb-2'>Tenant Applications</h1>
+				<p className='text-gray-600'>Manage and review tenant applications</p>
 			</div>
 
 			{error && (
@@ -202,140 +291,243 @@ const ReviewApplications: React.FC = () => {
 				</div>
 			) : filteredApplications.length > 0 ? (
 				<div className='space-y-6'>
-					{filteredApplications.map((application) => (
-						<Card key={application.id}>
-							<CardContent className='p-6'>
-								<div className='flex flex-col md:flex-row justify-between mb-4'>
-									<div>
-										<h2 className='text-lg font-semibold mb-1'>
-											Application #{application.id}
-										</h2>
-										<p className='text-gray-600'>
-											Submitted on{' '}
-											{new Date(application.submitted_at).toLocaleDateString()}
-										</p>
-									</div>
-									<Badge
-										variant={
-											application.status === 'approved'
-												? 'success'
-												: application.status === 'rejected'
-												? 'danger'
-												: 'warning'
-										}
-										className='self-start md:self-center mt-2 md:mt-0'
-									>
-										{application.status.toUpperCase()}
-									</Badge>
-								</div>
+					{filteredApplications.map((application) => {
+						// Get the tenant profile data with type assertion
+						const appWithExtras = application as EnhancedApplication; // Type assertion with our specific interface
+						const tenantProfile = appWithExtras.tenant_profiles || {};
 
-								<div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-6'>
-									<div>
-										<h3 className='text-sm font-medium text-gray-500 mb-2'>
-											Tenant Information
-										</h3>
-										<div className='bg-gray-50 p-4 rounded-lg'>
-											<div className='mb-2'>
-												<p className='text-sm text-gray-500'>Tenant ID</p>
-												<p className='font-medium'>#{application.tenant_id}</p>
+						return (
+							<Card key={application.id}>
+								<CardContent className='p-6'>
+									<div className='flex flex-col md:flex-row justify-between mb-6'>
+										<div>
+											<h2 className='text-lg font-semibold mb-1'>
+												Application #{application.id.substring(0, 8)}
+											</h2>
+											<p className='text-gray-600'>
+												Submitted on{' '}
+												{appWithExtras.submitted_at ||
+													new Date(application.created_at).toLocaleDateString()}
+											</p>
+										</div>
+										<Badge
+											variant={
+												application.status === 'approved'
+													? 'success'
+													: application.status === 'rejected'
+													? 'danger'
+													: 'warning'
+											}
+											className='self-start md:self-center mt-2 md:mt-0'
+										>
+											{application.status.toUpperCase()}
+										</Badge>
+									</div>
+
+									<div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-6'>
+										<div>
+											<h3 className='text-sm font-medium text-gray-500 mb-2 flex items-center'>
+												<User size={16} className='mr-1 text-blue-500' />
+												Tenant Information
+											</h3>
+											<div className='bg-gray-50 p-4 rounded-lg'>
+												{tenantProfile ? (
+													<>
+														<div className='mb-3'>
+															<p className='text-sm text-gray-500 mb-1'>Name</p>
+															<p className='font-medium'>
+																{tenantProfile.first_name}{' '}
+																{tenantProfile.last_name}
+															</p>
+														</div>
+
+														<div className='mb-3'>
+															<p className='text-sm text-gray-500 mb-1 flex items-center'>
+																<Phone
+																	size={14}
+																	className='mr-1 text-gray-400'
+																/>
+																Phone
+															</p>
+															<p className='font-medium'>
+																{formatPhoneNumber(tenantProfile.phone as any)}
+															</p>
+														</div>
+
+														<div className='mb-3'>
+															<p className='text-sm text-gray-500 mb-1 flex items-center'>
+																<Mail
+																	size={14}
+																	className='mr-1 text-gray-400'
+																/>
+																Email
+															</p>
+															<p className='font-medium'>
+																{tenantProfile.email}
+															</p>
+														</div>
+
+														<div>
+															<p className='text-sm text-gray-500 mb-1 flex items-center'>
+																<MapPin
+																	size={14}
+																	className='mr-1 text-gray-400'
+																/>
+																Current Address
+															</p>
+															<p className='font-medium text-sm'>
+																{tenantProfile.current_address ||
+																	'Not provided'}
+															</p>
+														</div>
+													</>
+												) : (
+													<p className='text-gray-500 italic'>
+														Tenant profile information not available
+													</p>
+												)}
 											</div>
-											<div>
-												<p className='text-sm text-gray-500'>Contact</p>
-												<p className='font-medium'>tenant@example.com</p>
+										</div>
+
+										<div>
+											<h3 className='text-sm font-medium text-gray-500 mb-2 flex items-center'>
+												<Home size={16} className='mr-1 text-blue-500' />
+												Property Information
+											</h3>
+											<div className='bg-gray-50 p-4 rounded-lg'>
+												<div className='mb-3'>
+													<p className='text-sm text-gray-500 mb-1'>Property</p>
+													<p className='font-medium'>
+														{getPropertyAddress(application.property_id)}
+													</p>
+												</div>
+
+												{appWithExtras.properties && (
+													<div className='mt-3'>
+														<p className='text-sm text-gray-500 mb-1'>
+															Monthly Rent
+														</p>
+														<p className='font-medium text-green-600'>
+															{formatCurrency(
+																appWithExtras.properties.monthly_rent || 0,
+															)}
+														</p>
+													</div>
+												)}
+											</div>
+
+											<h3 className='text-sm font-medium text-gray-500 mt-4 mb-2 flex items-center'>
+												<Briefcase size={16} className='mr-1 text-blue-500' />
+												Financial Information
+											</h3>
+											<div className='bg-gray-50 p-4 rounded-lg'>
+												<div className='mb-3'>
+													<p className='text-sm text-gray-500 mb-1 flex items-center'>
+														<DollarSign
+															size={14}
+															className='mr-1 text-gray-400'
+														/>
+														Monthly Income
+													</p>
+													<p className='font-medium text-green-600'>
+														{formatCurrency(application.monthly_income)}
+													</p>
+												</div>
+
+												<div className='mb-3'>
+													<p className='text-sm text-gray-500 mb-1'>Employer</p>
+													<p className='font-medium'>{application.employer}</p>
+												</div>
+
+												<div>
+													<p className='text-sm text-gray-500 mb-1 flex items-center'>
+														<Calendar
+															size={14}
+															className='mr-1 text-gray-400'
+														/>
+														Employment Duration
+													</p>
+													<p className='font-medium'>
+														{formatEmploymentDuration(
+															application.employment_duration,
+														)}
+													</p>
+												</div>
 											</div>
 										</div>
 									</div>
 
-									<div>
-										<h3 className='text-sm font-medium text-gray-500 mb-2'>
-											Property Information
-										</h3>
-										<div className='bg-gray-50 p-4 rounded-lg'>
-											<div className='mb-2'>
-												<p className='text-sm text-gray-500'>Property ID</p>
-												<p className='font-medium'>
-													#{application.property_id}
-												</p>
-											</div>
-											<div>
-												<p className='text-sm text-gray-500'>Address</p>
-												<p className='font-medium'>
-													{getPropertyAddress(application.property_id)}
-												</p>
+									{application.notes && (
+										<div className='mb-6'>
+											<h3 className='text-sm font-medium text-gray-500 mb-2 flex items-center'>
+												<FileText size={16} className='mr-1 text-blue-500' />
+												Notes
+											</h3>
+											<div className='bg-gray-50 p-4 rounded-lg'>
+												<p className='text-gray-700'>{application.notes}</p>
 											</div>
 										</div>
-									</div>
-								</div>
+									)}
 
-								{application.notes && (
-									<div className='mb-6'>
-										<h3 className='text-sm font-medium text-gray-500 mb-2'>
-											Notes
-										</h3>
-										<div className='bg-gray-50 p-4 rounded-lg'>
-											<p className='text-gray-700'>{application.notes}</p>
-										</div>
-									</div>
-								)}
-
-								<div className='flex flex-col md:flex-row justify-between items-center'>
-									<div className='flex space-x-3 mb-4 md:mb-0'>
-										{application.status === 'pending' && (
-											<>
+									<div className='flex flex-col md:flex-row justify-between items-center'>
+										<div className='flex space-x-3 mb-4 md:mb-0'>
+											{application.status === 'pending' && (
+												<>
+													<Button
+														variant='primary'
+														size='sm'
+														onClick={() =>
+															handleStatusChange(
+																application.id,
+																'approved',
+																'Application approved after review.',
+															)
+														}
+													>
+														<CheckCircle size={16} className='mr-1' />
+														Approve
+													</Button>
+													<Button
+														variant='danger'
+														size='sm'
+														onClick={() =>
+															handleStatusChange(
+																application.id,
+																'rejected',
+																'Application rejected after review.',
+															)
+														}
+													>
+														<XCircle size={16} className='mr-1' />
+														Reject
+													</Button>
+												</>
+											)}
+											{application.status !== 'pending' && (
 												<Button
-													variant='primary'
+													variant='outline'
 													size='sm'
 													onClick={() =>
-														handleStatusChange(
-															application.id,
-															'approved',
-															'Application approved after review.',
-														)
+														handleStatusChange(application.id, 'pending')
 													}
 												>
-													<CheckCircle size={16} className='mr-1' />
-													Approve
+													<Clock size={16} className='mr-1' />
+													Mark as Pending
 												</Button>
-												<Button
-													variant='danger'
-													size='sm'
-													onClick={() =>
-														handleStatusChange(
-															application.id,
-															'rejected',
-															'Application rejected after review.',
-														)
-													}
-												>
-													<XCircle size={16} className='mr-1' />
-													Reject
-												</Button>
-											</>
-										)}
-										{application.status !== 'pending' && (
-											<Button
-												variant='outline'
-												size='sm'
-												onClick={() =>
-													handleStatusChange(application.id, 'pending')
-												}
-											>
-												<Clock size={16} className='mr-1' />
-												Mark as Pending
+											)}
+										</div>
+
+										<Link to={`/agent/screening/${application.tenant_id}`}>
+											<Button variant='outline' size='sm'>
+												View Screening Report
+												<ArrowRight size={16} className='ml-1' />
 											</Button>
-										)}
+										</Link>
 									</div>
-
-									<Link to={`/agent/screening/${application.tenant_id}`}>
-										<Button variant='outline' size='sm'>
-											View Screening Report
-											<ArrowRight size={16} className='ml-1' />
-										</Button>
-									</Link>
-								</div>
-							</CardContent>
-						</Card>
-					))}
+								</CardContent>
+							</Card>
+						);
+					})}
 				</div>
 			) : (
 				<Card>
