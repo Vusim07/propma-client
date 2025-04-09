@@ -14,9 +14,19 @@ export type InsertProfile = InsertTables<'users'>;
 export type UpdateProfile = UpdateTables<'users'>;
 
 // Tenant types
-export type TenantProfile = Tables<'tenant_profiles'>;
-export type InsertTenantProfile = InsertTables<'tenant_profiles'>;
-export type UpdateTenantProfile = UpdateTables<'tenant_profiles'>;
+export type TenantProfile = Tables<'tenant_profiles'> & {
+	// Add these fields that might not be in the database schema yet but are used in our application
+	employer?: string;
+	employment_duration?: number;
+};
+export type InsertTenantProfile = InsertTables<'tenant_profiles'> & {
+	employer?: string;
+	employment_duration?: number;
+};
+export type UpdateTenantProfile = UpdateTables<'tenant_profiles'> & {
+	employer?: string;
+	employment_duration?: number;
+};
 
 // Document types
 export type Document = Tables<'documents'>;

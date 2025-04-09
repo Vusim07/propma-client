@@ -7,7 +7,7 @@ import { Card, CardHeader, CardContent } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
 import Alert from '../../components/ui/Alert';
-import { Property, Application } from '../../types';
+import { Property, Application, TenantProfile } from '../../types';
 import { showToast } from '../../utils/toast';
 import { Input } from '../../components/ui/Input';
 import {
@@ -64,11 +64,20 @@ interface PropertyApplicationState {
 	existingApplication: Application | null;
 }
 
+// Add this interface to types
+interface TenantProfileWithEmployment extends TenantProfile {
+	employer?: string;
+	employment_duration?: number;
+}
+
 const PropertyApplication: React.FC = () => {
 	const { token } = useParams<{ token: string }>();
 	const navigate = useNavigate();
 	const { user } = useAuthStore();
 	const { fetchPropertyByToken, submitApplication } = useTenantStore();
+	// Add state to track if we need to check profile again after return from profile completion
+	const [returnedFromProfileCompletion, setReturnedFromProfileCompletion] =
+		useState(false);
 
 	const [state, setState] = useState<PropertyApplicationState>({
 		loading: true,
@@ -89,6 +98,18 @@ const PropertyApplication: React.FC = () => {
 
 	// Add authStep state to switch between login and register
 	const [authStep, setAuthStep] = useState<'login' | 'register'>('login');
+
+	// Check if the user is returning from profile completion on component mount
+	useEffect(() => {
+		const justReturned = sessionStorage.getItem(
+			'returning_from_profile_completion',
+		);
+		if (justReturned === 'true') {
+			console.log('Detected return from profile completion');
+			sessionStorage.removeItem('returning_from_profile_completion');
+			setReturnedFromProfileCompletion(true);
+		}
+	}, []);
 
 	// Fetch property based on the application token
 	useEffect(() => {
@@ -121,6 +142,28 @@ const PropertyApplication: React.FC = () => {
 				// If a user is already logged in
 				if (user) {
 					try {
+						// First check if user has completed their profile
+						const hasCompletedProfile = await checkProfileCompletion(user.id);
+
+						if (!hasCompletedProfile) {
+							// Store the current application path to return after profile completion
+							const redirectPath = window.location.pathname;
+							console.log(
+								'Storing redirect path in sessionStorage:',
+								redirectPath,
+							);
+							sessionStorage.setItem('post_profile_redirect', redirectPath);
+							// Set a flag to indicate we're going to profile completion
+							sessionStorage.setItem(
+								'returning_from_profile_completion',
+								'true',
+							);
+							// Redirect to profile completion
+							console.log('Redirecting to profile completion');
+							navigate('/profile-completion');
+							return;
+						}
+
 						// Get or create tenant profile
 						const tenantProfileId = await ensureTenantProfile(user.id);
 
@@ -137,16 +180,40 @@ const PropertyApplication: React.FC = () => {
 								...prev,
 								loading: false,
 								property,
+								existingApplication,
 								step: 'documents', // Skip to document upload
 							}));
 						} else {
-							// No existing application, go to application form
-							setState((prev) => ({
-								...prev,
-								loading: false,
-								property,
-								step: 'application',
-							}));
+							// No existing application, check if we already have all required info
+							const profile = await fetchTenantProfile(user.id);
+
+							if (
+								profile &&
+								profile.monthly_income > 0 &&
+								profile.employment_status &&
+								profile.employer && // Check if employer is available
+								profile.employment_duration // Check if employment_duration is available
+							) {
+								// We already have all the necessary information from profile
+								// Pre-fill the form but skip directly to document upload
+								setApplicationForm({
+									employer: profile.employer || '',
+									employment_duration: profile.employment_duration || 0,
+									monthly_income: profile.monthly_income || 0,
+									notes: '',
+								});
+
+								// Auto-submit the application using profile data
+								await handleApplicationSubmitWithProfile(profile, property);
+							} else {
+								// Still need application form data
+								setState((prev) => ({
+									...prev,
+									loading: false,
+									property,
+									step: 'application',
+								}));
+							}
 						}
 					} catch (profileError) {
 						console.error('Error with tenant profile:', profileError);
@@ -180,7 +247,13 @@ const PropertyApplication: React.FC = () => {
 		};
 
 		getPropertyByToken();
-	}, [token, user, fetchPropertyByToken]);
+	}, [
+		token,
+		user,
+		fetchPropertyByToken,
+		navigate,
+		returnedFromProfileCompletion,
+	]); // Add returnedFromProfileCompletion dependency
 
 	// Add this function to check for existing applications
 	const checkForExistingApplications = async (
@@ -193,59 +266,103 @@ const PropertyApplication: React.FC = () => {
 				propertyId: propertyId,
 			});
 
-			// First try check_application_exists RPC
-			const { data: applicationExists, error: checkError } =
-				await supabase.rpc<boolean>('check_application_exists', {
+			// First try to get the actual application ID using the new function
+			const { data: applicationId, error: idError } =
+				await supabase.rpc<string>('get_application_id_if_exists', {
 					tenant_id_param: tenantProfileId,
 					property_id_param: propertyId,
 				});
 
-			if (!checkError && applicationExists === true) {
-				console.log('RPC check for application returned:', applicationExists);
+			// If we got an application ID, try to fetch full application details
+			if (!idError && applicationId) {
+				console.log('Found application ID:', applicationId);
 
-				// Application exists, create a placeholder application object with minimum required fields
-				return {
-					id: 'placeholder',
-					tenant_id: tenantProfileId,
-					property_id: propertyId,
-					agent_id: '', // These fields are required by the type but not used for our flow
-					created_at: '',
-					updated_at: '',
-					employer: '',
-					employment_duration: 0,
-					monthly_income: 0,
-					status: 'pending',
-					notes: null,
-					decision_at: null,
-				} as Application;
-			}
+				// Try to get the full application data
+				const { data: applicationData, error: appError } = await supabase
+					.from('applications')
+					.select('*')
+					.eq('id', applicationId)
+					.single();
 
-			if (checkError) {
-				console.log(
-					'First RPC method failed, trying alternative',
-					checkError.message,
-				);
-
-				// Try alternative RPC method as fallback
-				const { data: rpcData, error: rpcError } = await supabase.rpc<
-					Application[]
-				>('get_tenant_applications_for_property', {
-					tenant_id_param: tenantProfileId,
-					property_id_param: propertyId,
-				});
-
-				if (!rpcError && rpcData && rpcData.length > 0) {
-					console.log(
-						'Found existing application via alternative RPC:',
-						rpcData[0],
-					);
-					return rpcData[0];
+				if (!appError && applicationData) {
+					console.log('Successfully retrieved full application data');
+					return applicationData as Application;
 				}
 
-				if (rpcError) {
-					console.log(
-						'All RPC methods failed, skipping direct query due to RLS issues',
-					);
+				// If we couldn't get full data but have an ID, create a partial application object
+				if (applicationId) {
+					console.log('Using application ID with partial data');
+					return {
+						id: applicationId,
+						tenant_id: tenantProfileId,
+						property_id: propertyId,
+						agent_id: '', // These fields are required by the type but will be filled server-side
+						created_at: '',
+						updated_at: '',
+						employer: '',
+						employment_duration: 0,
+						monthly_income: 0,
+						status: 'pending',
+						notes: null,
+						decision_at: null,
+					} as Application;
+				}
+			}
+
+			// Fallback to the old check method for backward compatibility
+			if (idError) {
+				console.log(
+					'New RPC method failed, trying alternative',
+					idError.message,
+				);
+
+				// Try the old boolean check function
+				const { data: applicationExists, error: checkError } =
+					await supabase.rpc<boolean>('check_application_exists', {
+						tenant_id_param: tenantProfileId,
+						property_id_param: propertyId,
+					});
+
+				if (!checkError && applicationExists === true) {
+					console.log('Application exists according to boolean check');
+
+					// If app exists but we couldn't get the ID, try alternative RPC
+					const { data: rpcData, error: rpcError } = await supabase.rpc<
+						Application[]
+					>('get_tenant_applications_for_property', {
+						tenant_id_param: tenantProfileId,
+						property_id_param: propertyId,
+					});
+
+					if (!rpcError && rpcData && rpcData.length > 0) {
+						console.log(
+							'Found existing application via alternative RPC:',
+							rpcData[0],
+						);
+						return rpcData[0];
+					}
+
+					if (rpcError) {
+						console.log(
+							'All RPC methods failed, skipping direct query due to RLS issues',
+						);
+					}
+
+					// Last resort - use a placeholder as before
+					return {
+						id: 'placeholder',
+						tenant_id: tenantProfileId,
+						property_id: propertyId,
+						agent_id: '',
+						created_at: '',
+						updated_at: '',
+						employer: '',
+						employment_duration: 0,
+						monthly_income: 0,
+						status: 'pending',
+						notes: null,
+						decision_at: null,
+					} as Application;
 				}
 			}
 
@@ -362,6 +479,169 @@ const PropertyApplication: React.FC = () => {
 		}
 	};
 
+	// New function to check if the user has completed their profile
+	const checkProfileCompletion = async (userId: string): Promise<boolean> => {
+		try {
+			console.log('Checking profile completion for user ID:', userId);
+
+			// Check if user has a tenant profile with complete information
+			const { data: profile, error } = await supabase
+				.from('tenant_profiles')
+				.select('id, employment_status, monthly_income')
+				.eq('tenant_id', userId)
+				.maybeSingle();
+
+			if (error) {
+				console.error('Error checking profile completion:', error);
+				return false;
+			}
+
+			// Profile is complete if it exists and has employment status and income
+			const isComplete = !!(
+				profile &&
+				profile.employment_status &&
+				profile.monthly_income > 0
+			);
+
+			console.log('Profile completion check result:', {
+				profileExists: !!profile,
+				hasEmployment: !!profile?.employment_status,
+				hasIncome: !!(profile?.monthly_income && profile.monthly_income > 0),
+				isComplete,
+			});
+
+			return isComplete;
+		} catch (error) {
+			console.error('Error in checkProfileCompletion:', error);
+			return false;
+		}
+	};
+
+	// New function to fetch tenant profile
+	const fetchTenantProfile = async (
+		userId: string,
+	): Promise<TenantProfileWithEmployment | null> => {
+		try {
+			// First check if we need to get the user profile ID from previously created profile
+			const { data: profileIds, error: profileIdsError } = await supabase
+				.from('tenant_profiles')
+				.select('id')
+				.eq('tenant_id', userId);
+
+			if (profileIdsError) {
+				console.error('Error checking tenant profiles:', profileIdsError);
+				return null;
+			}
+
+			// Log diagnostic information if multiple profiles found
+			if (profileIds && profileIds.length > 1) {
+				console.warn(
+					`Multiple tenant profiles found for user ID ${userId}:`,
+					profileIds.map((p) => p.id),
+				);
+				console.warn('Using the first profile ID:', profileIds[0].id);
+			}
+
+			// Fetch complete profile for the first profile ID or directly by tenant_id if no profiles found
+			if (profileIds && profileIds.length > 0) {
+				const { data: profile, error } = await supabase
+					.from('tenant_profiles')
+					.select('*')
+					.eq('id', profileIds[0].id)
+					.single();
+
+				if (error) {
+					console.error(
+						`Error fetching tenant profile by ID ${profileIds[0].id}:`,
+						error,
+					);
+					return null;
+				}
+
+				return profile as TenantProfileWithEmployment;
+			} else {
+				// Try direct query as fallback
+				const { data: profile, error } = await supabase
+					.from('tenant_profiles')
+					.select('*')
+					.eq('tenant_id', userId)
+					.maybeSingle();
+
+				if (error) {
+					console.error('Error fetching tenant profile by tenant_id:', error);
+					return null;
+				}
+
+				return profile as TenantProfileWithEmployment;
+			}
+		} catch (error) {
+			console.error('Error in fetchTenantProfile:', error);
+			return null;
+		}
+	};
+
+	// Function to handle application submission using profile data
+	const handleApplicationSubmitWithProfile = async (
+		profile: TenantProfileWithEmployment,
+		property: Property,
+	) => {
+		if (!property || !user) {
+			showToast.error('Missing property or user information');
+			return;
+		}
+
+		setSubmitting(true);
+
+		try {
+			// Use the tenant profile ID directly
+			console.log('Using tenant profile ID:', profile.id);
+
+			// Prepare application data from profile
+			const applicationData = {
+				property_id: property.id,
+				agent_id: property.agent_id,
+				tenant_id: profile.id,
+				employer: profile.employer || 'Not specified',
+				employment_duration: profile.employment_duration || 0,
+				monthly_income: profile.monthly_income || 0,
+				notes: '',
+			};
+
+			console.log(
+				'Auto-submitting application with profile data:',
+				applicationData,
+			);
+
+			// Use the store function to submit the application
+			const application = await submitApplication(applicationData);
+
+			if (!application) {
+				throw new Error('Failed to create application');
+			}
+
+			showToast.success('Application created based on your profile');
+
+			// Set the application in state and move to documents step
+			setState((prev) => ({
+				...prev,
+				existingApplication: application,
+				step: 'documents',
+			}));
+		} catch (error) {
+			const errorMessage =
+				error instanceof Error ? error.message : 'Failed to submit application';
+			console.error('Application submission error:', error);
+			showToast.error(errorMessage);
+			// Fall back to manual application form
+			setState((prev) => ({
+				...prev,
+				step: 'application',
+			}));
+		} finally {
+			setSubmitting(false);
+		}
+	};
+
 	// Handle application form submission
 	const handleApplicationSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -440,6 +720,35 @@ const PropertyApplication: React.FC = () => {
 							You're about to start your application for this property. You'll
 							need to create a free account or sign in to continue.
 						</p>
+
+						<div className='bg-gray-50 rounded-lg p-4 mb-6 text-left'>
+							<h4 className='font-medium text-gray-800 mb-2'>
+								Application Process
+							</h4>
+							<ol className='list-decimal pl-5 text-sm text-gray-600 space-y-2'>
+								<li>
+									<span className='font-medium'>Create Account/Sign In</span> -
+									First, you'll need to authenticate
+								</li>
+								<li>
+									<span className='font-medium'>Complete Profile</span> - Fill
+									in your tenant information
+								</li>
+								<li>
+									<span className='font-medium'>Upload Documents</span> -
+									Provide verification documents
+								</li>
+								<li>
+									<span className='font-medium'>Screening</span> - We'll review
+									your application
+								</li>
+								<li>
+									<span className='font-medium'>Results</span> - You'll receive
+									a notification about your application status
+								</li>
+							</ol>
+						</div>
+
 						<div className='flex justify-center'>
 							<Button
 								className='w-full md:w-auto px-6 py-2 text-base'
@@ -456,7 +765,8 @@ const PropertyApplication: React.FC = () => {
 						<div className='bg-blue-50 p-4 rounded-md mb-6'>
 							<p className='text-sm text-blue-800'>
 								Please sign in or create an account to continue with your
-								application.
+								application. After signing in, you'll complete your tenant
+								profile with required information.
 							</p>
 						</div>
 						<AuthLayout
@@ -499,7 +809,12 @@ const PropertyApplication: React.FC = () => {
 						<div className='bg-blue-50 p-4 rounded-md mb-6'>
 							<p className='text-sm text-blue-800'>
 								Please provide your employment and income details to complete
-								your rental application.
+								your rental application. This information helps us assess
+								affordability and suitability.
+							</p>
+							<p className='text-sm text-blue-800 mt-2'>
+								After this step, you'll need to upload supporting documents to
+								verify this information.
 							</p>
 						</div>
 
@@ -581,6 +896,10 @@ const PropertyApplication: React.FC = () => {
 										placeholder='0'
 										required
 									/>
+									<p className='text-xs text-gray-500 mt-1'>
+										This helps us determine if the property is within your
+										affordability range
+									</p>
 								</div>
 							</div>
 
@@ -620,14 +939,21 @@ const PropertyApplication: React.FC = () => {
 						<div className='bg-blue-50 p-4 rounded-md mb-6'>
 							<p className='text-sm text-blue-800'>
 								Please upload the required documents to support your
-								application.
+								application. These documents will be used for verification and
+								our screening process.
 							</p>
+							<ul className='text-sm text-blue-800 mt-2 pl-5 list-disc'>
+								<li>Proof of Identity (ID/Passport)</li>
+								<li>Proof of Income (Pay slips or bank statements)</li>
+								<li>Proof of Current Address</li>
+							</ul>
 						</div>
 
 						<div className='text-center py-4'>
 							<p className='mb-6 text-gray-600'>
 								You'll be redirected to our document upload system where you can
-								submit your documents securely.
+								upload these documents securely. After document verification,
+								we'll proceed with your screening.
 							</p>
 							<Button
 								onClick={() =>

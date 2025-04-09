@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { useTenantStore } from '@/stores/tenantStore';
 import { usePageTitle } from '@/context/PageTitleContext';
@@ -15,7 +16,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/Select';
-import { Upload, FileText, Trash2 } from 'lucide-react';
+import { Upload, FileText, Trash2, CheckCircle } from 'lucide-react';
 import { showToast } from '@/utils/toast';
 import { documentService } from '@/services/documentService';
 import { getOcrProvider } from '@/services/ocr';
@@ -25,6 +26,7 @@ const DocumentUpload: React.FC = () => {
 	const { setPageTitle } = usePageTitle();
 	const { documents, fetchDocuments, uploadDocument, isLoading } =
 		useTenantStore();
+	const location = useLocation();
 
 	const [file, setFile] = useState<File | null>(null);
 	const [documentType, setDocumentType] = useState<
@@ -32,9 +34,46 @@ const DocumentUpload: React.FC = () => {
 	>('id_document');
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [error, setError] = useState('');
+	const [showProfileCompletionMessage, setShowProfileCompletionMessage] =
+		useState(false);
+	const [applicationId, setApplicationId] = useState<string | null>(null);
 
 	// Get the current OCR provider name for display
 	const ocrProviderName = getOcrProvider().getName();
+
+	// Parse query parameters
+	useEffect(() => {
+		const queryParams = new URLSearchParams(location.search);
+		const profileId = queryParams.get('profileId');
+		const applicationId = queryParams.get('application');
+
+		// If there's a profileId, the user is coming from profile completion
+		if (profileId) {
+			setShowProfileCompletionMessage(true);
+			// Remove the profile completion message after 5 seconds
+			const timer = setTimeout(() => {
+				setShowProfileCompletionMessage(false);
+			}, 5000);
+
+			return () => clearTimeout(timer);
+		}
+
+		// Handle application ID from query params
+		if (applicationId) {
+			console.log('Application ID from query params:', applicationId);
+
+			// Check if this is a placeholder ID (will be fixed server-side soon)
+			if (applicationId === 'placeholder') {
+				console.warn(
+					'Received placeholder application ID - this means the backend RLS policies need updating',
+				);
+				// Could display a message to the user or admin about this
+			} else {
+				// Store the application ID for document uploads
+				setApplicationId(applicationId);
+			}
+		}
+	}, [location]);
 
 	useEffect(() => {
 		setPageTitle('Documents');
@@ -83,10 +122,10 @@ const DocumentUpload: React.FC = () => {
 			// Get OCR provider and process document
 			const result = await documentService.analyzeDocument(file, user.id);
 
-			// Prepare document data - remove application_id if not needed
+			// Prepare document data
 			const documentData = {
 				user_id: user.id,
-				application_id: null,
+				application_id: applicationId !== 'placeholder' ? applicationId : null,
 				document_type: documentType,
 				file_name: file.name,
 				file_size: file.size,
@@ -139,6 +178,19 @@ const DocumentUpload: React.FC = () => {
 					Upload and process your documents for verification
 				</p>
 			</div>
+
+			{showProfileCompletionMessage && (
+				<Alert variant='success' className='mb-6'>
+					<CheckCircle className='h-5 w-5 mr-2' />
+					<div>
+						<p className='font-medium'>Profile completed successfully!</p>
+						<p className='text-sm'>
+							Now please upload your verification documents to complete your
+							application.
+						</p>
+					</div>
+				</Alert>
+			)}
 
 			{error && (
 				<Alert variant='error' className='mb-6'>

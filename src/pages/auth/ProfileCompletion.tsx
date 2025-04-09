@@ -43,28 +43,70 @@ const profileCompletionSchema = z
 		employment_status: z.string().optional(),
 		monthly_income: z.coerce.number().optional(),
 		current_address: z.string().optional(),
-
+		employer: z.string().optional(),
+		employment_duration: z.coerce.number().optional(),
 		tenant_id: z.string().optional(),
 	})
-	.refine(
-		(data) => {
-			// If role is tenant, require tenant-specific fields
-			if (data.role === 'tenant') {
-				return (
-					!!data.id_number &&
-					!!data.employment_status &&
-					!!data.monthly_income &&
-					!!data.current_address &&
-					!!data.tenant_id
-				);
+	.superRefine((data, ctx) => {
+		// If role is tenant, require and validate each tenant-specific field individually
+		if (data.role === 'tenant') {
+			if (!data.id_number) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					message: 'ID number is required for tenants',
+					path: ['id_number'],
+				});
 			}
-			return true;
-		},
-		{
-			message: 'All tenant information is required',
-			path: ['role'],
-		},
-	);
+
+			if (!data.employment_status) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					message: 'Employment status is required for tenants',
+					path: ['employment_status'],
+				});
+			}
+
+			if (!data.monthly_income) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					message: 'Monthly income is required for tenants',
+					path: ['monthly_income'],
+				});
+			}
+
+			if (!data.current_address) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					message: 'Current address is required for tenants',
+					path: ['current_address'],
+				});
+			}
+
+			if (!data.employer) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					message: 'Employer name is required for tenants',
+					path: ['employer'],
+				});
+			}
+
+			if (!data.employment_duration) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					message: 'Employment duration is required for tenants',
+					path: ['employment_duration'],
+				});
+			}
+
+			if (!data.tenant_id) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					message: 'Session error: Please refresh the page or log in again',
+					path: ['tenant_id'],
+				});
+			}
+		}
+	});
 
 type ProfileCompletionValues = z.infer<typeof profileCompletionSchema>;
 
@@ -89,6 +131,8 @@ const ProfileCompletion: React.FC = () => {
 			employment_status: '',
 			monthly_income: undefined,
 			current_address: '',
+			employer: '',
+			employment_duration: undefined,
 			tenant_id: '',
 		},
 	});
@@ -99,18 +143,26 @@ const ProfileCompletion: React.FC = () => {
 	// Fetch existing tenant profile if available
 	const fetchTenantProfile = async (email: string) => {
 		try {
+			// Changed from maybeSingle to just select, so we can handle multiple results
 			const { data, error } = await supabase
 				.from('tenant_profiles')
 				.select('*')
-				.eq('email', email)
-				.maybeSingle();
+				.eq('email', email);
 
 			if (error) {
 				console.error('Error fetching tenant profile:', error);
 				return null;
 			}
 
-			return data;
+			// Check if we got any results and take the first one
+			if (data && data.length > 0) {
+				console.log(
+					`Found ${data.length} profile(s) for email: ${email}, using the first one`,
+				);
+				return data[0];
+			}
+
+			return null;
 		} catch (error) {
 			console.error('Error in fetchTenantProfile:', error);
 			return null;
@@ -128,6 +180,11 @@ const ProfileCompletion: React.FC = () => {
 
 			setSession(data.session);
 
+			// Set the tenant_id field to the user's ID
+			if (data.session.user?.id) {
+				form.setValue('tenant_id', data.session.user.id);
+			}
+
 			// Pre-fill form with any existing user data
 			if (user) {
 				form.setValue('firstName', user.first_name || '');
@@ -144,25 +201,37 @@ const ProfileCompletion: React.FC = () => {
 				if (user.role === 'tenant' && user.email) {
 					const tenantData = await fetchTenantProfile(user.email);
 					if (tenantData) {
-						setTenantProfile(tenantData);
+						const typedTenantData = tenantData as unknown as TenantProfile;
+						setTenantProfile(typedTenantData);
 
 						// Pre-fill tenant-specific fields
-						form.setValue('id_number', tenantData.id_number || '');
+						form.setValue('id_number', typedTenantData.id_number || '');
 						form.setValue(
 							'employment_status',
-							tenantData.employment_status || '',
+							typedTenantData.employment_status || '',
 						);
 						form.setValue(
 							'monthly_income',
-							tenantData.monthly_income || undefined,
+							typedTenantData.monthly_income || undefined,
 						);
-						form.setValue('current_address', tenantData.current_address || '');
+						form.setValue(
+							'current_address',
+							typedTenantData.current_address || '',
+						);
+						form.setValue('employer', typedTenantData.employer || '');
+						form.setValue(
+							'employment_duration',
+							typedTenantData.employment_duration || undefined,
+						);
 					}
 				}
 			} else {
 				// Pre-fill from auth metadata if available
 				const { user: authUser } = data.session;
 				if (authUser?.user_metadata) {
+					// Also set tenant_id for new users
+					form.setValue('tenant_id', authUser.id);
+
 					const fullName = authUser.user_metadata.full_name || '';
 					const nameParts = fullName.split(' ');
 					const firstName = nameParts[0] || '';
@@ -186,19 +255,25 @@ const ProfileCompletion: React.FC = () => {
 					if (authUser.email && role === 'tenant') {
 						const tenantData = await fetchTenantProfile(authUser.email);
 						if (tenantData) {
-							setTenantProfile(tenantData);
-							form.setValue('id_number', tenantData.id_number || '');
+							const typedTenantData = tenantData as unknown as TenantProfile;
+							setTenantProfile(typedTenantData);
+							form.setValue('id_number', typedTenantData.id_number || '');
 							form.setValue(
 								'employment_status',
-								tenantData.employment_status || '',
+								typedTenantData.employment_status || '',
 							);
 							form.setValue(
 								'monthly_income',
-								tenantData.monthly_income || undefined,
+								typedTenantData.monthly_income || undefined,
 							);
 							form.setValue(
 								'current_address',
-								tenantData.current_address || '',
+								typedTenantData.current_address || '',
+							);
+							form.setValue('employer', typedTenantData.employer || '');
+							form.setValue(
+								'employment_duration',
+								typedTenantData.employment_duration || undefined,
 							);
 						}
 					}
@@ -211,8 +286,21 @@ const ProfileCompletion: React.FC = () => {
 		checkSession();
 	}, [navigate, form, user]);
 
+	// Add effect to update tenant_id when role changes
+	useEffect(() => {
+		// Update tenant_id to the user ID if role is tenant
+		if (selectedRole === 'tenant' && session?.user?.id) {
+			form.setValue('tenant_id', session.user.id);
+		}
+	}, [selectedRole, session, form]);
+
 	const onSubmit = async (values: ProfileCompletionValues) => {
 		try {
+			// Debug logging to help troubleshoot validation issues
+			console.log('Form submission values:', values);
+			console.log('Form errors:', form.formState.errors);
+			console.log('Session user ID:', session?.user?.id);
+
 			if (!session) {
 				showToast.error('No active session found');
 				navigate('/login');
@@ -240,6 +328,7 @@ const ProfileCompletion: React.FC = () => {
 			await updateProfile(userData);
 
 			// 2. If user is a tenant, create or update tenant_profile
+			let tenantProfileId: string | undefined;
 			if (values.role === 'tenant') {
 				const userEmail = session.user.email;
 				if (!userEmail) {
@@ -259,6 +348,8 @@ const ProfileCompletion: React.FC = () => {
 					employment_status: values.employment_status || '',
 					monthly_income: values.monthly_income || 0,
 					current_address: values.current_address || '',
+					employer: values.employer || '',
+					employment_duration: values.employment_duration || 0,
 				};
 
 				// Check if tenant profile exists
@@ -274,6 +365,8 @@ const ProfileCompletion: React.FC = () => {
 							employment_status: tenantData.employment_status,
 							monthly_income: tenantData.monthly_income,
 							current_address: tenantData.current_address,
+							employer: tenantData.employer,
+							employment_duration: tenantData.employment_duration,
 						})
 						.eq('id', tenantProfile.id);
 
@@ -282,17 +375,23 @@ const ProfileCompletion: React.FC = () => {
 						showToast.error('Failed to update tenant profile');
 						return;
 					}
+
+					tenantProfileId = tenantProfile.id;
 				} else {
 					// Create new tenant profile
-					const { error } = await supabase
+					const { data, error } = await supabase
 						.from('tenant_profiles')
-						.insert(tenantData);
+						.insert(tenantData)
+						.select('id')
+						.single();
 
 					if (error) {
 						console.error('Error creating tenant profile:', error);
 						showToast.error('Failed to create tenant profile');
 						return;
 					}
+
+					tenantProfileId = data?.id;
 				}
 			}
 
@@ -303,15 +402,31 @@ const ProfileCompletion: React.FC = () => {
 
 			// Check if there's a post-profile completion redirect path
 			const redirectPath = sessionStorage.getItem('post_profile_redirect');
+			console.log('Redirect path from session storage:', redirectPath);
+
 			if (redirectPath) {
+				// Clear the redirect path from session storage
 				sessionStorage.removeItem('post_profile_redirect');
+
+				// Make sure the flag is set to trigger reload of application state in PropertyApplication
+				sessionStorage.setItem('returning_from_profile_completion', 'true');
+
+				console.log('Redirecting back to application:', redirectPath);
 				navigate(redirectPath);
 				return;
 			}
 
 			// Default navigation based on role
 			if (values.role === 'tenant') {
-				navigate('/tenant');
+				// If tenant profile was just completed, redirect to document upload
+				console.log('Tenant profile completed, redirecting to document upload');
+
+				// If we have a tenantProfileId, we can pass it as a query parameter
+				if (tenantProfileId) {
+					navigate(`/tenant/documents?profileId=${tenantProfileId}`);
+				} else {
+					navigate('/tenant/documents');
+				}
 			} else if (['agent', 'landlord'].includes(values.role)) {
 				navigate('/agent');
 			} else {
@@ -461,6 +576,21 @@ const ProfileCompletion: React.FC = () => {
 						<div className='space-y-4 border p-4 rounded-lg bg-blue-50'>
 							<h3 className='font-medium text-blue-800'>Tenant Information</h3>
 
+							{/* Debug field for tenant_id - normally hidden but useful for troubleshooting */}
+							<FormField
+								control={form.control}
+								name='tenant_id'
+								render={({ field }) => (
+									<FormItem className='hidden'>
+										<FormLabel>Tenant ID (System Field)</FormLabel>
+										<FormControl>
+											<Input readOnly {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+
 							<FormField
 								control={form.control}
 								name='id_number'
@@ -475,28 +605,68 @@ const ProfileCompletion: React.FC = () => {
 								)}
 							/>
 
+							<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+								<FormField
+									control={form.control}
+									name='employment_status'
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Employment Status</FormLabel>
+											<FormControl>
+												<Select
+													value={field.value}
+													onValueChange={field.onChange}
+												>
+													<SelectTrigger className='w-full'>
+														<SelectValue placeholder='Select your employment status' />
+													</SelectTrigger>
+													<SelectContent>
+														{employmentStatusOptions.map((option) => (
+															<SelectItem
+																key={option.value}
+																value={option.value}
+															>
+																{option.label}
+															</SelectItem>
+														))}
+													</SelectContent>
+												</Select>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+
+								<FormField
+									control={form.control}
+									name='monthly_income'
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Monthly Income (ZAR)</FormLabel>
+											<FormControl>
+												<Input
+													type='number'
+													placeholder='R 0.00'
+													{...field}
+													onChange={(e) =>
+														field.onChange(e.target.valueAsNumber)
+													}
+												/>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+							</div>
+
 							<FormField
 								control={form.control}
-								name='employment_status'
+								name='employer'
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Employment Status</FormLabel>
+										<FormLabel>Current Employer</FormLabel>
 										<FormControl>
-											<Select
-												value={field.value}
-												onValueChange={field.onChange}
-											>
-												<SelectTrigger className='w-full'>
-													<SelectValue placeholder='Select your employment status' />
-												</SelectTrigger>
-												<SelectContent>
-													{employmentStatusOptions.map((option) => (
-														<SelectItem key={option.value} value={option.value}>
-															{option.label}
-														</SelectItem>
-													))}
-												</SelectContent>
-											</Select>
+											<Input placeholder='Company name' {...field} />
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -505,14 +675,14 @@ const ProfileCompletion: React.FC = () => {
 
 							<FormField
 								control={form.control}
-								name='monthly_income'
+								name='employment_duration'
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Monthly Income (ZAR)</FormLabel>
+										<FormLabel>Employment Duration (months)</FormLabel>
 										<FormControl>
 											<Input
 												type='number'
-												placeholder='R 0.00'
+												placeholder='0'
 												{...field}
 												onChange={(e) => field.onChange(e.target.valueAsNumber)}
 											/>
