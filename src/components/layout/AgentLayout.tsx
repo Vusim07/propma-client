@@ -46,7 +46,7 @@ const AgentLayout: React.FC = () => {
 		{
 			to: '/agent/applications',
 			icon: <FileText size={20} />,
-			label: 'Applications',
+			label: 'Prospects',
 		},
 		{
 			to: '/agent/appointments',

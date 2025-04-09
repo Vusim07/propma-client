@@ -124,7 +124,7 @@ const ReviewApplications: React.FC = () => {
 
 	useEffect(() => {
 		if (user) {
-			setPageTitle('Applications');
+			setPageTitle('Prospects');
 			fetchApplications(user.id);
 			fetchProperties(user.id);
 		}
@@ -191,7 +191,6 @@ const ReviewApplications: React.FC = () => {
 	return (
 		<div>
 			<div className='mb-6'>
-				<h1 className='text-2xl font-bold mb-2'>Tenant Applications</h1>
 				<p className='text-gray-600'>Manage and review tenant applications</p>
 			</div>
 
