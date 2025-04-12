@@ -3,20 +3,22 @@
   "can_afford": true,
   "confidence": 0.85,
   "risk_factors": [
-    "Possible fluctuations in income due to reliance on single employer.",
-    "High debt burden from loans relative to income."
+    "High percentage of income dedicated to debt payments",
+    "Limited savings for emergencies",
+    "Potential fluctuations in income levels"
   ],
   "recommendations": [
-    "Consider creating a savings buffer for unforeseen expenses.",
-    "Explore options for additional income to enhance financial stability."
+    "Maintain a budget to regulate non-essential expenses",
+    "Consider building an emergency savings fund",
+    "Monitor income sources for stability to mitigate risks"
   ],
   "metrics": {
     "rent_to_income_ratio": 0.33,
     "debt_to_income_ratio": 0.17,
-    "disposable_income": 6201.00,
+    "disposable_income": 2201.00,
     "savings_rate": 0.0,
     "monthly_income": 15000.00,
-    "monthly_expenses": 8800.00,
+    "monthly_expenses": 12799.00,
     "monthly_debt_payments": 2500.00
   },
   "transaction_analysis": {
@@ -45,6 +47,12 @@
         "description": "Vodacom",
         "amount": "R 799.00",
         "date": "07/04/2025",
+        "type": "debit"
+      },
+      {
+        "description": "Standard Bank Loan Payment",
+        "amount": "R 2500.00",
+        "date": "10/04/2025",
         "type": "debit"
       }
     ],

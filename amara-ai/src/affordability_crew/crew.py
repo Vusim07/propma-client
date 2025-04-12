@@ -131,6 +131,12 @@ class AffordabilityAnalysisCrew:
                 # If result is already a dict-like object
                 analysis_data = result
 
+            # Ensure analysis_data is a dictionary
+            if not isinstance(analysis_data, dict):
+                analysis_data = (
+                    analysis_data.__dict__ if hasattr(analysis_data, "__dict__") else {}
+                )
+
             # Ensure all required fields are present
             for field in [
                 "can_afford",
@@ -151,7 +157,17 @@ class AffordabilityAnalysisCrew:
                         )
                     )
 
-            return analysis_data
+            # Create a new dictionary to avoid modifying the original CrewOutput object
+            parsed_data = {
+                "can_afford": analysis_data.get("can_afford", False),
+                "confidence": analysis_data.get("confidence", 0.0),
+                "risk_factors": analysis_data.get("risk_factors", []),
+                "recommendations": analysis_data.get("recommendations", []),
+                "metrics": analysis_data.get("metrics", {}),
+                "transaction_analysis": analysis_data.get("transaction_analysis", {}),
+            }
+
+            return parsed_data
         except Exception as e:
             logger.error(f"Error processing analysis result: {str(e)}")
             logger.error(f"Raw result: {result}")
