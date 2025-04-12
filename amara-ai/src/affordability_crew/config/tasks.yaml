@@ -1,0 +1,43 @@
+affordability_analysis:
+  description: >
+    Analyze South African bank transactions to assess affordability for a rental property with monthly rent of R{context[0]['target_rent']:.2f}.
+
+    Transactions:
+    {context[0]['transactions']}
+
+    Provide:
+    1. Transaction categorization (income, essential expenses, non-essential expenses, savings, debt payments)
+    2. Income stability assessment (consistency, sources, reliability)
+    3. Expense patterns (fixed vs. variable, necessary vs. discretionary)
+    4. Affordability recommendation (based on 30% rent-to-income ratio standard in South Africa)
+    5. Risk factors (specific to South African rental market)
+    6. Financial metrics (include debt-to-income ratio, savings rate, disposable income)
+
+    Use South African financial standards and ensure all currency values are in ZAR (R).
+    Format the response as a valid JSON object that matches the AffordabilityResponse schema.
+  expected_output: >
+    A valid JSON object with the following structure:
+    {
+      "can_afford": boolean,
+      "confidence": float (0.0 to 1.0),
+      "risk_factors": [list of strings],
+      "recommendations": [list of strings],
+      "metrics": {
+        "rent_to_income_ratio": float,
+        "debt_to_income_ratio": float,
+        "disposable_income": float,
+        "savings_rate": float,
+        "monthly_income": float,
+        "monthly_expenses": float,
+        "monthly_debt_payments": float
+      },
+      "transaction_analysis": {
+        "income": [transactions],
+        "essential_expenses": [transactions],
+        "non_essential_expenses": [transactions],
+        "savings": [transactions],
+        "debt_payments": [transactions]
+      }
+    }
+  agent: financial_analyst
+  output_file: output/affordability_analysis.json

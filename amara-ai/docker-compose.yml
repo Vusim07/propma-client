@@ -1,4 +1,4 @@
-version: '3'
+
 
 services:
   amara-agent:
@@ -10,6 +10,7 @@ services:
     volumes:
       - .:/app
       - ./.env:/app/.env
+      
     environment:
       - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
       - AZURE_OPENAI_API_VERSION=${AZURE_OPENAI_API_VERSION}

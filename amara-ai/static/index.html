@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amara AI - Affordability Assessment Tester</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        h1 {
+            color: #1a365d;
+            border-bottom: 2px solid #cbd5e0;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        .panel {
+            flex: 1;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 400px;
+            font-family: monospace;
+            padding: 10px;
+            border: 1px solid #cbd5e0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            background-color: #3182ce;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 15px;
+        }
+        button:hover {
+            background-color: #2b6cb0;
+        }
+        pre {
+            white-space: pre-wrap;
+            background-color: #f1f5f9;
+            padding: 10px;
+            border-radius: 4px;
+            overflow: auto;
+            max-height: 400px;
+            font-size: 14px;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #c6f6d5;
+            color: #22543d;
+        }
+        .error {
+            background-color: #fed7d7;
+            color: #822727;
+        }
+        .result-container {
+            margin-top: 20px;
+        }
+        .metric-box {
+            display: inline-block;
+            background: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin: 5px;
+            font-weight: 500;
+        }
+        .metric-box.positive {
+            background: #c6f6d5;
+            border-color: #9ae6b4;
+        }
+        .metric-box.negative {
+            background: #fed7d7;
+            border-color: #feb2b2;
+        }
+        .metric-box.warning {
+            background: #feebc8;
+            border-color: #fbd38d;
+        }
+    </style>
+</head>
+<body>
+    <h1>Amara AI - Affordability Assessment Test Client</h1>
+    
+    <div class="container">
+        <div class="panel">
+            <h2>Request</h2>
+            <textarea id="requestJson">
+{
+  "transactions": [
+    {
+      "description": "Salary Payment - ABC Corp",
+      "amount": 15000,
+      "date": "01/04/2025",
+      "type": "credit"
+    },
+    {
+      "description": "Rent Payment",
+      "amount": 4500,
+      "date": "03/04/2025",
+      "type": "debit"
+    },
+    {
+      "description": "Shoprite",
+      "amount": 1200,
+      "date": "05/04/2025",
+      "type": "debit"
+    },
+    {
+      "description": "Vodacom",
+      "amount": 799,
+      "date": "07/04/2025",
+      "type": "debit"
+    },
+    {
+      "description": "Standard Bank Loan Payment",
+      "amount": 2500,
+      "date": "10/04/2025",
+      "type": "debit"
+    }
+  ],
+  "target_rent": 5000
+}</textarea>
+            <button id="sendRequest">Send Request</button>
+            <div id="status" class="status"></div>
+        </div>
+        
+        <div class="panel">
+            <h2>Response</h2>
+            <div id="summaryContainer" class="result-container" style="display: none;">
+                <h3>Summary</h3>
+                <div id="summary"></div>
+            </div>
+            <div id="metricsContainer" class="result-container" style="display: none;">
+                <h3>Key Metrics</h3>
+                <div id="metrics"></div>
+            </div>
+            <div id="responseContainer" class="result-container">
+                <h3>Raw Response</h3>
+                <pre id="responseJson"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('sendRequest').addEventListener('click', async () => {
+            const statusEl = document.getElementById('status');
+            const responseJsonEl = document.getElementById('responseJson');
+            const summaryContainerEl = document.getElementById('summaryContainer');
+            const summaryEl = document.getElementById('summary');
+            const metricsContainerEl = document.getElementById('metricsContainer');
+            const metricsEl = document.getElementById('metrics');
+            
+            statusEl.innerHTML = "Sending request...";
+            statusEl.className = "status";
+            responseJsonEl.textContent = "";
+            summaryContainerEl.style.display = "none";
+            metricsContainerEl.style.display = "none";
+            
+            try {
+                const requestText = document.getElementById('requestJson').value;
+                const requestData = JSON.parse(requestText);
+                
+                const response = await fetch('/analyze-affordability', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const responseData = await response.json();
+                const formattedResponse = JSON.stringify(responseData, null, 2);
+                responseJsonEl.textContent = formattedResponse;
+                
+                if (response.ok) {
+                    statusEl.innerHTML = "Success! Request processed successfully.";
+                    statusEl.className = "status success";
+                    
+                    // Display summary
+                    summaryContainerEl.style.display = "block";
+                    let summaryHtml = '';
+                    
+                    if (responseData.can_afford) {
+                        summaryHtml += `<div class="metric-box positive">Can afford: Yes (${(responseData.confidence * 100).toFixed(1)}% confidence)</div>`;
+                    } else {
+                        summaryHtml += `<div class="metric-box negative">Can afford: No (${(responseData.confidence * 100).toFixed(1)}% confidence)</div>`;
+                    }
+                    
+                    summaryHtml += '<h4>Risk Factors</h4><ul>';
+                    responseData.risk_factors.forEach(factor => {
+                        summaryHtml += `<li>${factor}</li>`;
+                    });
+                    summaryHtml += '</ul>';
+                    
+                    summaryHtml += '<h4>Recommendations</h4><ul>';
+                    responseData.recommendations.forEach(rec => {
+                        summaryHtml += `<li>${rec}</li>`;
+                    });
+                    summaryHtml += '</ul>';
+                    
+                    summaryEl.innerHTML = summaryHtml;
+                    
+                    // Display metrics
+                    if (Object.keys(responseData.metrics).length > 0) {
+                        metricsContainerEl.style.display = "block";
+                        let metricsHtml = '';
+                        
+                        Object.entries(responseData.metrics).forEach(([key, value]) => {
+                            let metricClass = "metric-box";
+                            
+                            // Apply styling based on common financial metrics
+                            if (key.includes('ratio') && typeof value === 'number') {
+                                if (key.includes('rent_to_income')) {
+                                    metricClass += value <= 0.3 ? " positive" : " negative";
+                                }
+                                else if (key.includes('debt_to_income') || key.includes('dti')) {
+                                    metricClass += value <= 0.36 ? " positive" : " negative";
+                                }
+                                else if (key.includes('savings')) {
+                                    metricClass += value >= 0.1 ? " positive" : " warning";
+                                }
+                            }
+                            
+                            metricsHtml += `<div class="${metricClass}">${key}: ${
+                                typeof value === 'number' ? 
+                                    (key.includes('ratio') ? 
+                                        (value * 100).toFixed(1) + '%' : 
+                                        'R ' + value.toFixed(2)
+                                    ) : value
+                            }</div>`;
+                        });
+                        
+                        metricsEl.innerHTML = metricsHtml;
+                    }
+                } else {
+                    statusEl.innerHTML = `Error! Status code: ${response.status}`;
+                    statusEl.className = "status error";
+                }
+            } catch (error) {
+                statusEl.innerHTML = `Error: ${error.message}`;
+                statusEl.className = "status error";
+                responseJsonEl.textContent = error.stack || error.message;
+            }
+        });
+    </script>
+</body>
+</html>

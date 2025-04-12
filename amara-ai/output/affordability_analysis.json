@@ -1,0 +1,63 @@
+```json
+{
+  "can_afford": true,
+  "confidence": 0.85,
+  "risk_factors": [
+    "Possible fluctuations in income due to reliance on single employer.",
+    "High debt burden from loans relative to income."
+  ],
+  "recommendations": [
+    "Consider creating a savings buffer for unforeseen expenses.",
+    "Explore options for additional income to enhance financial stability."
+  ],
+  "metrics": {
+    "rent_to_income_ratio": 0.33,
+    "debt_to_income_ratio": 0.17,
+    "disposable_income": 6201.00,
+    "savings_rate": 0.0,
+    "monthly_income": 15000.00,
+    "monthly_expenses": 8800.00,
+    "monthly_debt_payments": 2500.00
+  },
+  "transaction_analysis": {
+    "income": [
+      {
+        "description": "Salary Payment - ABC Corp",
+        "amount": "R 15000.00",
+        "date": "01/04/2025",
+        "type": "credit"
+      }
+    ],
+    "essential_expenses": [
+      {
+        "description": "Rent Payment",
+        "amount": "R 4500.00",
+        "date": "03/04/2025",
+        "type": "debit"
+      },
+      {
+        "description": "Shoprite",
+        "amount": "R 1200.00",
+        "date": "05/04/2025",
+        "type": "debit"
+      },
+      {
+        "description": "Vodacom",
+        "amount": "R 799.00",
+        "date": "07/04/2025",
+        "type": "debit"
+      }
+    ],
+    "non_essential_expenses": [],
+    "savings": [],
+    "debt_payments": [
+      {
+        "description": "Standard Bank Loan Payment",
+        "amount": "R 2500.00",
+        "date": "10/04/2025",
+        "type": "debit"
+      }
+    ]
+  }
+}
+```
