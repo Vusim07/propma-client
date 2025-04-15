@@ -1,24 +1,23 @@
-```json
 {
   "can_afford": true,
   "confidence": 0.85,
   "risk_factors": [
-    "High percentage of income dedicated to debt payments",
-    "Limited savings for emergencies",
-    "Potential fluctuations in income levels"
+    "Single source of income from salary",
+    "Existing loan obligations",
+    "Potential for fluctuating expenses"
   ],
   "recommendations": [
-    "Maintain a budget to regulate non-essential expenses",
-    "Consider building an emergency savings fund",
-    "Monitor income sources for stability to mitigate risks"
+    "Monitor discretionary spending",
+    "Maintain an emergency fund for unexpected expenses",
+    "Consider an additional income source as a long-term strategy"
   ],
   "metrics": {
     "rent_to_income_ratio": 0.33,
-    "debt_to_income_ratio": 0.17,
-    "disposable_income": 2201.00,
-    "savings_rate": 0.0,
+    "debt_to_income_ratio": 0.20,
+    "disposable_income": 6170.00,
+    "savings_rate": 0.04,
     "monthly_income": 15000.00,
-    "monthly_expenses": 12799.00,
+    "monthly_expenses": 8830.00,
     "monthly_debt_payments": 2500.00
   },
   "transaction_analysis": {
@@ -48,12 +47,6 @@
         "amount": "R 799.00",
         "date": "07/04/2025",
         "type": "debit"
-      },
-      {
-        "description": "Standard Bank Loan Payment",
-        "amount": "R 2500.00",
-        "date": "10/04/2025",
-        "type": "debit"
       }
     ],
     "non_essential_expenses": [],
@@ -68,4 +61,3 @@
     ]
   }
 }
-```

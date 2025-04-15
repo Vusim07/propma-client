@@ -112,6 +112,9 @@ class AffordabilityAnalysisCrew:
             return None
 
         logger.info("Processing affordability analysis results")
+        logger.info(f"Event Name: {event_name}")
+        logger.info(f"Raw Result: {result}")
+
         try:
             if isinstance(result, str):
                 # Extract JSON from the response if it's a string
@@ -136,6 +139,8 @@ class AffordabilityAnalysisCrew:
                 analysis_data = (
                     analysis_data.__dict__ if hasattr(analysis_data, "__dict__") else {}
                 )
+
+            logger.info(f"Parsed Analysis Data: {analysis_data}")
 
             # Ensure all required fields are present
             for field in [
@@ -166,6 +171,8 @@ class AffordabilityAnalysisCrew:
                 "metrics": analysis_data.get("metrics", {}),
                 "transaction_analysis": analysis_data.get("transaction_analysis", {}),
             }
+
+            logger.info(f"Final Parsed Data: {parsed_data}")
 
             return parsed_data
         except Exception as e:
