@@ -1,43 +1,109 @@
 affordability_analysis:
   description: >
-    Analyze South African bank transactions to assess affordability for a rental property with monthly rent of R{context[0]['target_rent']:.2f}.
+    **Objective:** Analyze South African financial documents (Bank Transactions, Payslip Data) to assess affordability for a rental property with a monthly rent of R{context[0]['target_rent']:.2f}, adhering strictly to South African context and POPI Act principles.
 
-    Transactions:
-    {context[0]['transactions']}
+    **Input Data Provided in Context:**
+    1.  `transactions`: List of bank transactions (typically 3 months).
+    2.  `payslip_data`: Extracted text or structured data from the latest payslip.
+    3.  `target_rent`: The monthly rent amount for the property being applied for.
+    4.  `bank_statement_data`: Raw text/data from bank statements (use for cross-referencing if needed).
+    5.  `tenant_income`: Additional income details provided by the tenant (use cautiously, verify against documents).
+    6.  `credit_report`: Summary of credit history (use for debt assessment).
 
-    Provide:
-    1. Transaction categorization (income, essential expenses, non-essential expenses, savings, debt payments)
-    2. Income stability assessment (consistency, sources, reliability)
-    3. Expense patterns (fixed vs. variable, necessary vs. discretionary)
-    4. Affordability recommendation (based on 30% rent-to-income ratio standard in South Africa)
-    5. Risk factors (specific to South African rental market)
-    6. Financial metrics (include debt-to-income ratio, savings rate, disposable income)
+    **Analysis Steps (Perform Strictly):**
+    1.  **Income Verification (Crucial & Detailed):**
+        -   Extract the stated **Net Pay** amount from the `payslip_data`.
+        -   Search *all* provided `transactions` for incoming payments that verify this Net Pay. Prioritize matches in this order:
+            a.  Exact match of the Net Pay amount.
+            b.  Consistent deposits (+/- 1-2% tolerance) around the same time each month, potentially matching employer name/code if available in payslip/transactions.
+            c.  Deposits with descriptions clearly indicating salary/wages from the employer mentioned (if available).
+        -   Calculate the average monthly verified income based *only* on these matched deposits.
+        -   Populate the `income_verification` section in the output JSON (see Expected Output) detailing the findings (verified status, confidence, ratio, notes on match/mismatch).
+        -   **DO NOT** invent income sources (like 'freelance') unless explicitly documented and verifiable in the provided data.
 
-    Use South African financial standards and ensure all currency values are in ZAR (R).
-    Format the response as a valid JSON object that matches the AffordabilityResponse schema.
+    2.  **Transaction Grouping & Categorization:**
+        -   Group *all* transactions from `transactions` into:
+            -   `Incoming`: Verified Salary/Wages (from step 1), Other Verifiable Income.
+            -   `Outgoing`:
+                -   `Essential Expenses`: Groceries, Utilities, Transport, Insurance, etc.
+                -   `Non-Essential Expenses`: Entertainment, Dining Out, Subscriptions, etc.
+                -   `Debt Payments`: Loans, Credit Cards (cross-reference with `credit_report` if possible).
+                -   `Savings/Investments`: Transfers to savings accounts, investment contributions.
+                -   `Current Rent`: **Identify any transaction explicitly described as 'rent' or similar.** Record the *exact* amount.
+        -   Populate the `transaction_analysis` section in the output JSON with these categorized lists.
+
+    3.  **Financial Health Assessment:**
+        -   Assess income stability based *only* on the verified income patterns (consistency, source reliability).
+        -   Analyze expense patterns (fixed vs. variable, essential vs. discretionary) based *only* on categorized transactions.
+
+    4.  **Affordability Calculation (South African Context):**
+        -   Calculate `metrics`:
+            -   `monthly_income`: The *average verified* monthly income from Step 1.
+            -   `total_monthly_expenses`: Sum of all categorized *outgoing* transactions (averaged monthly).
+            -   `monthly_debt_payments`: Sum of categorized *debt* payments (averaged monthly).
+            -   `current_rent_payment`: The *exact* monthly rent amount identified in Step 2 (0 if none found).
+            -   `disposable_income`: Calculate precisely as: `monthly_income - (total_monthly_expenses - current_rent_payment) - monthly_debt_payments`. (This adds back the current rent, making it available for the new property).
+            -   `rent_to_income_ratio`: `target_rent / monthly_income`. (Use the *verified* monthly income).
+            -   `debt_to_income_ratio`: `monthly_debt_payments / monthly_income`. (Use the *verified* monthly income).
+            -   `savings_rate`: (Average Monthly Savings / `monthly_income`) or 0 if not identifiable.
+
+    5.  **Recommendation & Risk Assessment:**
+        -   Provide `can_afford` (boolean) based primarily on the `rent_to_income_ratio` (target <= 30% is ideal in SA), considering `disposable_income` and overall financial health.
+        -   Set `confidence` (0.0-1.0) based on data quality, income verification success, and consistency.
+        -   List specific `risk_factors` identified (e.g., High DTI > 40%, Unstable/Unverified Income, Low Disposable Income, No Savings Buffer, High Non-Essential Spending, Negative Credit Report items).
+        -   Provide actionable `recommendations` for the applicant/agent.
+
+    **Output Requirements:**
+    -   Respond *only* with a valid JSON object matching the `expected_output` structure.
+    -   Ensure all currency values are in ZAR (R) format where appropriate (e.g., in recommendations), but use pure numbers for the JSON metric values.
+    -   Adhere strictly to the provided data; do not infer or hallucinate information.
+
   expected_output: >
-    A valid JSON object with the following structure:
+    A single, valid JSON object (no markdown formatting) with the following exact structure and types:
+    ```json
     {
       "can_afford": boolean,
-      "confidence": float (0.0 to 1.0),
-      "risk_factors": [list of strings],
-      "recommendations": [list of strings],
+      "confidence": float, // 0.0 to 1.0
+      "risk_factors": [
+        "string" // e.g., "Rent-to-income ratio (35%) exceeds recommended 30% threshold.", "Income verification confidence is low due to inconsistent deposits."
+      ],
+      "recommendations": [
+        "string" // e.g., "Consider properties with rent below R9,000/month.", "Provide bank statements for the last 3 months for clearer income verification."
+      ],
       "metrics": {
-        "rent_to_income_ratio": float,
-        "debt_to_income_ratio": float,
-        "disposable_income": float,
-        "savings_rate": float,
-        "monthly_income": float,
-        "monthly_expenses": float,
-        "monthly_debt_payments": float
+        "monthly_income": float,           // Verified average monthly income
+        "total_monthly_expenses": float, // Average total monthly outgoing transactions
+        "monthly_debt_payments": float,  // Average monthly debt payments identified
+        "current_rent_payment": float,   // Exact current rent payment identified (0 if none)
+        "disposable_income": float,      // Calculated: monthly_income - (total_monthly_expenses - current_rent_payment) - monthly_debt_payments
+        "rent_to_income_ratio": float,   // target_rent / monthly_income
+        "debt_to_income_ratio": float,   // monthly_debt_payments / monthly_income
+        "savings_rate": float,           // (monthly_savings / monthly_income) or 0
+        "target_rent": float             // The target rent provided as input
       },
-      "transaction_analysis": {
-        "income": [transactions],
-        "essential_expenses": [transactions],
-        "non_essential_expenses": [transactions],
-        "savings": [transactions],
-        "debt_payments": [transactions]
+      "income_verification": {
+        "payslip_net_income": float,     // Net income stated on the payslip
+        "verified_average_deposit": float, // Average amount of the deposit(s) matched in bank statements
+        "is_verified": boolean,          // Was payslip income successfully verified in bank statements?
+        "confidence": float,             // Confidence in verification (0.0-1.0)
+        "match_type": "string | null", // "Exact Amount", "Approximate Amount", "Employer Match", "None"
+        "stated_vs_documented_ratio": float, // payslip_net_income / verified_average_deposit (or 0 if not verified)
+        "notes": "string"                // Explanation of verification result (e.g., "Verified exact amount deposit on 25th of each month.", "No matching deposits found for payslip amount.")
+      },
+      "transaction_analysis": {          // Categorized transactions (list amounts or summaries)
+        "incoming": {
+          "salary_wages": [/* list amounts or summary */],
+          "other_income": [/* list amounts or summary */]
+        },
+        "outgoing": {
+          "essential_expenses": [/* list amounts or summary */],
+          "non_essential_expenses": [/* list amounts or summary */],
+          "debt_payments": [/* list amounts or summary */],
+          "savings_investments": [/* list amounts or summary */],
+          "current_rent": [/* list amounts or summary */]
+        }
       }
     }
+    ```
   agent: financial_analyst
   output_file: output/affordability_analysis.json

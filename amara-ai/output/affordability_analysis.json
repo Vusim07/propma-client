@@ -1,40 +1,38 @@
 {
   "can_afford": true,
-  "confidence": 0.92,
+  "confidence": 0.85,
   "risk_factors": [
-    "High discretionary expenses",
-    "Dependence on irregular income sources"
+    "High percentage of income spent on non-essential expenses",
+    "Limited savings buffer for emergencies",
+    "Existing credit obligations that may affect cash flow"
   ],
   "recommendations": [
-    "Create a budget to limit discretionary spending",
-    "Consider increasing savings for emergencies",
-    "Ensure stable income sources are prioritized"
+    "Maintain a monthly budget to control spending on discretionary items",
+    "Increase savings to cover at least three months of rent",
+    "Consider getting a financial advisor for better financial planning"
   ],
   "metrics": {
-    "monthly_income": 22000,
-    "monthly_expenses": 9500,
-    "debt_to_income_ratio": 0.43,
-    "target_rent": 6500,
-    "affordable_rent_30_percent": 6600,
-    "savings": 15000
+    "monthly_income": 22000.00,
+    "monthly_expenses": 16400.00,
+    "affordable_rent_limit": 6600.00,
+    "current_rent": 6500.00,
+    "rent_to_income_ratio": 29.55,
+    "debt_to_income_ratio": 25.0
   },
   "transaction_analysis": {
-    "essentials": [
-      {"date": "2023-09-01", "amount": 3000, "description": "Groceries"},
-      {"date": "2023-09-05", "amount": 1500, "description": "Utilities"},
-      {"date": "2023-09-10", "amount": 2500, "description": "Transport"},
-      {"date": "2023-09-15", "amount": 2500, "description": "Insurance"}
-    ],
-    "discretionary": [
-      {"date": "2023-09-20", "amount": 2000, "description": "Dining Out"},
-      {"date": "2023-09-22", "amount": 1200, "description": "Entertainment"},
-      {"date": "2023-09-25", "amount": 1800, "description": "Shopping"}
-    ],
-    "income": [
-      {"date": "2023-09-02", "amount": 22000, "description": "Monthly Salary"}
-    ],
-    "debts": [
-      {"date": "2023-09-15", "amount": 3000, "description": "Loan Payment"}
-    ]
+    "essential_expenses": {
+      "housing": 6500.00,
+      "utilities": 1800.00,
+      "groceries": 3000.00,
+      "transport": 1200.00
+    },
+    "non_essential_expenses": {
+      "entertainment": 2000.00,
+      "eating_out": 2000.00,
+      "subscriptions": 1000.00
+    },
+    "income": {
+      "salary": 22000.00
+    }
   }
 }
