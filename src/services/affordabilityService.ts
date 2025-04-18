@@ -133,7 +133,10 @@ class AffordabilityService {
 
 			// 4. Generate mock credit report
 			const creditReport = await this.generateCreditReport(tenantId);
-			console.log('Generated credit report');
+			console.log(
+				'Generated credit report with score:',
+				creditReport.creditScore,
+			);
 
 			// 5. Get target rent amount
 			const targetRent = await this.getTargetRent(propertyId);
@@ -149,6 +152,16 @@ class AffordabilityService {
 				credit_report: creditReport,
 				analysis_type: 'comprehensive',
 			});
+
+			// Ensure credit score is in metrics
+			if (!affordabilityResponse.metrics.credit_score && creditReport) {
+				affordabilityResponse.metrics.credit_score = creditReport.creditScore;
+			}
+
+			// Ensure target rent is in metrics
+			if (!affordabilityResponse.metrics.target_rent) {
+				affordabilityResponse.metrics.target_rent = targetRent;
+			}
 
 			// 7. Save results to database (Modified to use RPC call)
 			await this.saveAnalysisResultsViaRpc(
@@ -635,7 +648,7 @@ class AffordabilityService {
 	): Promise<Tables<'screening_reports'> | null> {
 		try {
 			// Extract credit score with better fallback handling
-			// Credit score could be in metrics or in credit_analysis
+			// Credit score could be in metrics or in credit_analysis or credit_report
 			const creditScore =
 				typeof analysis.metrics?.credit_score === 'number'
 					? analysis.metrics.credit_score
@@ -648,18 +661,56 @@ class AffordabilityService {
 						: 650
 					: null;
 
-			// Calculate affordability score (debt-to-income ratio)
-			// This should be a decimal value like 0.3 (meaning 30%)
-			const affordabilityScore =
-				typeof analysis.metrics?.debt_to_income_ratio === 'number'
-					? analysis.metrics.debt_to_income_ratio
+			// Store target rent in the report data
+			const targetRent =
+				typeof analysis.metrics?.target_rent === 'number'
+					? analysis.metrics.target_rent
 					: null;
+
+			// Log credit score for debugging
+			console.log('Using credit score for report:', creditScore);
+			console.log('Using target rent for report:', targetRent);
 
 			// Extract monthly income from metrics with fallback
 			const monthlyIncome =
 				typeof analysis.metrics?.monthly_income === 'number'
 					? analysis.metrics.monthly_income
 					: null;
+
+			// Calculate affordability score (rent-to-income ratio)
+			// This should be a decimal value like 0.3 (meaning 30%)
+			let affordabilityScore: number | null = null;
+
+			if (typeof analysis.metrics?.debt_to_income_ratio === 'number') {
+				// If we have a debt-to-income ratio directly from the analysis, use it
+				affordabilityScore = analysis.metrics.debt_to_income_ratio;
+			} else if (targetRent && monthlyIncome && monthlyIncome > 0) {
+				// Otherwise calculate it as the ratio of rent to income
+				affordabilityScore = targetRent / monthlyIncome;
+
+				// Log the calculated ratio
+				console.log(
+					`Calculated affordability ratio: ${affordabilityScore} (${targetRent}/${monthlyIncome})`,
+				);
+
+				// Add it to the metrics for consistency
+				if (!analysis.metrics.debt_to_income_ratio) {
+					analysis.metrics.debt_to_income_ratio = affordabilityScore;
+				}
+			}
+
+			// Ensure affordabilityScore has a valid value
+			if (affordabilityScore === null || isNaN(affordabilityScore)) {
+				// Default to a sensible fallback
+				if (targetRent && monthlyIncome && monthlyIncome > 0) {
+					affordabilityScore = targetRent / monthlyIncome;
+				} else {
+					affordabilityScore = 0.3; // Standard 30% as a fallback
+				}
+				console.log(
+					`Using fallback affordability score: ${affordabilityScore}`,
+				);
+			}
 
 			// Get affordability notes, defaulting to transaction analysis summary if available
 			const affordabilityNotes =
@@ -695,6 +746,7 @@ class AffordabilityService {
 
 			console.log('Using text recommendation:', recommendationText);
 			console.log('Using pre-approval status:', preApprovalStatus);
+			console.log('Final affordability score being saved:', affordabilityScore);
 
 			// Prepare the data payload for the RPC function
 			const reportPayload = {
@@ -737,79 +789,6 @@ class AffordabilityService {
 			console.error('Error saving analysis results via RPC:', error);
 			return null;
 		}
-	}
-
-	/**
-	 * Creates a mock API response for testing
-	 *
-	 * @param targetRent Target monthly rent amount
-	 * @returns Mock affordability analysis
-	 */
-	createMockResponse(targetRent: number): AffordabilityResponse {
-		// Calculate a reasonable income based on the target rent
-		const estimatedIncome = targetRent * 3;
-		const affordabilityRatio = targetRent / estimatedIncome;
-
-		// Determine affordability based on the 30% rule
-		const canAfford = affordabilityRatio <= 0.3;
-
-		return {
-			can_afford: canAfford,
-			confidence: canAfford ? 0.85 : 0.65,
-			risk_factors: canAfford
-				? ['Limited credit history', 'Recent change in employment']
-				: [
-						'High debt-to-income ratio',
-						'Inconsistent income',
-						'Recent bounced payments',
-				  ],
-			recommendations: canAfford
-				? [
-						'Consider setting up automatic payments to ensure rent is paid on time',
-						"Build emergency savings of at least 3 months' rent",
-				  ]
-				: [
-						'Look for more affordable rental options',
-						'Increase income through additional sources',
-						'Reduce existing debt obligations',
-				  ],
-			metrics: {
-				monthly_income: estimatedIncome,
-				monthly_expenses: estimatedIncome * 0.6,
-				debt_to_income_ratio: affordabilityRatio,
-				savings_rate: 0.1,
-				credit_score: canAfford ? 720 : 630,
-			},
-			transaction_analysis: {
-				income_stability: canAfford ? 'Stable' : 'Inconsistent',
-				expense_categories: {
-					housing: targetRent,
-					utilities: estimatedIncome * 0.15,
-					food: estimatedIncome * 0.2,
-					transportation: estimatedIncome * 0.1,
-					entertainment: estimatedIncome * 0.05,
-					debt_payments: estimatedIncome * 0.1,
-				},
-				summary: canAfford
-					? 'Based on transaction analysis, the applicant has stable income and responsible spending habits.'
-					: 'Transaction analysis shows inconsistent income and high existing debt obligations.',
-			},
-			income_verification: {
-				is_verified: canAfford,
-				confidence: canAfford ? 0.9 : 0.6,
-				stated_vs_documented_ratio: canAfford ? 1.05 : 1.35, // >1 means stated income is higher than documented
-				notes: canAfford
-					? 'Stated income matches bank deposits and payslip information'
-					: 'Stated income is significantly higher than documented income',
-			},
-			credit_analysis: {
-				score_category: canAfford ? 'Good' : 'Fair',
-				risk_level: canAfford ? 'Low' : 'Medium',
-				notes: canAfford
-					? 'Credit history shows responsible financial management'
-					: 'Credit history shows some areas of concern',
-			},
-		};
 	}
 
 	/**

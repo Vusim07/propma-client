@@ -2,43 +2,39 @@
   "can_afford": true,
   "confidence": 0.92,
   "risk_factors": [
-    "High discretionary spending in entertainment",
-    "Recent increase in debt obligations"
+    "High discretionary expenses",
+    "Dependence on irregular income sources"
   ],
   "recommendations": [
-    "Reduce discretionary expenses by 15%",
-    "Increase savings to cover at least 3 months of rent",
-    "Review and adjust budget monthly"
+    "Create a budget to limit discretionary spending",
+    "Consider increasing savings for emergencies",
+    "Ensure stable income sources are prioritized"
   ],
   "metrics": {
-    "monthly_income": 25000,
-    "total_expenses": 16000,
-    "debt_to_income_ratio": 0.48,
-    "savings_percentage": 10
+    "monthly_income": 22000,
+    "monthly_expenses": 9500,
+    "debt_to_income_ratio": 0.43,
+    "target_rent": 6500,
+    "affordable_rent_30_percent": 6600,
+    "savings": 15000
   },
   "transaction_analysis": {
-    "income": {
-      "salary": 25000,
-      "payslip_bonus": 3000
-    },
-    "fixed_expenses": {
-      "rent": 0,
-      "utilities": 1500,
-      "insurance": 800,
-      "transport": 2000
-    },
-    "variable_expenses": {
-      "food": 4000,
-      "entertainment": 3000,
-      "clothing": 2000,
-      "healthcare": 1500
-    },
-    "debts": {
-      "personal_loan": 5000,
-      "credit_card": 2000
-    },
-    "savings": {
-      "monthly_savings": 2500
-    }
+    "essentials": [
+      {"date": "2023-09-01", "amount": 3000, "description": "Groceries"},
+      {"date": "2023-09-05", "amount": 1500, "description": "Utilities"},
+      {"date": "2023-09-10", "amount": 2500, "description": "Transport"},
+      {"date": "2023-09-15", "amount": 2500, "description": "Insurance"}
+    ],
+    "discretionary": [
+      {"date": "2023-09-20", "amount": 2000, "description": "Dining Out"},
+      {"date": "2023-09-22", "amount": 1200, "description": "Entertainment"},
+      {"date": "2023-09-25", "amount": 1800, "description": "Shopping"}
+    ],
+    "income": [
+      {"date": "2023-09-02", "amount": 22000, "description": "Monthly Salary"}
+    ],
+    "debts": [
+      {"date": "2023-09-15", "amount": 3000, "description": "Loan Payment"}
+    ]
   }
 }

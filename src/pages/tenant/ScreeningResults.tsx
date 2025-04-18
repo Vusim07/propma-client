@@ -188,7 +188,7 @@ const ScreeningResults: React.FC = () => {
 
 				// Refresh the screening report after saving (createAffordabilityAnalysis already saves to DB)
 				if (currentApplicationId) {
-					await fetchSpecificScreeningReport(currentApplicationId);
+					await fetchScreeningReport(currentApplicationId);
 				} else {
 					await fetchScreeningReport(user.id);
 				}
@@ -211,7 +211,7 @@ const ScreeningResults: React.FC = () => {
 		analysisResult,
 		isAnalyzing,
 		currentApplicationId,
-		fetchSpecificScreeningReport,
+		fetchScreeningReport,
 	]);
 
 	// Use a local variable to hold either the real or mock report
@@ -285,6 +285,7 @@ const ScreeningResults: React.FC = () => {
 	};
 
 	const getAffordabilityCategory = (ratio: number) => {
+		// Lower ratio is better (rent is a smaller percentage of income)
 		if (ratio <= 0.28) return { label: 'Excellent', color: 'success' };
 		if (ratio <= 0.36) return { label: 'Good', color: 'success' };
 		if (ratio <= 0.43) return { label: 'Fair', color: 'warning' };
@@ -292,9 +293,25 @@ const ScreeningResults: React.FC = () => {
 	};
 
 	const creditCategory = getCreditScoreCategory(reportData.credit_score || 0);
-	const affordabilityCategory = getAffordabilityCategory(
-		reportData.affordability_score || 0,
-	);
+
+	// Calculate the affordability ratio to use
+	const getAffordabilityRatio = () => {
+		let ratio = reportData.affordability_score || 0;
+
+		// If the top-level affordability_score is 0, try to get it from nested data
+		if (ratio === 0 && screeningReport?.report_data) {
+			const metricsObj = (screeningReport.report_data as Record<string, any>)
+				.metrics;
+			if (metricsObj?.debt_to_income_ratio) {
+				ratio = metricsObj.debt_to_income_ratio;
+			}
+		}
+
+		return ratio;
+	};
+
+	const affordabilityRatio = getAffordabilityRatio();
+	const affordabilityCategory = getAffordabilityCategory(affordabilityRatio);
 
 	// Update these flags to only show when using API data
 	const isUsingApiData = !screeningReport && analysisResult !== null;
@@ -437,10 +454,32 @@ const ScreeningResults: React.FC = () => {
 					<CardContent>
 						<div className='flex items-center justify-between mb-4'>
 							<div>
+								{/* Display ratio as percentage */}
 								<p className='text-3xl font-bold'>
-									{reportData.affordability_score
-										? (reportData.affordability_score * 100).toFixed(0)
-										: '0'}
+									{(() => {
+										// First try to use the top-level affordability_score
+										if (
+											reportData.affordability_score &&
+											reportData.affordability_score > 0
+										) {
+											return (reportData.affordability_score * 100).toFixed(0);
+										}
+
+										// If it's 0 or missing, check the nested metrics
+										if (screeningReport?.report_data) {
+											const metricsObj = (
+												screeningReport.report_data as Record<string, any>
+											).metrics;
+											if (metricsObj?.debt_to_income_ratio) {
+												return (metricsObj.debt_to_income_ratio * 100).toFixed(
+													0,
+												);
+											}
+										}
+
+										// Last resort fallback
+										return '0';
+									})()}
 									%
 								</p>
 								<Badge variant={affordabilityCategory.color as any}>
@@ -449,44 +488,49 @@ const ScreeningResults: React.FC = () => {
 							</div>
 							<div className='text-right'>
 								<p className='text-sm text-gray-500'>Rent-to-Income Ratio</p>
+								{/* Simplify to directly show target rent and monthly income */}
 								<p className='text-lg font-medium'>
-									{profile &&
-									analysisResult &&
-									analysisResult.metrics.monthly_income
-										? `R${Math.round(
-												(analysisResult.metrics.monthly_income as number) *
-													(reportData.affordability_score || 0),
-										  )}/R${Math.round(
-												analysisResult.metrics.monthly_income as number,
-										  )}`
-										: profile && screeningReport && screeningReport.report_data
-										? (() => {
-												// Safely access the metrics inside report_data
-												const reportDataObj =
-													screeningReport.report_data as Record<string, any>;
-												const monthlyIncome =
-													reportDataObj.metrics?.monthly_income;
+									{(() => {
+										// First check if we have data from the API analysis result
+										if (analysisResult?.metrics) {
+											const targetRent = analysisResult.metrics
+												.target_rent as number;
+											const monthlyIncome = analysisResult.metrics
+												.monthly_income as number;
 
-												if (typeof monthlyIncome === 'number') {
-													return `R${Math.round(
-														monthlyIncome *
-															(reportData.affordability_score || 0),
-													)}/R${Math.round(monthlyIncome)}`;
-												}
-												return null; // Will fall through to the next condition
-										  })() ||
-										  (profile
-												? `R${Math.round(
-														profile.monthly_income *
-															(reportData.affordability_score || 0),
-												  )}/R${profile.monthly_income}`
-												: 'N/A')
-										: profile
-										? `R${Math.round(
-												profile.monthly_income *
-													(reportData.affordability_score || 0),
-										  )}/R${profile.monthly_income}`
-										: 'N/A'}
+											if (targetRent && monthlyIncome) {
+												return `R${Math.round(targetRent)}/R${Math.round(
+													monthlyIncome,
+												)}`;
+											}
+										}
+
+										// Then check if we have data from the screening report
+										if (screeningReport?.report_data) {
+											const reportDataObj =
+												screeningReport.report_data as Record<string, any>;
+											const targetRent =
+												reportDataObj.metrics?.target_rent ||
+												reportDataObj.target_rent;
+											const monthlyIncome =
+												reportDataObj.metrics?.monthly_income;
+
+											if (targetRent && monthlyIncome) {
+												return `R${Math.round(targetRent)}/R${Math.round(
+													monthlyIncome,
+												)}`;
+											}
+										}
+
+										if (profile && reportData.affordability_score) {
+											const estimatedRent = Math.round(
+												profile.monthly_income * reportData.affordability_score,
+											);
+											return `R${estimatedRent}/R${profile.monthly_income}`;
+										}
+
+										return 'N/A';
+									})()}
 								</p>
 							</div>
 						</div>
@@ -494,7 +538,7 @@ const ScreeningResults: React.FC = () => {
 							<div
 								className='h-2.5 rounded-full'
 								style={{
-									width: `${(reportData.affordability_score || 0) * 100}%`,
+									width: `${(affordabilityRatio || 0) * 100}%`,
 									backgroundColor:
 										affordabilityCategory.color === 'success'
 											? '#10b981'
@@ -509,7 +553,7 @@ const ScreeningResults: React.FC = () => {
 								? 'Your rent-to-income ratio is healthy, indicating you can comfortably afford this rental.'
 								: affordabilityCategory.color === 'warning'
 								? 'Your rent-to-income ratio is acceptable, but you may be stretching your budget.'
-								: 'Your rent-to-income ratio is high, which may make this rental difficult to afford.'}
+								: 'Your rent-to-income ratio is high, which may make this rental difficult to afford. The recommended ratio is below 30% of your monthly income.'}
 						</p>
 					</CardContent>
 				</Card>
