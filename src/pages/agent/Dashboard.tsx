@@ -137,7 +137,7 @@ const AgentDashboard: React.FC = () => {
 												<p className='text-sm text-gray-500'>
 													Property #{application.property_id} •{' '}
 													{new Date(
-														application.submitted_at,
+														application.created_at,
 													).toLocaleDateString()}
 												</p>
 											</div>

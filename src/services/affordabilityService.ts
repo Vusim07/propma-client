@@ -647,96 +647,85 @@ class AffordabilityService {
 		analysis: AffordabilityResponse,
 	): Promise<Tables<'screening_reports'> | null> {
 		try {
-			// Extract credit score with better fallback handling
-			// Credit score could be in metrics or in credit_analysis or credit_report
-			const creditScore =
-				typeof analysis.metrics?.credit_score === 'number'
-					? analysis.metrics.credit_score
-					: analysis.credit_analysis?.score_category
-					? Number(analysis.credit_analysis.score_category) ||
-					  analysis.credit_analysis.score_category === 'Good'
-						? 700
-						: analysis.credit_analysis.score_category === 'Excellent'
-						? 750
-						: 650
-					: null;
-
-			// Store target rent in the report data
+			// --- Get Target Rent ---
 			const targetRent =
 				typeof analysis.metrics?.target_rent === 'number'
 					? analysis.metrics.target_rent
 					: null;
 
-			// Log credit score for debugging
-			console.log('Using credit score for report:', creditScore);
-			console.log('Using target rent for report:', targetRent);
-
-			// Extract monthly income from metrics with fallback
+			// --- Get Monthly Income ---
 			const monthlyIncome =
 				typeof analysis.metrics?.monthly_income === 'number'
 					? analysis.metrics.monthly_income
 					: null;
 
-			// Calculate affordability score (rent-to-income ratio)
-			// This should be a decimal value like 0.3 (meaning 30%)
-			let affordabilityScore: number | null = null;
+			// --- Get Credit Score ---
+			const creditScore =
+				typeof analysis.metrics?.credit_score === 'number'
+					? analysis.metrics.credit_score
+					: // Add fallback logic if needed, e.g., from credit_report
+					  null;
 
-			if (typeof analysis.metrics?.debt_to_income_ratio === 'number') {
-				// If we have a debt-to-income ratio directly from the analysis, use it
-				affordabilityScore = analysis.metrics.debt_to_income_ratio;
-			} else if (targetRent && monthlyIncome && monthlyIncome > 0) {
-				// Otherwise calculate it as the ratio of rent to income
-				affordabilityScore = targetRent / monthlyIncome;
-
-				// Log the calculated ratio
+			// --- Calculate Rent-to-Income Ratio ---
+			let rentToIncomeRatio: number | null = null;
+			if (targetRent !== null && monthlyIncome !== null && monthlyIncome > 0) {
+				rentToIncomeRatio = targetRent / monthlyIncome;
 				console.log(
-					`Calculated affordability ratio: ${affordabilityScore} (${targetRent}/${monthlyIncome})`,
+					`Calculated rent-to-income ratio: ${rentToIncomeRatio} (${targetRent}/${monthlyIncome})`,
 				);
-
-				// Add it to the metrics for consistency
-				if (!analysis.metrics.debt_to_income_ratio) {
-					analysis.metrics.debt_to_income_ratio = affordabilityScore;
+				// Ensure it's stored in metrics if not already there or different
+				if (analysis.metrics.rent_to_income_ratio !== rentToIncomeRatio) {
+					analysis.metrics.rent_to_income_ratio = rentToIncomeRatio;
 				}
-			}
-
-			// Ensure affordabilityScore has a valid value
-			if (affordabilityScore === null || isNaN(affordabilityScore)) {
-				// Default to a sensible fallback
-				if (targetRent && monthlyIncome && monthlyIncome > 0) {
-					affordabilityScore = targetRent / monthlyIncome;
-				} else {
-					affordabilityScore = 0.3; // Standard 30% as a fallback
+			} else if (typeof analysis.metrics?.rent_to_income_ratio === 'number') {
+				// Use AI's rent_to_income_ratio if calculation isn't possible
+				rentToIncomeRatio = analysis.metrics.rent_to_income_ratio;
+				// Convert percentage to decimal if necessary (assuming AI might send 30 instead of 0.3)
+				if (rentToIncomeRatio > 1) {
+					rentToIncomeRatio = rentToIncomeRatio / 100;
 				}
 				console.log(
-					`Using fallback affordability score: ${affordabilityScore}`,
+					`Using AI provided rent-to-income ratio: ${rentToIncomeRatio}`,
+				);
+			} else {
+				// Fallback if no ratio can be determined
+				rentToIncomeRatio = 0.3; // Default fallback
+				console.log(
+					`Using fallback rent-to-income ratio: ${rentToIncomeRatio}`,
 				);
 			}
 
-			// Get affordability notes, defaulting to transaction analysis summary if available
+			// Ensure target_rent and monthly_income are in the metrics object being saved
+			if (analysis.metrics.target_rent === undefined && targetRent !== null) {
+				analysis.metrics.target_rent = targetRent;
+			}
+			if (
+				analysis.metrics.monthly_income === undefined &&
+				monthlyIncome !== null
+			) {
+				analysis.metrics.monthly_income = monthlyIncome;
+			}
+
+			// ... (rest of the existing code for affordabilityNotes, preApprovalStatus, recommendationText) ...
 			const affordabilityNotes =
 				(analysis.transaction_analysis?.summary as string) ||
 				(analysis.can_afford
 					? 'Tenant can likely afford this property based on income and expense patterns.'
 					: 'Tenant may have difficulty affording this property based on income and expense patterns.');
 
-			// Determine pre-approval status based on the analysis result
 			const preApprovalStatus = analysis.can_afford ? 'approved' : 'rejected';
 
-			// Format the text recommendation - use the first recommendation from the AI analysis
 			let recommendationText: string | null = null;
 			if (analysis.recommendations && analysis.recommendations.length > 0) {
-				// Take the first recommendation, ensure it's a string, and limit length
 				const firstRec = analysis.recommendations[0];
-				recommendationText = String(firstRec).substring(0, 250); // Limit to 250 chars
+				recommendationText = String(firstRec).substring(0, 250);
 			} else {
-				// Provide a generic default if AI gives no recommendation
 				recommendationText =
 					preApprovalStatus === 'approved'
 						? 'Review financial details for final decision.'
 						: 'Affordability concerns identified. Review income and expenses.';
 			}
 
-			// Ensure recommendation is not trivially short (adjust min length if needed)
 			if (recommendationText && recommendationText.length < 10) {
 				recommendationText =
 					preApprovalStatus === 'approved'
@@ -746,19 +735,19 @@ class AffordabilityService {
 
 			console.log('Using text recommendation:', recommendationText);
 			console.log('Using pre-approval status:', preApprovalStatus);
-			console.log('Final affordability score being saved:', affordabilityScore);
+			console.log('Final rent-to-income ratio being saved:', rentToIncomeRatio);
 
 			// Prepare the data payload for the RPC function
 			const reportPayload = {
 				p_application_id: applicationId,
-				p_affordability_score: affordabilityScore,
+				p_affordability_score: rentToIncomeRatio, // Use the calculated/verified rent-to-income ratio
 				p_affordability_notes: affordabilityNotes,
 				p_income_verification:
 					analysis.income_verification?.is_verified ?? analysis.can_afford,
-				p_pre_approval_status: preApprovalStatus, // Correctly mapped status
-				p_recommendation: recommendationText, // Correctly mapped AI text recommendation
-				p_report_data: analysis, // Send the full analysis object as JSON
-				p_background_check_status: 'passed', // Assuming default 'passed'
+				p_pre_approval_status: preApprovalStatus,
+				p_recommendation: recommendationText,
+				p_report_data: analysis, // Send the full analysis object (now with consistent metrics)
+				p_background_check_status: 'passed',
 				p_credit_score: creditScore,
 				p_monthly_income: monthlyIncome, // Pass monthly income explicitly
 			};
@@ -770,7 +759,7 @@ class AffordabilityService {
 
 			// Call the RPC function
 			const { data, error } = await supabase.rpc(
-				'save_screening_report', // Name of your RPC function
+				'save_screening_report',
 				reportPayload,
 			);
 
@@ -781,9 +770,6 @@ class AffordabilityService {
 
 			console.log('RPC save_screening_report successful, returned:', data);
 
-			// The RPC function should return the inserted/updated screening report row
-			// If it returns just an ID or boolean, you might need to fetch the report separately
-			// Assuming the RPC returns the full row:
 			return data as Tables<'screening_reports'>;
 		} catch (error) {
 			console.error('Error saving analysis results via RPC:', error);

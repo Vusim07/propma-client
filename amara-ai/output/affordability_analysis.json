@@ -1,38 +1,64 @@
 {
   "can_afford": true,
-  "confidence": 0.85,
+  "confidence": 0.87,
   "risk_factors": [
-    "High percentage of income spent on non-essential expenses",
-    "Limited savings buffer for emergencies",
-    "Existing credit obligations that may affect cash flow"
+    "High discretionary spending",
+    "Potential irregular income patterns",
+    "Existing debt obligations impacting cash flow"
   ],
   "recommendations": [
-    "Maintain a monthly budget to control spending on discretionary items",
-    "Increase savings to cover at least three months of rent",
-    "Consider getting a financial advisor for better financial planning"
+    "Reduce discretionary spending to improve cash flow",
+    "Consider consolidating existing debts",
+    "Establish an emergency savings fund for unexpected expenses"
   ],
   "metrics": {
     "monthly_income": 22000.00,
-    "monthly_expenses": 16400.00,
-    "affordable_rent_limit": 6600.00,
-    "current_rent": 6500.00,
-    "rent_to_income_ratio": 29.55,
-    "debt_to_income_ratio": 25.0
+    "monthly_expenses": 15000.00,
+    "debt_to_income_ratio": 0.20,
+    "affordable_rent": 6600.00,
+    "actual_rent": 6500.00,
+    "rent_to_income_ratio": 0.30
   },
   "transaction_analysis": {
-    "essential_expenses": {
-      "housing": 6500.00,
-      "utilities": 1800.00,
-      "groceries": 3000.00,
-      "transport": 1200.00
-    },
-    "non_essential_expenses": {
-      "entertainment": 2000.00,
-      "eating_out": 2000.00,
-      "subscriptions": 1000.00
-    },
     "income": {
-      "salary": 22000.00
+      "total_income": 22000.00,
+      "sources": [
+        {
+          "source": "salary",
+          "amount": 20000.00
+        },
+        {
+          "source": "freelance",
+          "amount": 2000.00
+        }
+      ]
+    },
+    "expenses": {
+      "total_expenses": 15000.00,
+      "categories": {
+        "housing": 7000.00,
+        "groceries": 3000.00,
+        "transport": 2000.00,
+        "entertainment": 1500.00,
+        "savings": 2000.00,
+        "other": 1500.00
+      }
+    },
+    "debts": {
+      "total_debt": 4400.00,
+      "monthly_payment": 880.00,
+      "debt_sources": [
+        {
+          "type": "personal loan",
+          "amount": 2000.00,
+          "monthly_payment": 400.00
+        },
+        {
+          "type": "credit card",
+          "amount": 2400.00,
+          "monthly_payment": 480.00
+        }
+      ]
     }
   }
 }

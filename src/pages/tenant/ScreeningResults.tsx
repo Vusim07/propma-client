@@ -262,6 +262,7 @@ const ScreeningResults: React.FC = () => {
 		);
 	}
 
+	// Moved this check up: Ensure reportData exists before proceeding
 	if (!reportData) {
 		return (
 			<div className='mb-6'>
@@ -276,6 +277,7 @@ const ScreeningResults: React.FC = () => {
 		);
 	}
 
+	// Now it's safe to access reportData properties
 	const getCreditScoreCategory = (score: number) => {
 		if (score >= 750) return { label: 'Excellent', color: 'success' };
 		if (score >= 700) return { label: 'Good', color: 'success' };

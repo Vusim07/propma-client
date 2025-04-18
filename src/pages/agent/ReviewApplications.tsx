@@ -516,7 +516,8 @@ const ReviewApplications: React.FC = () => {
 											)}
 										</div>
 
-										<Link to={`/agent/screening/${application.tenant_id}`}>
+										{/* Corrected Link: Use application.id instead of application.tenant_id */}
+										<Link to={`/agent/screening/${application.id}`}>
 											<Button variant='outline' size='sm'>
 												View Screening Report
 												<ArrowRight size={16} className='ml-1' />
