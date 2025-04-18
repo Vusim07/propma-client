@@ -30,7 +30,7 @@ interface TenantState {
 			'id' | 'created_at' | 'updated_at' | 'verification_status'
 		> & { file?: File },
 	) => Promise<Document>;
-	fetchScreeningReport: (applicationId: string) => Promise<void>;
+	fetchScreeningReport: (id: string) => Promise<void>;
 	fetchAppointments: (tenantId: string) => Promise<void>;
 	scheduleAppointment: (
 		appointment: Omit<Appointment, 'id' | 'created_at'>,
@@ -279,19 +279,46 @@ export const useTenantStore = create<TenantState>((set) => ({
 		}
 	},
 
-	fetchScreeningReport: async (applicationId) => {
+	fetchScreeningReport: async (id) => {
 		set({ isLoading: true, error: null });
 		try {
-			// Don't use single() which can cause 406 errors when no report exists
-			const { data, error } = await supabase
-				.from('screening_reports')
-				.select('*')
-				.eq('application_id', applicationId);
+			// If this is an application ID (UUID), try to fetch directly
+			const uuidPattern =
+				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+			if (uuidPattern.test(id)) {
+				const { data: appData, error: appError } = await supabase
+					.from('screening_reports')
+					.select('*')
+					.eq('application_id', id);
 
-			if (error) throw error;
+				if (!appError && appData && appData.length > 0) {
+					console.log('Found screening report by application_id:', appData);
+					set({
+						screeningReport: appData[0],
+						isLoading: false,
+					});
+					return;
+				}
+			}
 
-			// If no data or empty array, set screeningReport to null
-			if (!data || data.length === 0) {
+			// At this point, we're likely dealing with an auth user ID
+			// First, get the tenant profile ID that corresponds to this auth user ID
+			const { data: profileData, error: profileError } = await supabase
+				.from('tenant_profiles')
+				.select('id')
+				.eq('tenant_id', id)
+				.maybeSingle();
+
+			if (profileError) {
+				console.error('Error fetching tenant profile:', profileError);
+				throw profileError;
+			}
+
+			const tenantProfileId = profileData?.id;
+			console.log('Tenant profile ID for auth user:', tenantProfileId);
+
+			if (!tenantProfileId) {
+				console.log('No tenant profile found for this user');
 				set({
 					screeningReport: null,
 					isLoading: false,
@@ -299,9 +326,93 @@ export const useTenantStore = create<TenantState>((set) => ({
 				return;
 			}
 
-			// Use the first report if multiple exist (though this shouldn't happen)
+			// Query screening reports using the tenant profile ID
+			const { data, error } = await supabase
+				.from('screening_reports')
+				.select('*')
+				.eq('tenant_id', tenantProfileId);
+
+			console.log('Screening report data by tenant profile ID:', data);
+
+			if (error) throw error;
+
+			// If no reports found by tenant profile ID, try to find via applications
+			if (!data || data.length === 0) {
+				console.log('No reports found by tenant_id, trying applications...');
+
+				// Find the most recent application for this tenant
+				const { data: appData, error: appError } = await supabase
+					.from('applications')
+					.select('id')
+					.eq('tenant_id', tenantProfileId)
+					.order('created_at', { ascending: false })
+					.limit(1);
+
+				if (appError) {
+					console.error('Error fetching applications:', appError);
+					set({
+						screeningReport: null,
+						isLoading: false,
+					});
+					return;
+				}
+
+				if (!appData || appData.length === 0) {
+					console.log('No applications found for this tenant');
+					set({
+						screeningReport: null,
+						isLoading: false,
+					});
+					return;
+				}
+
+				const applicationId = appData[0].id;
+				console.log('Found application ID:', applicationId);
+
+				// Try to find screening report for this application
+				const { data: reportData, error: reportError } = await supabase
+					.from('screening_reports')
+					.select('*')
+					.eq('application_id', applicationId);
+
+				if (reportError) {
+					console.error(
+						'Error fetching screening report by application:',
+						reportError,
+					);
+					set({
+						screeningReport: null,
+						isLoading: false,
+					});
+					return;
+				}
+
+				if (!reportData || reportData.length === 0) {
+					console.log('No screening report found for application');
+					set({
+						screeningReport: null,
+						isLoading: false,
+					});
+					return;
+				}
+
+				console.log('Found screening report by application:', reportData);
+				set({
+					screeningReport: reportData[0],
+					isLoading: false,
+				});
+				return;
+			}
+
+			// We found screening reports by tenant profile ID
+			// Use the most recent one
+			const sortedReports = [...data].sort(
+				(a, b) =>
+					new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+			);
+
 			set({
-				screeningReport: data[0],
+				screeningReport: sortedReports[0],
 				isLoading: false,
 			});
 		} catch (error) {

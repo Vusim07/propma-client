@@ -1,63 +1,44 @@
 {
   "can_afford": true,
-  "confidence": 0.85,
+  "confidence": 0.92,
   "risk_factors": [
-    "Single source of income from salary",
-    "Existing loan obligations",
-    "Potential for fluctuating expenses"
+    "High discretionary spending in entertainment",
+    "Recent increase in debt obligations"
   ],
   "recommendations": [
-    "Monitor discretionary spending",
-    "Maintain an emergency fund for unexpected expenses",
-    "Consider an additional income source as a long-term strategy"
+    "Reduce discretionary expenses by 15%",
+    "Increase savings to cover at least 3 months of rent",
+    "Review and adjust budget monthly"
   ],
   "metrics": {
-    "rent_to_income_ratio": 0.33,
-    "debt_to_income_ratio": 0.20,
-    "disposable_income": 6170.00,
-    "savings_rate": 0.04,
-    "monthly_income": 15000.00,
-    "monthly_expenses": 8830.00,
-    "monthly_debt_payments": 2500.00
+    "monthly_income": 25000,
+    "total_expenses": 16000,
+    "debt_to_income_ratio": 0.48,
+    "savings_percentage": 10
   },
   "transaction_analysis": {
-    "income": [
-      {
-        "description": "Salary Payment - ABC Corp",
-        "amount": "R 15000.00",
-        "date": "01/04/2025",
-        "type": "credit"
-      }
-    ],
-    "essential_expenses": [
-      {
-        "description": "Rent Payment",
-        "amount": "R 4500.00",
-        "date": "03/04/2025",
-        "type": "debit"
-      },
-      {
-        "description": "Shoprite",
-        "amount": "R 1200.00",
-        "date": "05/04/2025",
-        "type": "debit"
-      },
-      {
-        "description": "Vodacom",
-        "amount": "R 799.00",
-        "date": "07/04/2025",
-        "type": "debit"
-      }
-    ],
-    "non_essential_expenses": [],
-    "savings": [],
-    "debt_payments": [
-      {
-        "description": "Standard Bank Loan Payment",
-        "amount": "R 2500.00",
-        "date": "10/04/2025",
-        "type": "debit"
-      }
-    ]
+    "income": {
+      "salary": 25000,
+      "payslip_bonus": 3000
+    },
+    "fixed_expenses": {
+      "rent": 0,
+      "utilities": 1500,
+      "insurance": 800,
+      "transport": 2000
+    },
+    "variable_expenses": {
+      "food": 4000,
+      "entertainment": 3000,
+      "clothing": 2000,
+      "healthcare": 1500
+    },
+    "debts": {
+      "personal_loan": 5000,
+      "credit_card": 2000
+    },
+    "savings": {
+      "monthly_savings": 2500
+    }
   }
 }

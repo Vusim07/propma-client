@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useTenantStore } from '../../stores/tenantStore';
 import { usePageTitle } from '../../context/PageTitleContext';
@@ -18,8 +18,13 @@ import {
 	Briefcase,
 	Calendar,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Button from '@/components/ui/Button';
+import {
+	affordabilityService,
+	AffordabilityResponse,
+} from '../../services/affordabilityService';
+import { supabase } from '../../services/supabase';
 
 const ScreeningResults: React.FC = () => {
 	const { user } = useAuthStore();
@@ -31,58 +36,228 @@ const ScreeningResults: React.FC = () => {
 		fetchProfile,
 		isLoading,
 	} = useTenantStore();
+
+	const location = useLocation();
+	const queryParams = new URLSearchParams(location.search);
+	const applicationId = queryParams.get('application');
+
+	const [isAnalyzing, setIsAnalyzing] = useState(false);
+	const [analysisError, setAnalysisError] = useState<string | null>(null);
+	const [analysisResult, setAnalysisResult] =
+		useState<AffordabilityResponse | null>(null);
+	const [currentApplicationId, setCurrentApplicationId] = useState<
+		string | null
+	>(null);
+
 	const navigate = useNavigate();
+
+	// Get recommendations from the analysisResult if available
+	const recommendations = useMemo(() => {
+		if (
+			analysisResult &&
+			analysisResult.recommendations &&
+			analysisResult.recommendations.length > 0
+		) {
+			return analysisResult.recommendations;
+		}
+
+		// Return empty array if no recommendations available
+		return [];
+	}, [analysisResult]);
+
+	// Get risk factors from the analysisResult if available
+	const riskFactors = useMemo(() => {
+		if (
+			analysisResult &&
+			analysisResult.risk_factors &&
+			analysisResult.risk_factors.length > 0
+		) {
+			return analysisResult.risk_factors;
+		}
+
+		// Return empty array if no risk factors available
+		return [];
+	}, [analysisResult]);
 
 	useEffect(() => {
 		setPageTitle('Screening');
 		if (user) {
-			fetchScreeningReport(user.id);
+			// If we have an application ID from URL params, use that
+			if (applicationId) {
+				setCurrentApplicationId(applicationId);
+				// Only fetch the specific screening report for this application
+				fetchSpecificScreeningReport(applicationId);
+			} else {
+				// Otherwise fetch using user ID as before
+				fetchScreeningReport(user.id);
+			}
 			fetchProfile(user.id);
 		}
-	}, [user, fetchScreeningReport, fetchProfile, setPageTitle]);
+	}, [user, applicationId, fetchScreeningReport, fetchProfile, setPageTitle]);
 
-	// Add mock data for development environment
-	useEffect(() => {
-		// If in development and no screening report, add a mock one
-		if (
-			process.env.NODE_ENV === 'development' &&
-			!screeningReport &&
-			!isLoading
-		) {
-			console.log('Adding mock screening report for development');
-			// This doesn't modify the store, just provides UI mock data
-			// You'd need to actually save this to the database in a real implementation
+	// Function to fetch a specific screening report by application ID
+	const fetchSpecificScreeningReport = async (appId: string) => {
+		try {
+			// Use the updated fetchScreeningReport method which will handle
+			// different ID types correctly and has all our error handling
+			if (user) {
+				await fetchScreeningReport(appId);
+				return screeningReport;
+			}
+			return null;
+		} catch (err) {
+			console.error('Error fetching specific screening report:', err);
+			return null;
 		}
-	}, [screeningReport, isLoading]);
+	};
+
+	// Fetch real affordability analysis if no screening report exists
+	useEffect(() => {
+		const fetchAffordabilityAnalysis = async () => {
+			// Skip if loading, or if we already have a screening report or analysis result
+			if (isLoading || screeningReport || analysisResult || isAnalyzing) {
+				return;
+			}
+
+			// If no user or profile, we can't analyze
+			if (!user || !profile) {
+				return;
+			}
+
+			try {
+				setIsAnalyzing(true);
+				setAnalysisError(null);
+
+				// Get application details - either use the one from URL params or fetch the latest
+				let applicationDetails;
+				let propertyId;
+
+				if (currentApplicationId) {
+					// Use the application ID from URL params
+					const { data } = await supabase
+						.from('applications')
+						.select('property_id, id, tenant_id')
+						.eq('id', currentApplicationId)
+						.single();
+
+					applicationDetails = data;
+					if (!applicationDetails) {
+						setAnalysisError('Application not found');
+						setIsAnalyzing(false);
+						return;
+					}
+
+					// Verify this application belongs to the current user
+					if (applicationDetails.tenant_id !== profile.id) {
+						setAnalysisError(
+							'You do not have permission to view this application',
+						);
+						setIsAnalyzing(false);
+						return;
+					}
+
+					propertyId = applicationDetails.property_id;
+				} else {
+					// Get user's most recent property application
+					const { data: applications } = await supabase
+						.from('applications')
+						.select('property_id, id')
+						.eq('tenant_id', profile.id)
+						.order('created_at', { ascending: false })
+						.limit(1);
+
+					if (!applications || applications.length === 0) {
+						// No property application found
+						setIsAnalyzing(false);
+						return;
+					}
+
+					applicationDetails = applications[0];
+					propertyId = applicationDetails.property_id;
+				}
+
+				// Use the comprehensive affordability analysis method
+				const result = await affordabilityService.createAffordabilityAnalysis(
+					applicationDetails.id,
+					user.id,
+					propertyId,
+				);
+
+				// Save the result
+				setAnalysisResult(result);
+
+				// Refresh the screening report after saving (createAffordabilityAnalysis already saves to DB)
+				if (currentApplicationId) {
+					await fetchSpecificScreeningReport(currentApplicationId);
+				} else {
+					await fetchScreeningReport(user.id);
+				}
+			} catch (error) {
+				console.error('Error fetching affordability analysis:', error);
+				setAnalysisError(
+					'Failed to analyze affordability. Please try again later.',
+				);
+			} finally {
+				setIsAnalyzing(false);
+			}
+		};
+
+		fetchAffordabilityAnalysis();
+	}, [
+		user,
+		profile,
+		screeningReport,
+		isLoading,
+		analysisResult,
+		isAnalyzing,
+		currentApplicationId,
+		fetchSpecificScreeningReport,
+	]);
 
 	// Use a local variable to hold either the real or mock report
 	const reportData = useMemo(() => {
-		// If we have real data, use it
+		// If we have a real report from the database, use it
 		if (screeningReport) return screeningReport;
 
-		// If in development mode and no real data, use mock data
-		if (process.env.NODE_ENV === 'development') {
-			console.log('Using mock screening report for development UI');
+		// If we have an analysis result from the API, transform it to match report format
+		if (analysisResult) {
 			return {
-				id: 'mock-report',
+				id: 'api-analysis',
 				user_id: user?.id || 'unknown',
-				pre_approval_status: 'approved',
-				credit_score: 720,
-				affordability_score: 0.28,
-				income_verification: true,
+				pre_approval_status: analysisResult.can_afford
+					? 'approved'
+					: 'rejected',
+				credit_score: (analysisResult.metrics.credit_score as number) || 650,
+				affordability_score:
+					(analysisResult.metrics.debt_to_income_ratio as number) || 0.3,
+				income_verification: analysisResult.can_afford,
 				background_check_status: 'passed',
 				created_at: new Date().toISOString(),
 			};
 		}
 
-		// No real or mock data
+		// No data available
 		return null;
-	}, [screeningReport, user?.id]);
+	}, [screeningReport, user?.id, analysisResult]);
 
-	if (isLoading) {
+	if (isLoading || isAnalyzing) {
 		return (
 			<div className='flex justify-center items-center h-64'>
 				<Spinner size='lg' />
+				<p className='ml-4 text-gray-600'>
+					{isAnalyzing ? 'Analyzing financial data...' : 'Loading report...'}
+				</p>
+			</div>
+		);
+	}
+
+	if (analysisError) {
+		return (
+			<div className='mb-6'>
+				<h1 className='text-2xl font-bold text-gray-900 mb-6'>
+					Screening Results
+				</h1>
+				<Alert variant='error'>{analysisError}</Alert>
 			</div>
 		);
 	}
@@ -121,17 +296,16 @@ const ScreeningResults: React.FC = () => {
 		reportData.affordability_score || 0,
 	);
 
-	// Add a flag to show when we're using mock data
-	const isUsingMockData =
-		process.env.NODE_ENV === 'development' && !screeningReport;
+	// Update these flags to only show when using API data
+	const isUsingApiData = !screeningReport && analysisResult !== null;
 
 	return (
 		<div>
 			<div className='mb-6'>
 				<h1 className='text-2xl font-bold text-gray-900'>
 					Screening Results
-					{isUsingMockData && (
-						<span className='text-xs text-blue-500 ml-2'>(MOCK DATA)</span>
+					{isUsingApiData && (
+						<span className='text-xs text-green-500 ml-2'>(AI ANALYSIS)</span>
 					)}
 				</h1>
 				<p className='text-gray-600 mt-1'>
@@ -264,7 +438,10 @@ const ScreeningResults: React.FC = () => {
 						<div className='flex items-center justify-between mb-4'>
 							<div>
 								<p className='text-3xl font-bold'>
-									{(reportData.affordability_score || 0 * 100).toFixed(0)}%
+									{reportData.affordability_score
+										? (reportData.affordability_score * 100).toFixed(0)
+										: '0'}
+									%
 								</p>
 								<Badge variant={affordabilityCategory.color as any}>
 									{affordabilityCategory.label}
@@ -273,11 +450,42 @@ const ScreeningResults: React.FC = () => {
 							<div className='text-right'>
 								<p className='text-sm text-gray-500'>Rent-to-Income Ratio</p>
 								<p className='text-lg font-medium'>
-									{profile
-										? `R${(
+									{profile &&
+									analysisResult &&
+									analysisResult.metrics.monthly_income
+										? `R${Math.round(
+												(analysisResult.metrics.monthly_income as number) *
+													(reportData.affordability_score || 0),
+										  )}/R${Math.round(
+												analysisResult.metrics.monthly_income as number,
+										  )}`
+										: profile && screeningReport && screeningReport.report_data
+										? (() => {
+												// Safely access the metrics inside report_data
+												const reportDataObj =
+													screeningReport.report_data as Record<string, any>;
+												const monthlyIncome =
+													reportDataObj.metrics?.monthly_income;
+
+												if (typeof monthlyIncome === 'number') {
+													return `R${Math.round(
+														monthlyIncome *
+															(reportData.affordability_score || 0),
+													)}/R${Math.round(monthlyIncome)}`;
+												}
+												return null; // Will fall through to the next condition
+										  })() ||
+										  (profile
+												? `R${Math.round(
+														profile.monthly_income *
+															(reportData.affordability_score || 0),
+												  )}/R${profile.monthly_income}`
+												: 'N/A')
+										: profile
+										? `R${Math.round(
 												profile.monthly_income *
-												(reportData.affordability_score || 0)
-										  ).toFixed(0)}/R${profile.monthly_income}`
+													(reportData.affordability_score || 0),
+										  )}/R${profile.monthly_income}`
 										: 'N/A'}
 								</p>
 							</div>
@@ -399,7 +607,21 @@ const ScreeningResults: React.FC = () => {
 				</CardHeader>
 				<CardContent>
 					<div className='space-y-4'>
-						{reportData.pre_approval_status === 'approved' ? (
+						{/* If we have recommendations from AI analysis, display them */}
+						{analysisResult && recommendations.length > 0 ? (
+							recommendations.map((recommendation, index) => (
+								<div key={index} className='flex items-start'>
+									{reportData.pre_approval_status === 'approved' ? (
+										<CheckCircle className='h-5 w-5 text-green-500 mr-3 mt-0.5' />
+									) : (
+										<AlertCircle className='h-5 w-5 text-yellow-500 mr-3 mt-0.5' />
+									)}
+									<div>
+										<p className='text-sm text-gray-600'>{recommendation}</p>
+									</div>
+								</div>
+							))
+						) : reportData.pre_approval_status === 'approved' ? (
 							<>
 								<div className='flex items-start'>
 									<CheckCircle className='h-5 w-5 text-green-500 mr-3 mt-0.5' />
@@ -472,6 +694,27 @@ const ScreeningResults: React.FC = () => {
 					</div>
 				</CardContent>
 			</Card>
+
+			{/* Risk Factors - Only show if we have analysis results with risk factors */}
+			{analysisResult && riskFactors.length > 0 && (
+				<Card className='mt-8'>
+					<CardHeader>
+						<h2 className='text-lg font-semibold'>Risk Factors</h2>
+					</CardHeader>
+					<CardContent>
+						<div className='space-y-4'>
+							{riskFactors.map((factor, index) => (
+								<div key={index} className='flex items-start'>
+									<AlertCircle className='h-5 w-5 text-yellow-500 mr-3 mt-0.5' />
+									<div>
+										<p className='text-sm text-gray-600'>{factor}</p>
+									</div>
+								</div>
+							))}
+						</div>
+					</CardContent>
+				</Card>
+			)}
 		</div>
 	);
 };

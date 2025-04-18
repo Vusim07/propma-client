@@ -1,0 +1,630 @@
+{
+	"Status": "Success",
+	"Results": {
+		"CC_RESULTS": {
+			"EnqCC_ENQ_COUNTS": [
+				{
+					"ADDR": "5",
+					"ADMORDS": "0",
+					"COLLECTIONS": "0",
+					"DMATCHES": "1",
+					"JUDGE": "0",
+					"NOTICES": "0",
+					"PMATCHES": "0",
+					"PREV_ENQ": "7",
+					"TPHONE": "5",
+					"EMPLOYERS": "5",
+					"TRACE": "0",
+					"FRAUDALERT": "0",
+					"CPACC": "3",
+					"NLRACC": "0",
+					"PUB_DEF": "0",
+					"CODIX": "0",
+					"COMPUSCORE": "1",
+					"DEEDS_COUNT": "1",
+					"BONDS_COUNT": "0",
+					"DIRECTORS": "4",
+					"CS_ADVERSE": "0"
+				}
+			],
+			"EnqCC_ADDRESS": [
+				{
+					"ADDRESS_TYPE": "P",
+					"LINE_1": "ADDRESS",
+					"LINE_2": "ADDRESS",
+					"LINE_3": "ADDRESS",
+					"LINE_4": "",
+					"POSTAL_CODE": "1201",
+					"DATE_CREATED": "16-11-2023",
+					"ADDR_DATE_CREATED": "30-09-2023",
+					"ADDRESS_TYPE_DESC": "POSTAL"
+				},
+				{
+					"ADDRESS_TYPE": "R",
+					"LINE_1": "ADDRESS",
+					"LINE_2": "ADDRESS",
+					"LINE_3": "ADDRESS",
+					"LINE_4": "",
+					"POSTAL_CODE": "0002",
+					"DATE_CREATED": "16-11-2023",
+					"ADDR_DATE_CREATED": "30-09-2023",
+					"ADDRESS_TYPE_DESC": "RESIDENTIAL"
+				},
+				{
+					"ADDRESS_TYPE": "P",
+					"LINE_1": "ADDRESS",
+					"LINE_2": "ADDRESS",
+					"LINE_3": "ADDRESS",
+					"LINE_4": "",
+					"POSTAL_CODE": "0181",
+					"DATE_CREATED": "16-11-2023",
+					"ADDR_DATE_CREATED": "12-08-2023",
+					"ADDRESS_TYPE_DESC": "POSTAL"
+				},
+				{
+					"ADDRESS_TYPE": "R",
+					"LINE_1": "ADDRESS",
+					"LINE_2": "ADDRESS",
+					"LINE_3": "ADDRESS",
+					"LINE_4": "",
+					"POSTAL_CODE": "1201",
+					"DATE_CREATED": "16-11-2023",
+					"ADDR_DATE_CREATED": "31-01-2022",
+					"ADDRESS_TYPE_DESC": "RESIDENTIAL"
+				},
+				{
+					"ADDRESS_TYPE": "P",
+					"LINE_1": "ADDRESS",
+					"LINE_2": "ADDRESS",
+					"LINE_3": "ADDRESS",
+					"LINE_4": "",
+					"POSTAL_CODE": "1200",
+					"DATE_CREATED": "16-11-2023",
+					"ADDR_DATE_CREATED": "31-08-2019",
+					"ADDRESS_TYPE_DESC": "POSTAL"
+				}
+			],
+			"EnqCC_ADMINORD": [],
+			"EnqCC_COLLECTIONS": [],
+			"EnqCC_JUDGEMENTS": [],
+			"EnqCC_NOTICES": [],
+			"EnqCC_DMATCHES": [
+				{
+					"ID_NUMBER": "XXXXXXXXXXXXX",
+					"COUNTRY_CODE": "South Africa",
+					"NAME": "JOHN",
+					"SURNAME": "DOE",
+					"STATUS": "Verified",
+					"DECEASED_DATE": ""
+				}
+			],
+			"EnqCC_PMATCHES": [],
+			"EnqCC_PREVENQ": [
+				{
+					"ENQUIRY_DATE": "16-11-2023 14:25",
+					"BRANCH_NAME": "Omnisol Information Technology",
+					"CONTACT_PERSON": "The Manager",
+					"TELEPHONE_NUMBER": "(013) 741 2881"
+				},
+				{
+					"ENQUIRY_DATE": "16-11-2023 14:22",
+					"BRANCH_NAME": "Omnisol Information Technology",
+					"CONTACT_PERSON": "The Manager",
+					"TELEPHONE_NUMBER": "(013) 741 2881"
+				},
+				{
+					"ENQUIRY_DATE": "16-11-2023 14:20",
+					"BRANCH_NAME": "Omnisol Information Technology",
+					"CONTACT_PERSON": "The Manager",
+					"TELEPHONE_NUMBER": "(013) 741 2881"
+				},
+				{
+					"ENQUIRY_DATE": "16-11-2023 14:17",
+					"BRANCH_NAME": "Omnisol Information Technology",
+					"CONTACT_PERSON": "The Manager",
+					"TELEPHONE_NUMBER": "(013) 741 2881"
+				},
+				{
+					"ENQUIRY_DATE": "16-11-2023 14:15",
+					"BRANCH_NAME": "Omnisol Information Technology",
+					"CONTACT_PERSON": "The Manager",
+					"TELEPHONE_NUMBER": "(013) 741 2881"
+				},
+				{
+					"ENQUIRY_DATE": "16-11-2023 14:14",
+					"BRANCH_NAME": "Omnisol Information Technology",
+					"CONTACT_PERSON": "The Manager",
+					"TELEPHONE_NUMBER": "(013) 741 2881"
+				},
+				{
+					"ENQUIRY_DATE": "16-11-2023 13:00",
+					"BRANCH_NAME": "Omnisol Information Technology",
+					"CONTACT_PERSON": "The Manager",
+					"TELEPHONE_NUMBER": "(013) 741 2881"
+				}
+			],
+			"EnqCC_TELEPHONE": [
+				{
+					"TEL_NUMBER_TYPE": "W",
+					"TEL_NUMBER": "NUMBER",
+					"TEL_TYPE_DESC": "WORK",
+					"DATE_CREATED": "16-11-2023",
+					"TEL_DATE_CREATED": "10-05-2019"
+				},
+				{
+					"TEL_NUMBER_TYPE": "C",
+					"TEL_NUMBER": "NUMBER",
+					"TEL_TYPE_DESC": "CELLPHONE",
+					"DATE_CREATED": "16-11-2023",
+					"TEL_DATE_CREATED": "10-05-2019"
+				},
+				{
+					"TEL_NUMBER_TYPE": "W",
+					"TEL_NUMBER": "NUMBER",
+					"TEL_TYPE_DESC": "WORK",
+					"DATE_CREATED": "16-11-2023",
+					"TEL_DATE_CREATED": "10-05-2019"
+				},
+				{
+					"TEL_NUMBER_TYPE": "C",
+					"TEL_NUMBER": "NUMBER",
+					"TEL_TYPE_DESC": "CELLPHONE",
+					"DATE_CREATED": "16-11-2023",
+					"TEL_DATE_CREATED": "31-01-2019"
+				},
+				{
+					"TEL_NUMBER_TYPE": "W",
+					"TEL_NUMBER": "NUMBER",
+					"TEL_TYPE_DESC": "WORK",
+					"DATE_CREATED": "16-11-2023",
+					"TEL_DATE_CREATED": "31-01-2019"
+				}
+			],
+			"EnqCC_SRCHCRITERIA": [
+				{
+					"CRIT_IDNUMBER": "XXXXXXXXXXXXX",
+					"CRIT_NAME": "JOHN",
+					"CRIT_SURNAME": "DOE",
+					"ENQ_CNT_NAME": "South Africa",
+					"ENQ_DATE": "16-11-2023 14:59:28",
+					"CREATED_BY": "26838-1",
+					"DOB": "01-05-1979",
+					"GENDER": "MALE",
+					"PASSPORT_FLAG": "NO",
+					"ADDRESS": "UNKNOW UNKNOW UNKNOW UNKNOW XXXXX",
+					"LOAN_AMOUNT": "0",
+					"NET_INCOME": "0",
+					"ENQUIRY_PURPOSE": "Credit Assessment",
+					"HOMETEL": " ",
+					"WORK_TEL": " ",
+					"CRIT_CELL_NUM": ""
+				}
+			],
+			"EnqCC_SRCHCRITERIA_CODIX": [],
+			"EnqCC_TRACE": [],
+			"EnqCC_EMPLOYER": [
+				{
+					"EMP_NAME": "COMPANY NAME",
+					"EMP_DATE": "30-09-2023",
+					"OCCUPATION": " ",
+					"EMP_TYPE": " ",
+					"SALARY_FREQ": " ",
+					"PAYSLIP_REF": " ",
+					"EMPLOYEE_NO": " ",
+					"DATE_CREATED": "16-11-2023"
+				},
+				{
+					"EMP_NAME": "CALL CENTER",
+					"EMP_DATE": "12-08-2023",
+					"OCCUPATION": " ",
+					"EMP_TYPE": " ",
+					"SALARY_FREQ": " ",
+					"PAYSLIP_REF": " ",
+					"EMPLOYEE_NO": " ",
+					"DATE_CREATED": "16-11-2023"
+				},
+				{
+					"EMP_NAME": "COMPANY NAME",
+					"EMP_DATE": "30-06-2019",
+					"OCCUPATION": " ",
+					"EMP_TYPE": " ",
+					"SALARY_FREQ": " ",
+					"PAYSLIP_REF": " ",
+					"EMPLOYEE_NO": " ",
+					"DATE_CREATED": "16-11-2023"
+				},
+				{
+					"EMP_NAME": "COMPANY NAME",
+					"EMP_DATE": "31-05-2016",
+					"OCCUPATION": "MANAGERS",
+					"EMP_TYPE": " ",
+					"SALARY_FREQ": " ",
+					"PAYSLIP_REF": " ",
+					"EMPLOYEE_NO": " ",
+					"DATE_CREATED": "16-11-2023"
+				},
+				{
+					"EMP_NAME": "COMPANY NAME",
+					"EMP_DATE": "30-04-2013",
+					"OCCUPATION": " ",
+					"EMP_TYPE": " ",
+					"SALARY_FREQ": " ",
+					"PAYSLIP_REF": " ",
+					"EMPLOYEE_NO": " ",
+					"DATE_CREATED": "16-11-2023"
+				}
+			],
+			"EnqCC_ACTIVITIES": [
+				{
+					"ENQUIRIES": "7",
+					"LOANS": "0",
+					"JUDGEMENTS": "0",
+					"NOTICES": "0",
+					"COLLECTIONS": "0",
+					"ADMINORDERS": "0",
+					"BALANCE": "0",
+					"INSTALLMENT": "0"
+				}
+			],
+			"EnqCC_CPA_ACCOUNTS": [
+				{
+					"SUBSCRIBER_CODE": "9285",
+					"SUBSCRIBER_NAME": "FNB FUSION",
+					"BRANCH_CODE": "",
+					"ACCOUNT_NO": "302281680000038796",
+					"SUB_ACCOUNT_NO": "",
+					"OWNERSHIP_TYPE": "00",
+					"OWNERSHIP_TYPE_DESC": "OTHER",
+					"REASON": "O",
+					"REASON_DESC": "OTHER",
+					"PAYMENT_TYPE": "01",
+					"PAYMENT_TYPE_DESC": "PAYROLL DEDUCTION",
+					"ACCOUNT_TYPE": "E",
+					"ACCOUNT_TYPE_DESC": "Single Credit Facility",
+					"OPEN_DATE": "03-09-2012",
+					"DEFERRED_PAYMENT_DATE": "",
+					"LAST_PAYMENT_DATE": "23-02-2023",
+					"OPEN_BAL": "1000",
+					"OPEN_BAL_IND": " ",
+					"CURRENT_BAL": "0",
+					"CURRENT_BAL_IND": "D",
+					"OVERDUE_AMOUNT": "0",
+					"OVERDUE_AMOUNT_IND": " ",
+					"INSTALMENT_AMOUNT": "0",
+					"ARREARS_PERIOD": "0",
+					"REPAYMENT_FREQ": "3",
+					"REPAYMENT_FREQ_DESC": "MONTHLY",
+					"TERMS": "0",
+					"STATUS_CODE": "P",
+					"STATUS_CODE_DESC": "PAID UP",
+					"STATUS_DATE": "23-02-2023",
+					"THIRD_PARTY_NAME": "",
+					"THIRD_PARTY_SOLD": "0",
+					"THIRD_PARTY_SOLD_DESC": "",
+					"JOINT_LOAN_PARTICIPANTS": "0",
+					"PAYMENT_HISTORY": "00000000????????????????",
+					"PAYMENT_HISTORY_STATUS": "PPPPPPPP????????????????",
+					"MONTH_END_DATE": "30-09-2023",
+					"DATE_CREATED": "16-11-2023"
+				},
+				{
+					"SUBSCRIBER_CODE": "28",
+					"SUBSCRIBER_NAME": "CELL C",
+					"BRANCH_CODE": "",
+					"ACCOUNT_NO": "335763838",
+					"SUB_ACCOUNT_NO": "",
+					"OWNERSHIP_TYPE": "00",
+					"OWNERSHIP_TYPE_DESC": "OTHER",
+					"REASON": "O",
+					"REASON_DESC": "OTHER",
+					"PAYMENT_TYPE": "00",
+					"PAYMENT_TYPE_DESC": "OTHER",
+					"ACCOUNT_TYPE": "F",
+					"ACCOUNT_TYPE_DESC": "Service Related without limit",
+					"OPEN_DATE": "13-12-2019",
+					"DEFERRED_PAYMENT_DATE": "",
+					"LAST_PAYMENT_DATE": "13-07-2023",
+					"OPEN_BAL": "0",
+					"OPEN_BAL_IND": " ",
+					"CURRENT_BAL": "0",
+					"CURRENT_BAL_IND": "C",
+					"OVERDUE_AMOUNT": "0",
+					"OVERDUE_AMOUNT_IND": " ",
+					"INSTALMENT_AMOUNT": "0",
+					"ARREARS_PERIOD": "0",
+					"REPAYMENT_FREQ": "3",
+					"REPAYMENT_FREQ_DESC": "MONTHLY",
+					"TERMS": "0",
+					"STATUS_CODE": "C",
+					"STATUS_CODE_DESC": "ACCOUNT CLOSED",
+					"STATUS_DATE": "12-08-2023",
+					"THIRD_PARTY_NAME": "",
+					"THIRD_PARTY_SOLD": "0",
+					"THIRD_PARTY_SOLD_DESC": "",
+					"JOINT_LOAN_PARTICIPANTS": "0",
+					"PAYMENT_HISTORY": "021?????????????????????",
+					"PAYMENT_HISTORY_STATUS": "C--?????????????????????",
+					"MONTH_END_DATE": "12-08-2023",
+					"DATE_CREATED": "16-11-2023"
+				},
+				{
+					"SUBSCRIBER_CODE": "9285",
+					"SUBSCRIBER_NAME": "FNB FUSION",
+					"BRANCH_CODE": "620",
+					"ACCOUNT_NO": "302281680000038796",
+					"SUB_ACCOUNT_NO": "Q2",
+					"OWNERSHIP_TYPE": "00",
+					"OWNERSHIP_TYPE_DESC": "OTHER",
+					"REASON": "O",
+					"REASON_DESC": "OTHER",
+					"PAYMENT_TYPE": "00",
+					"PAYMENT_TYPE_DESC": "OTHER",
+					"ACCOUNT_TYPE": "E",
+					"ACCOUNT_TYPE_DESC": "Single Credit Facility",
+					"OPEN_DATE": "03-09-2012",
+					"DEFERRED_PAYMENT_DATE": "",
+					"LAST_PAYMENT_DATE": "23-07-2022",
+					"OPEN_BAL": "1000",
+					"OPEN_BAL_IND": " ",
+					"CURRENT_BAL": "0",
+					"CURRENT_BAL_IND": "D",
+					"OVERDUE_AMOUNT": "0",
+					"OVERDUE_AMOUNT_IND": " ",
+					"INSTALMENT_AMOUNT": "0",
+					"ARREARS_PERIOD": "0",
+					"REPAYMENT_FREQ": "3",
+					"REPAYMENT_FREQ_DESC": "MONTHLY",
+					"TERMS": "0",
+					"STATUS_CODE": "P",
+					"STATUS_CODE_DESC": "PAID UP",
+					"STATUS_DATE": "23-07-2022",
+					"THIRD_PARTY_NAME": "",
+					"THIRD_PARTY_SOLD": "0",
+					"THIRD_PARTY_SOLD_DESC": "",
+					"JOINT_LOAN_PARTICIPANTS": "0",
+					"PAYMENT_HISTORY": "000000000000000000??????",
+					"PAYMENT_HISTORY_STATUS": "PPPPPPPPPPPPPPPPPP??????",
+					"MONTH_END_DATE": "31-01-2023",
+					"DATE_CREATED": "16-11-2023"
+				}
+			],
+			"EnqCC_NLR_ACCOUNTS": [],
+			"EnqCC_BPL_ACCOUNTS": "NULL",
+			"EnqCC_Warnings": [],
+			"EnqCC_DEBT_RESTRUCT": [],
+			"EnqCC_ADVERSE": [],
+			"EnqCC_PUBLIC_DEFAULTS": [],
+			"EnqCC_CompuSCORE": [
+				{
+					"RISK_TYPE": "AVERAGE RISK",
+					"RISK_COLOUR_R": "245",
+					"RISK_COLOUR_G": "236",
+					"RISK_COLOUR_B": "86",
+					"SCORE": "636",
+					"DECLINE_R_1": "CA42-Balance or Limit of 0 on All Accounts",
+					"DECLINE_R_2": "CA18-Recent Arrears Level on Selected Accounts",
+					"DECLINE_R_3": "CA52-No Revolving Accounts Held",
+					"DECLINE_R_4": "",
+					"DECLINE_R_5": "",
+					"THIN_FILE_INDICATOR": "N",
+					"VERSION": "2",
+					"SCORE_TYPE": "CPA"
+				}
+			],
+			"EnqCC_STATS": [
+				{
+					"CC_JUDGE_12_CNT": "0",
+					"CC_JUDGE_24_CNT": "0",
+					"CC_JUDGE_36_CNT": "0",
+					"CC_NOTICE_12_CNT": "0",
+					"CC_NOTICE_24_CNT": "0",
+					"CC_NOTICE_36_CNT": "0",
+					"CC_ADVERSE_12_CNT": "0",
+					"CC_ADVERSE_24_CNT": "0",
+					"CC_ADVERSE_36_CNT": "0",
+					"CC_EVO_ADVERSE_12_CNT": "0",
+					"CC_EVO_ADVERSE_24_CNT": "0",
+					"CC_EVO_ADVERSE_36_CNT": "0",
+					"CC_ADVERSE_TOT": "0"
+				}
+			],
+			"EnqCC_Deeds_DATA": {
+				"PROPERTIES": {
+					"REC_TOTAL": 1,
+					"DATA_ARR": [
+						{
+							"ERF_NO": "699",
+							"PROPERTY_TYPE": "ADDRESS",
+							"TOWNSHIP": "ADDRESS",
+							"PORTION": "00000",
+							"UNIT": "",
+							"SECT_SCHEME_NAME": "",
+							"PROPERTY_ID": "15392203943029997280"
+						}
+					]
+				},
+				"PROP_DETAILS": {
+					"REC_TOTAL": 1,
+					"DATA_ARR": [
+						{
+							"ERF_NO": "699",
+							"REGISTRATION_DATE": "15-03-2021",
+							"PURCHASE_DATE": "14-09-2020",
+							"PURCH_PRICE": "2475000",
+							"TITLE_SHARE": "50.0%",
+							"TITLE_DEED_NO": "ADDRESS",
+							"PROPERTY_ID": "15392203943XXXXX280"
+						}
+					]
+				},
+				"BOND_DETAILS": {
+					"REC_TOTAL": 0,
+					"DATA_ARR": []
+				},
+				"DEEDS_CC": [
+					{
+						"ERF_NO": "699",
+						"PROPERTY_TYPE": "ADDRESS",
+						"TOWNSHIP": "ADDRESS",
+						"PORTION": "00000",
+						"UNIT": "",
+						"SECT_SCHEME_NAME": "",
+						"PROPERTY_ID": "153922XXXXXX997280",
+						"REGISTRATION_DATE": "15-03-2021",
+						"PURCHASE_DATE": "14-09-2020",
+						"PURCH_PRICE": "2475000",
+						"TITLE_SHARE": "50.0%",
+						"TITLE_DEED_NO": "ADDRESS"
+					}
+				]
+			},
+			"EnqCC_Directors_DATA": {
+				"REC_TOTAL": 4,
+				"DATA_ARR": [
+					{
+						"ENT_TYPE": "CLOSE CORPORATION CC",
+						"COMPANY_REG_NUMBER": "2009/XXXXXX/23",
+						"COMPANY_NAME": "COMPANY NAME",
+						"REG_DATE": "03-03-2009",
+						"BUSS_STRT_DATE": "03-03-2009",
+						"STATUS_CODE": "20",
+						"STATUS_DESC": "Conversion CO/CC or CC/CO",
+						"STATUS_DATE": "13-12-2016",
+						"SIC_CODE": "OTHER SERVICE ACTIVITIES",
+						"APP_DATE": "03-03-2009",
+						"MEMBER_TYPE": "Member",
+						"MEMBER_CONTRIBUTION": "10",
+						"MEMBER_CONTRIBUTION_TYPE": "",
+						"RESIGNATION_DATE": "",
+						"MEM_STATUS_CODE": "A",
+						"MEM_STATUS_DESC": "Active",
+						"MEM_STATUS_DATE": "03-03-2009",
+						"MEMBER_SIZE": "100"
+					},
+					{
+						"ENT_TYPE": "PRIVATE COMPANY (PTY) LTD",
+						"COMPANY_REG_NUMBER": "2005/XXXXXX/07",
+						"COMPANY_NAME": "COMPANY NAME",
+						"REG_DATE": "16-05-2005",
+						"BUSS_STRT_DATE": "16-05-2005",
+						"STATUS_CODE": "29",
+						"STATUS_DESC": "AR FINAL DEREGISTRATION",
+						"STATUS_DATE": "",
+						"SIC_CODE": "RETAIL TRADE, EXCEPT OF MOTORVEHICLES AND MOTOR CYCLES; REPAIR OF PERSONAL AND HOUSEHOLD GOODS",
+						"APP_DATE": "30-06-2006",
+						"MEMBER_TYPE": "Director",
+						"MEMBER_CONTRIBUTION": "UNKNOWN",
+						"MEMBER_CONTRIBUTION_TYPE": "",
+						"RESIGNATION_DATE": "",
+						"MEM_STATUS_CODE": "A",
+						"MEM_STATUS_DESC": "Active",
+						"MEM_STATUS_DATE": "30-06-2006",
+						"MEMBER_SIZE": "UNKNOWN"
+					},
+					{
+						"ENT_TYPE": "PRIVATE COMPANY (PTY) LTD",
+						"COMPANY_REG_NUMBER": "2016/XXXXXX/07",
+						"COMPANY_NAME": "COMPANY NAME",
+						"REG_DATE": "13-12-2016",
+						"BUSS_STRT_DATE": "13-12-2016",
+						"STATUS_CODE": "03",
+						"STATUS_DESC": "In Business",
+						"STATUS_DATE": "",
+						"SIC_CODE": "LANDBOU, JAG, BOSBOU EN VISSERY",
+						"APP_DATE": "13-12-2016",
+						"MEMBER_TYPE": "Director",
+						"MEMBER_CONTRIBUTION": "UNKNOWN",
+						"MEMBER_CONTRIBUTION_TYPE": "",
+						"RESIGNATION_DATE": "",
+						"MEM_STATUS_CODE": "A",
+						"MEM_STATUS_DESC": "Active",
+						"MEM_STATUS_DATE": "13-12-2016",
+						"MEMBER_SIZE": "UNKNOWN"
+					},
+					{
+						"ENT_TYPE": "CLOSE CORPORATION CC",
+						"COMPANY_REG_NUMBER": "2008/XXXXXX/23",
+						"COMPANY_NAME": "COMPANY NAME",
+						"REG_DATE": "08-04-2008",
+						"BUSS_STRT_DATE": "08-04-2008",
+						"STATUS_CODE": "03",
+						"STATUS_DESC": "In Business",
+						"STATUS_DATE": "",
+						"SIC_CODE": "COMPUTER AND RELATED ACTIVITIES",
+						"APP_DATE": "03-02-2010",
+						"MEMBER_TYPE": "Member",
+						"MEMBER_CONTRIBUTION": "40",
+						"MEMBER_CONTRIBUTION_TYPE": "",
+						"RESIGNATION_DATE": "",
+						"MEM_STATUS_CODE": "A",
+						"MEM_STATUS_DESC": "Active",
+						"MEM_STATUS_DATE": "03-02-2010",
+						"MEMBER_SIZE": "40"
+					}
+				]
+			},
+			"NLR_SUMMARY": {
+				"Summary": {
+					"NLR_Past_12_Months": {
+						"Enquiries_by_client": "7",
+						"Enquiries_by_other": "0",
+						"Positive_loans": "0",
+						"Highest_months_in_arrears": "0"
+					},
+					"NLR_Past_24_Months": {
+						"Enquiries_by_client": "7",
+						"Enquiries_by_other": "0",
+						"Positive_loans": "0",
+						"Highest_months_in_arrears": "0"
+					},
+					"NLR_Past_36_Months": {
+						"Enquiries_by_client": "7",
+						"Enquiries_by_other": "0",
+						"Positive_loans": "0",
+						"Highest_months_in_arrears": "0"
+					},
+					"NLR_WorstMonthsArrears": "0",
+					"NLR_ActiveAccounts": "0",
+					"NLR_BalanceExposure": "0",
+					"NLR_MonthlyInstallment": "0",
+					"NLR_CumulativeArrears": "0",
+					"NLR_ClosedAccounts": "0",
+					"CCA_Past_12_Months": {
+						"Enquiries_by_client": "7",
+						"Enquiries_by_other": "0",
+						"Positive_loans": "0",
+						"Highest_months_in_arrears": "2"
+					},
+					"CCA_Past_24_Months": {
+						"Enquiries_by_client": "7",
+						"Enquiries_by_other": "0",
+						"Positive_loans": "0",
+						"Highest_months_in_arrears": "2"
+					},
+					"CCA_Past_36_Months": {
+						"Enquiries_by_client": "7",
+						"Enquiries_by_other": "0",
+						"Positive_loans": "0",
+						"Highest_months_in_arrears": "2"
+					},
+					"CCA_WorstMonthsArrears": "2",
+					"CCA_ActiveAccounts": "0",
+					"CCA_BalanceExposure": "0",
+					"CCA_MonthlyInstallment": "0",
+					"CCA_CumulativeArrears": "0",
+					"CCA_ClosedAccounts": "1",
+					"AdverseAccounts": "0",
+					"RevolvingAccounts": "0",
+					"InstalmentAccounts": "0",
+					"OpenAccounts": "0",
+					"HighestJudgement": "0"
+				}
+			}
+		},
+		"CREDITS": -1,
+		"ONTRACE": false,
+		"PAYMENTHIST": true,
+		"CC_ENQUIRY_ID": "918410777"
+	},
+	"Pdf_file": "JVBERi0xLjQKJeLjz9MKMSAwIG9iago8PC9Db2xvclNwYWNlL0RldmljZUdyYXk...."
+}

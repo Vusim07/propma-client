@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 import os
 import json
 import logging
@@ -54,6 +54,13 @@ class Transaction(BaseModel):
 class AffordabilityRequest(BaseModel):
     transactions: List[Transaction]
     target_rent: float  # In ZAR
+    # Allow raw JSON data for payslips and bank statements
+    payslip_data: Optional[Union[List, Dict[str, Any]]] = None
+    bank_statement_data: Optional[Union[List, Dict[str, Any]]] = None
+    # Keep other optional fields from affordabilityService.ts for consistency
+    tenant_income: Optional[Dict[str, Any]] = None
+    credit_report: Optional[Dict[str, Any]] = None
+    analysis_type: Optional[str] = "comprehensive"  # Default to comprehensive
 
 
 class AffordabilityResponse(BaseModel):
@@ -92,9 +99,14 @@ async def analyze_affordability(request: AffordabilityRequest):
                 }
             )
 
-        # Initialize crew with transaction data and target rent
+        # Initialize crew with all relevant data
         crew_instance = AffordabilityAnalysisCrew(
-            transactions_data=formatted_transactions, target_rent=request.target_rent
+            transactions_data=formatted_transactions,  # Keep formatted for potential backward compatibility or simple analysis
+            target_rent=request.target_rent,
+            payslip_data=request.payslip_data,  # Pass raw payslip data
+            bank_statement_data=request.bank_statement_data,  # Pass raw bank statement data
+            tenant_income=request.tenant_income,  # Pass tenant income data
+            credit_report=request.credit_report,  # Pass credit report data
         )
 
         # Execute the analysis using the crew
@@ -160,7 +172,16 @@ async def debug_crew_config():
 
         # Initialize crew with sample data
         crew_instance = AffordabilityAnalysisCrew(
-            transactions_data=sample_data, target_rent=5000.0
+            transactions_data=sample_data,
+            target_rent=5000.0,
+            # Add sample raw data if useful for debugging
+            payslip_data={"employer": "Debug Inc.", "net_income": 10000},
+            bank_statement_data=[{"description": "DEBIT ORDER", "amount": -500}],
+            tenant_income={
+                "statedMonthlyIncome": 15000,
+                "employmentStatus": "employed",
+            },
+            credit_report={"creditScore": 700},
         )
 
         # Get the context data
