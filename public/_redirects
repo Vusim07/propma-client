@@ -1,0 +1,10 @@
+# Netlify Redirects File
+
+# Redirect all requests to the index.html for a single-page application
+/*    /index.html   200
+
+# API Proxying
+/api/*    https://your-backend-api-url.com/:splat   200
+
+# Custom 404 page
+/404    /404.html   404
