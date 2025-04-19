@@ -11,7 +11,7 @@ import {
 } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import Textarea from '../../components/ui/Textarea';
+import { Textarea } from '../../components/ui/Textarea';
 import Spinner from '../../components/ui/Spinner';
 import Badge from '../../components/ui/Badge';
 import Alert from '../../components/ui/Alert';
@@ -65,7 +65,7 @@ const mapWorkflowToViewModel = (
 		email_filter: (workflow.email_filter || {}) as WorkflowEmailFilter,
 		actions: (workflow.actions || {
 			send_application_link: true,
-		}) as WorkflowActions,
+		}) as unknown as WorkflowActions,
 		created_at: workflow.created_at,
 		updated_at: workflow.updated_at,
 	};
@@ -341,13 +341,17 @@ const WorkflowManagement: React.FC = () => {
 											Send application link
 										</label>
 									</div>
+									<label
+										htmlFor='custom-message'
+										className='block text-sm font-medium text-gray-700'
+									>
+										Custom Message
+									</label>
 
 									<Textarea
-										label='Custom Message'
 										value={customMessage}
 										onChange={(e) => setCustomMessage(e.target.value)}
 										placeholder='Thank you for your interest in our property. Please complete the application at the link below:'
-										fullWidth
 									/>
 								</div>
 							</div>
@@ -436,13 +440,17 @@ const WorkflowManagement: React.FC = () => {
 															Send application link
 														</label>
 													</div>
+													<label
+														htmlFor='edit-custom-message'
+														className='block text-sm font-medium text-gray-700'
+													>
+														Custom Message
+													</label>
 
 													<Textarea
-														label='Custom Message'
 														value={customMessage}
 														onChange={(e) => setCustomMessage(e.target.value)}
 														placeholder='Thank you for your interest in our property. Please complete the application at the link below:'
-														fullWidth
 													/>
 												</div>
 											</div>

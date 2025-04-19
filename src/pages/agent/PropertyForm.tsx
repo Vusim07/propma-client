@@ -5,7 +5,7 @@ import { useAgentStore } from '../../stores/agentStore';
 import { Card, CardHeader, CardContent } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import Textarea from '../../components/ui/Textarea';
+import { Textarea } from '../../components/ui/Textarea';
 import {
 	Select,
 	SelectContent,
@@ -460,12 +460,16 @@ const PropertyForm: React.FC = () => {
 						</div>
 
 						<div className='mt-6'>
+							<label
+								htmlFor='description'
+								className='text-sm font-medium text-gray-700 block mb-1'
+							>
+								Property Description
+							</label>
 							<Textarea
-								label='Property Description'
 								name='description'
 								value={formData.description}
 								onChange={handleInputChange}
-								fullWidth
 								required
 								rows={4}
 							/>
