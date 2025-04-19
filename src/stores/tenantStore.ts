@@ -12,6 +12,7 @@ import {
 	Property,
 	Application,
 } from '../types';
+import { TablesInsert } from '../services/database.types'; // Corrected path
 
 interface TenantState {
 	profile: TenantProfile | null;
@@ -33,7 +34,7 @@ interface TenantState {
 	fetchScreeningReport: (id: string) => Promise<void>;
 	fetchAppointments: (tenantId: string) => Promise<void>;
 	scheduleAppointment: (
-		appointment: Omit<Appointment, 'id' | 'created_at'>,
+		appointment: Omit<TablesInsert<'appointments'>, 'id' | 'created_at'>,
 	) => Promise<void>;
 	fetchPropertyByToken: (token: string) => Promise<Property | null>;
 	submitApplication: (application: {
@@ -431,14 +432,16 @@ export const useTenantStore = create<TenantState>((set) => ({
 			const { data, error } = await supabase
 				.from('appointments')
 				.select('*')
-				.eq('tenant_id', tenantId);
+				.eq('tenant_id', tenantId)
+				.order('date', { ascending: true })
+				.order('start_time', { ascending: true }); // Order by date and time
 
 			if (error) throw error;
 
-			// Format dates for display
+			// Format dates for display using the imported formatter
 			const formattedAppointments = data?.map((appointment) => ({
 				...appointment,
-				date: formatDate(appointment.date),
+				date: formatDate(appointment.date), // Use formatDate
 			}));
 
 			set({ appointments: formattedAppointments || [], isLoading: false });
@@ -448,17 +451,35 @@ export const useTenantStore = create<TenantState>((set) => ({
 	},
 
 	scheduleAppointment: async (
-		appointment: Omit<Appointment, 'id' | 'created_at'>,
+		appointment: Omit<TablesInsert<'appointments'>, 'id' | 'created_at'>,
 	): Promise<void> => {
 		set({ isLoading: true, error: null });
 		try {
-			const { error } = await supabase.from('appointments').insert(appointment);
+			console.log('Scheduling appointment with payload:', appointment);
+			// Ensure the payload matches the expected type for insertion
+			const appointmentPayload: TablesInsert<'appointments'> = {
+				...appointment,
+				status: appointment.status || 'scheduled', // Default status
+			};
 
-			if (error) throw error;
+			const { error } = await supabase
+				.from('appointments')
+				.insert(appointmentPayload);
 
+			if (error) {
+				console.error('Supabase insert error:', error);
+				throw error;
+			}
+
+			console.log('Appointment inserted successfully');
 			set({ isLoading: false });
+
+			// Fetch updated appointments after successful scheduling
+			// No need to manually add to state if fetchAppointments is called after this
 		} catch (error) {
+			console.error('Error in scheduleAppointment:', error);
 			set({ error: (error as Error).message, isLoading: false });
+			throw error; // Re-throw the error so the component can catch it
 		}
 	},
 

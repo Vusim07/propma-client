@@ -19,30 +19,39 @@ import {
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import 'react-calendar/dist/Calendar.css';
+import { supabase } from '../../services/supabase';
+import { Tables } from '../../services/database.types';
 
 type ValuePiece = Date | null;
 type Value = ValuePiece | [ValuePiece, ValuePiece];
 
+type ApprovedApplication = Tables<'applications'> & {
+	properties: Tables<'properties'>;
+	agent: Tables<'users'> | null;
+};
+
 const AppointmentScheduling: React.FC = () => {
 	const { user } = useAuthStore();
 	const { setPageTitle } = usePageTitle();
-	const { appointments, fetchAppointments, scheduleAppointment, isLoading } =
-		useTenantStore();
+	const {
+		profile,
+		appointments,
+		fetchAppointments,
+		scheduleAppointment,
+		isLoading,
+		fetchProfile,
+	} = useTenantStore();
 
 	const [date, setDate] = useState<Value>(new Date());
 	const [timeSlot, setTimeSlot] = useState<string>('');
-	const [propertyId, setPropertyId] = useState<string>('1'); // Default to first property for MVP
 	const [notes, setNotes] = useState<string>('');
 	const [error, setError] = useState<string>('');
 	const [success, setSuccess] = useState<string>('');
+	const [approvedApplication, setApprovedApplication] =
+		useState<ApprovedApplication | null>(null);
+	const [isFetchingApplication, setIsFetchingApplication] = useState(true);
 
-	// Mock available properties for MVP
-	const availableProperties = [
-		{ id: '1', address: '456 Oak Ave, Metropolis, NY 10001' },
-		{ id: '2', address: '789 Pine St, Metropolis, NY 10002' },
-	];
-
-	// Mock available time slots
+	// TODO: Replace with dynamic slots fetched from agent's calendar API
 	const availableTimeSlots = [
 		'09:00-09:30',
 		'10:00-10:30',
@@ -55,14 +64,94 @@ const AppointmentScheduling: React.FC = () => {
 
 	useEffect(() => {
 		setPageTitle('Appointments');
-		if (user) {
-			fetchAppointments(user.id);
+		if (user && !profile) {
+			fetchProfile(user.id);
 		}
-	}, [user, fetchAppointments, setPageTitle]);
+		// Add check for profile.id after profile is potentially fetched
+		if (user && profile) {
+			// Ensure the profile object has the necessary ID (PK from tenant_profiles)
+			if (!profile.id) {
+				setError(
+					'Tenant profile is incomplete. Cannot schedule appointments. Please complete your profile or contact support.',
+				);
+				setIsFetchingApplication(false); // Stop loading if profile is bad
+				return; // Exit early
+			}
+
+			// Proceed only if profile.id exists
+			fetchAppointments(profile.id); // Use profile.id (PK of tenant_profiles)
+
+			const fetchApprovedApplication = async () => {
+				if (!profile?.id) {
+					setError('Tenant profile not loaded yet.');
+					setIsFetchingApplication(false);
+					return;
+				}
+
+				setIsFetchingApplication(true);
+				setError('');
+				try {
+					const { data: applicationData, error: applicationError } =
+						await supabase
+							.from('applications')
+							.select(
+								`
+                *,
+                properties (*),
+                agent:agent_id (*)
+              `,
+							)
+							.eq('tenant_id', profile.id) // Use profile.id here
+							.eq('status', 'approved')
+							.order('created_at', { ascending: false })
+							.limit(1)
+							.maybeSingle();
+
+					if (applicationError) {
+						console.error(
+							'Supabase error fetching approved application:',
+							applicationError,
+						);
+						if (applicationError.code === 'PGRST116') {
+							setError(
+								'No approved application found. You can only schedule viewings for approved applications.',
+							);
+						} else {
+							throw new Error(
+								`Supabase error: ${applicationError.message} (Code: ${applicationError.code})`,
+							);
+						}
+					} else if (applicationData) {
+						console.log('Fetched approved application:', applicationData);
+						setApprovedApplication(applicationData as ApprovedApplication);
+					} else {
+						console.log('No approved application found for this user.');
+						setError(
+							'No approved application found. You can only schedule viewings for approved applications.',
+						);
+					}
+				} catch (err: any) {
+					console.error('Error fetching approved application:', err);
+					setError(
+						`Failed to load application details: ${
+							err.message || 'Unknown error'
+						}`,
+					);
+				} finally {
+					setIsFetchingApplication(false);
+				}
+			};
+
+			fetchApprovedApplication();
+		} else if (!user) {
+			setIsFetchingApplication(false);
+		}
+	}, [user, profile, fetchAppointments, fetchProfile, setPageTitle]);
 
 	const handleDateChange = (value: Value) => {
 		setDate(value);
 		setTimeSlot('');
+		// TODO: Fetch available slots for the selected date from agent's calendar API
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -70,11 +159,25 @@ const AppointmentScheduling: React.FC = () => {
 		setError('');
 		setSuccess('');
 
-		if (!date || !timeSlot || !propertyId) {
-			setError('Please select a date, time slot, and property.');
+		// Add explicit check for profile.id
+		if (!profile?.id) {
+			setError(
+				'Your profile is not fully loaded or incomplete. Cannot schedule appointment.',
+			);
 			return;
 		}
 
+		if (!approvedApplication) {
+			setError('Cannot schedule appointment without an approved application.');
+			return;
+		}
+
+		if (!date || !timeSlot) {
+			setError('Please select a date and time slot.');
+			return;
+		}
+
+		// User check remains valid
 		if (!user) {
 			setError('You must be logged in to schedule an appointment.');
 			return;
@@ -84,12 +187,14 @@ const AppointmentScheduling: React.FC = () => {
 			const selectedDate = date as Date;
 			const [startTime, endTime] = timeSlot.split('-');
 
+			// TODO: Add a check here against fetched agent availability before scheduling
+
 			await scheduleAppointment({
-				tenant_id: user.id,
-				property_id: propertyId,
-				agent_id: '2',
+				tenant_id: profile.id, // Ensure this is the PK from tenant_profiles
+				property_id: approvedApplication.property_id,
+				agent_id: approvedApplication.agent_id,
 				date: format(selectedDate, 'yyyy-MM-dd'),
-				time: startTime,
+				start_time: startTime, // Corrected field name
 				end_time: endTime,
 				status: 'scheduled',
 				notes: notes,
@@ -99,6 +204,9 @@ const AppointmentScheduling: React.FC = () => {
 			setDate(new Date());
 			setTimeSlot('');
 			setNotes('');
+			if (profile?.id) {
+				fetchAppointments(profile.id);
+			}
 		} catch (err: any) {
 			setError(
 				`Failed to schedule appointment. Please try again: ${err.message}`,
@@ -106,26 +214,64 @@ const AppointmentScheduling: React.FC = () => {
 		}
 	};
 
-	// Filter out past dates
 	const tileDisabled = ({ date }: { date: Date }) => {
+		// TODO: Potentially disable dates based on agent availability fetched from API
 		return (
 			isBefore(date, new Date()) &&
 			!format(date, 'yyyy-MM-dd').includes(format(new Date(), 'yyyy-MM-dd'))
 		);
 	};
 
-	// Check if a time slot is already booked for the selected date
 	const isTimeSlotBooked = (slot: string) => {
+		// TODO: This check should ideally use the fetched agent availability data
 		if (!date) return false;
 
-		const selectedDate = format(date as Date, 'yyyy-MM-dd');
+		const selectedDateStr = format(date as Date, 'yyyy-MM-dd');
 		const [startTime] = slot.split('-');
 
 		return appointments.some(
 			(appointment) =>
-				appointment.date === selectedDate && appointment.time === startTime,
+				appointment.date === selectedDateStr &&
+				appointment.start_time === startTime,
 		);
 	};
+
+	if (isFetchingApplication) {
+		return (
+			<div className='flex justify-center items-center h-64'>
+				<Spinner size='lg' />
+				<p className='ml-4 text-gray-600'>Loading application details...</p>
+			</div>
+		);
+	}
+
+	if (error && !approvedApplication) {
+		return (
+			<div className='mb-6'>
+				<h1 className='text-2xl font-bold text-gray-900 mb-6'>
+					Schedule a Viewing
+				</h1>
+				<Alert variant='error'>{error}</Alert>
+			</div>
+		);
+	}
+
+	if (!approvedApplication) {
+		return (
+			<div className='mb-6'>
+				<h1 className='text-2xl font-bold text-gray-900 mb-6'>
+					Schedule a Viewing
+				</h1>
+				<Alert variant='info'>
+					Please log in and ensure you have an approved application to schedule
+					a viewing.
+				</Alert>
+			</div>
+		);
+	}
+
+	const propertyDetails = approvedApplication.properties;
+	const agentDetails = approvedApplication.agent;
 
 	return (
 		<div>
@@ -161,7 +307,6 @@ const AppointmentScheduling: React.FC = () => {
 			)}
 
 			<div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
-				{/* Calendar */}
 				<Card className='lg:col-span-2'>
 					<CardHeader>
 						<h2 className='text-lg font-semibold'>Select a Date</h2>
@@ -180,7 +325,6 @@ const AppointmentScheduling: React.FC = () => {
 					</CardContent>
 				</Card>
 
-				{/* Time Slots */}
 				<Card>
 					<CardHeader>
 						<h2 className='text-lg font-semibold'>Available Time Slots</h2>
@@ -235,31 +379,12 @@ const AppointmentScheduling: React.FC = () => {
 				</Card>
 			</div>
 
-			{/* Appointment Details */}
 			<Card className='mt-6'>
 				<CardHeader>
 					<h2 className='text-lg font-semibold'>Appointment Details</h2>
 				</CardHeader>
 				<CardContent>
 					<form onSubmit={handleSubmit}>
-						<div className='mb-4'>
-							<label className='block text-sm font-medium text-gray-700 mb-1'>
-								Select Property
-							</label>
-							<select
-								value={propertyId}
-								onChange={(e) => setPropertyId(e.target.value)}
-								className='w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'
-								aria-label='Select Property'
-							>
-								{availableProperties.map((property) => (
-									<option key={property.id} value={property.id}>
-										{property.address}
-									</option>
-								))}
-							</select>
-						</div>
-
 						<div className='mb-4'>
 							<label className='block text-sm font-medium text-gray-700 mb-1'>
 								Notes (Optional)
@@ -274,26 +399,33 @@ const AppointmentScheduling: React.FC = () => {
 						</div>
 
 						<div className='bg-gray-50 p-4 rounded-md mb-4'>
-							<h3 className='font-medium text-gray-900 mb-2'>
+							<h3 className='font-medium text-gray-900 mb-3'>
 								Appointment Summary
 							</h3>
-							<div className='space-y-2'>
+							{/* Use a 2-column grid for summary details */}
+							<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+								{/* Date */}
 								<div className='flex items-start'>
 									<CalendarIcon
 										size={18}
-										className='text-gray-500 mr-2 mt-0.5'
+										className='text-gray-500 mr-2 mt-0.5 flex-shrink-0'
 									/>
 									<div>
 										<p className='text-sm font-medium'>Date</p>
 										<p className='text-sm text-gray-600'>
 											{date
-												? format(date as Date, 'MMMM d, yyyy')
+												? format(date as Date, 'dd/MM/yyyy') // Use DD/MM/YYYY format
 												: 'Not selected'}
 										</p>
 									</div>
 								</div>
+
+								{/* Time */}
 								<div className='flex items-start'>
-									<Clock size={18} className='text-gray-500 mr-2 mt-0.5' />
+									<Clock
+										size={18}
+										className='text-gray-500 mr-2 mt-0.5 flex-shrink-0'
+									/>
 									<div>
 										<p className='text-sm font-medium'>Time</p>
 										<p className='text-sm text-gray-600'>
@@ -301,23 +433,49 @@ const AppointmentScheduling: React.FC = () => {
 										</p>
 									</div>
 								</div>
+
+								{/* Property */}
 								<div className='flex items-start'>
-									<MapPin size={18} className='text-gray-500 mr-2 mt-0.5' />
+									<MapPin
+										size={18}
+										className='text-gray-500 mr-2 mt-0.5 flex-shrink-0'
+									/>
 									<div>
-										<p className='text-sm font-medium'>Property</p>
+										<p className='text-sm font-medium'>Address</p>
 										<p className='text-sm text-gray-600'>
-											{availableProperties.find((p) => p.id === propertyId)
-												?.address || 'Not selected'}
+											{propertyDetails
+												? `${propertyDetails.address}, ${propertyDetails.suburb}, ${propertyDetails.city}`
+												: 'Loading property...'}
 										</p>
 									</div>
 								</div>
+
+								{/* Agent */}
 								<div className='flex items-start'>
-									<User size={18} className='text-gray-500 mr-2 mt-0.5' />
+									<User
+										size={18}
+										className='text-gray-500 mr-2 mt-0.5 flex-shrink-0'
+									/>
 									<div>
 										<p className='text-sm font-medium'>Agent</p>
 										<p className='text-sm text-gray-600'>
-											John Smith (Property Manager)
+											{agentDetails
+												? `${agentDetails.first_name} ${agentDetails.last_name}`
+												: 'Loading agent...'}
+											{agentDetails?.company_name &&
+												` (${agentDetails.company_name})`}
 										</p>
+										{/* Add Agent Contact Info */}
+										{agentDetails?.email && (
+											<p className='text-sm text-gray-500 mt-1'>
+												{agentDetails.email}
+											</p>
+										)}
+										{agentDetails?.phone && (
+											<p className='text-sm text-gray-500'>
+												{agentDetails.phone}
+											</p>
+										)}
 									</div>
 								</div>
 							</div>
@@ -326,8 +484,7 @@ const AppointmentScheduling: React.FC = () => {
 						<Button
 							type='submit'
 							isLoading={isLoading}
-							disabled={!date || !timeSlot || !propertyId}
-							className='w-full'
+							disabled={!date || !timeSlot || !approvedApplication || isLoading}
 						>
 							Schedule Appointment
 						</Button>
@@ -335,7 +492,6 @@ const AppointmentScheduling: React.FC = () => {
 				</CardContent>
 			</Card>
 
-			{/* Upcoming Appointments */}
 			<Card className='mt-6'>
 				<CardHeader>
 					<h2 className='text-lg font-semibold'>Your Upcoming Appointments</h2>
@@ -357,16 +513,15 @@ const AppointmentScheduling: React.FC = () => {
 													className='text-blue-500 mr-2'
 												/>
 												<span className='font-medium'>
-													{appointment.date} at {appointment.time}
+													{appointment.date} at {appointment.start_time}
 												</span>
 											</div>
 											<p className='text-sm text-gray-600 mb-1'>
 												<MapPin size={14} className='inline mr-1' />
-												{
-													availableProperties.find(
-														(p) => p.id === appointment.property_id,
-													)?.address
-												}
+												{approvedApplication?.property_id ===
+												appointment.property_id
+													? `${propertyDetails.address}, ${propertyDetails.suburb}`
+													: `Property ID: ${appointment.property_id}`}
 											</p>
 											{appointment.notes && (
 												<p className='text-sm text-gray-600 mt-2'>

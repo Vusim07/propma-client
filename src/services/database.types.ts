@@ -479,12 +479,10 @@ export type Database = {
 					agent_id: string;
 					property_id: string;
 					date: string;
-					time: string;
+					start_time: string; // Correct field name
+					end_time: string | null;
 					status: string;
 					notes: string | null;
-					employer: string;
-					employment_duration: number;
-					monthly_income: number;
 					created_at: string;
 				};
 				Insert: {
@@ -493,12 +491,10 @@ export type Database = {
 					agent_id: string;
 					property_id: string;
 					date: string;
-					time: string;
+					start_time: string; // Changed from 'time' to 'start_time'
+					end_time?: string | null;
 					status: string;
 					notes?: string | null;
-					employer: string;
-					employment_duration: number;
-					monthly_income: number;
 					created_at?: string;
 				};
 				Update: {
@@ -507,12 +503,10 @@ export type Database = {
 					agent_id?: string;
 					property_id?: string;
 					date?: string;
-					time?: string;
+					start_time?: string; // Changed from 'time' to 'start_time'
+					end_time?: string | null;
 					status?: string;
 					notes?: string | null;
-					employer?: string;
-					employment_duration?: number;
-					monthly_income?: number;
 					created_at?: string;
 				};
 				Relationships: [
