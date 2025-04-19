@@ -20,7 +20,9 @@ import {
 	AlertCircle,
 	ArrowLeft,
 	Home,
+	Eye,
 } from 'lucide-react';
+import DocumentViewerSheet from '../../components/agent/DocumentViewerSheet';
 
 type ScreeningReportWithDetails = Tables<'screening_reports'> & {
 	tenant_profiles: Tables<'tenant_profiles'> | null;
@@ -713,42 +715,41 @@ const DetailedScreening: React.FC = () => {
 				</CardHeader>
 				<CardContent>
 					{documents && documents.length > 0 ? (
-						<div className='space-y-6'>
+						<div className='space-y-4'>
 							{documents.map((doc: Tables<'documents'>) => (
 								<div
 									key={doc.id}
 									className='border border-gray-200 rounded-lg overflow-hidden'
 								>
-									<div className='bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between'>
-										<div className='flex items-center'>
-											<FileText className='h-5 w-5 text-blue-500 mr-2' />
-											<div>
-												<p className='font-medium'>
+									<div className='bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2'>
+										<div className='flex items-center flex-grow'>
+											<FileText className='h-5 w-5 text-blue-500 mr-3 flex-shrink-0' />
+											<div className='flex-grow'>
+												<p className='font-medium text-sm'>
 													{doc.file_name ?? 'Unknown File'}
 												</p>
 												<p className='text-xs text-gray-500'>
 													{new Date(doc.created_at).toLocaleDateString()} •{' '}
 													{doc.file_size
 														? `${(doc.file_size / 1024).toFixed(1)} KB`
-														: ''}
+														: ''}{' '}
+													•{' '}
+													<span className='capitalize'>
+														{doc.document_type?.replace('_', ' ') ??
+															'Unknown Type'}
+													</span>
 												</p>
 											</div>
 										</div>
-										<Badge variant='info' className='capitalize'>
-											{doc.document_type?.replace('_', ' ') ?? 'Unknown Type'}
-										</Badge>
-									</div>
-									<div className='p-4'>
-										<h3 className='text-sm font-medium mb-2'>
-											Extracted Data / Notes
-										</h3>
-										<div className='bg-gray-50 p-3 rounded border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap'>
-											{doc.notes ??
-												(typeof doc.extracted_data === 'string'
-													? doc.extracted_data
-													: JSON.stringify(doc.extracted_data, null, 2) ??
-													  'No extracted data or notes.')}
-										</div>
+										<DocumentViewerSheet
+											document={doc}
+											trigger={
+												<Button variant='outline' size='sm'>
+													<Eye size={16} className='mr-1.5' />
+													View Document
+												</Button>
+											}
+										/>
 									</div>
 								</div>
 							))}
