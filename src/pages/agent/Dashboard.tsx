@@ -7,7 +7,25 @@ import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
 import Badge from '../../components/ui/Badge';
 import { Link } from 'react-router-dom';
-import { FileText, CheckSquare, ArrowRight, Home, Clock } from 'lucide-react';
+import {
+	FileText,
+	CheckSquare,
+	ArrowRight,
+	Home,
+	Clock,
+	CalendarDays,
+	Users,
+} from 'lucide-react';
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from '../../components/ui/Table';
+import { format } from 'date-fns';
+import { ApplicationWithRelations } from '../../types';
 
 const AgentDashboard: React.FC = () => {
 	const { user } = useAuthStore();
@@ -16,9 +34,11 @@ const AgentDashboard: React.FC = () => {
 		applications,
 		properties,
 		workflowLogs,
+		appointments,
 		fetchApplications,
 		fetchProperties,
 		fetchWorkflowLogs,
+		fetchAppointments,
 		isLoading,
 	} = useAgentStore();
 
@@ -28,12 +48,14 @@ const AgentDashboard: React.FC = () => {
 			fetchApplications(user.id);
 			fetchProperties(user.id);
 			fetchWorkflowLogs();
+			fetchAppointments(user.id);
 		}
 	}, [
 		user,
 		fetchApplications,
 		fetchProperties,
 		fetchWorkflowLogs,
+		fetchAppointments,
 		setPageTitle,
 	]);
 
@@ -45,19 +67,42 @@ const AgentDashboard: React.FC = () => {
 		);
 	}
 
+	// Format applications with proper types
+	const formattedApplications = applications.map((application) => ({
+		...application,
+		tenant_profiles:
+			application as unknown as ApplicationWithRelations['tenant_profiles'],
+		properties:
+			application as unknown as ApplicationWithRelations['properties'],
+		submitted_at_formatted: format(
+			new Date(application.created_at),
+			'dd/MM/yyyy',
+		),
+	}));
+
 	// Calculate metrics
-	const pendingApplications = applications.filter(
+	const pendingApplications = formattedApplications.filter(
 		(app) => app.status === 'pending',
 	).length;
-	const approvedApplications = applications.filter(
+	const approvedApplications = formattedApplications.filter(
 		(app) => app.status === 'approved',
 	).length;
-	const rejectedApplications = applications.filter(
+	const rejectedApplications = formattedApplications.filter(
 		(app) => app.status === 'rejected',
 	).length;
 
 	// Get recent workflow activities
 	const recentWorkflowActivities = workflowLogs.slice(0, 5);
+
+	// Filter appointments for today
+	const todayString = format(new Date(), 'yyyy-MM-dd');
+	const todaysAppointments = appointments
+		.filter((appt) => appt.date === todayString && appt.status === 'scheduled')
+		.sort((a, b) => a.start_time.localeCompare(b.start_time));
+
+	// Get recent applications
+	const recentApplications = formattedApplications.slice(0, 5);
+	console.log('Recent Applications:', recentApplications);
 
 	return (
 		<div>
@@ -88,7 +133,9 @@ const AgentDashboard: React.FC = () => {
 								<p className='text-sm font-medium text-gray-500'>
 									Applications
 								</p>
-								<p className='text-3xl font-bold mt-1'>{applications.length}</p>
+								<p className='text-3xl font-bold mt-1'>
+									{formattedApplications.length}
+								</p>
 							</div>
 							<div className='bg-green-100 p-3 rounded-full'>
 								<FileText className='h-6 w-6 text-green-600' />
@@ -114,51 +161,67 @@ const AgentDashboard: React.FC = () => {
 				</Card>
 			</div>
 
-			<div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8'>
+			<div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8'>
 				{/* Recent Applications */}
-				<Card>
+				<Card className='lg:col-span-1'>
 					<CardHeader className='flex items-center justify-between'>
 						<h2 className='text-lg font-semibold'>Recent Applications</h2>
-						<FileText className='h-5 w-5 text-blue-600' />
+						<Users className='h-5 w-5 text-blue-600' />
 					</CardHeader>
 					<CardContent>
-						{applications.length > 0 ? (
-							<div className='divide-y divide-gray-200'>
-								{applications.slice(0, 5).map((application) => (
-									<div
-										key={application.id}
-										className='py-3 first:pt-0 last:pb-0'
-									>
-										<div className='flex items-center justify-between'>
-											<div>
-												<p className='font-medium'>
-													Tenant #{application.tenant_id}
-												</p>
-												<p className='text-sm text-gray-500'>
-													Property #{application.property_id} •{' '}
-													{new Date(
-														application.created_at,
-													).toLocaleDateString()}
-												</p>
-											</div>
-											<Badge
-												variant={
-													application.status === 'approved'
-														? 'success'
-														: application.status === 'rejected'
-														? 'danger'
-														: 'warning'
-												}
-											>
-												{application.status.toUpperCase()}
-											</Badge>
-										</div>
-									</div>
-								))}
+						{recentApplications.length > 0 ? (
+							<div className='max-h-96 overflow-y-auto'>
+								<Table>
+									<TableHeader>
+										<TableRow>
+											<TableHead>Tenant</TableHead>
+											<TableHead>Property</TableHead>
+											<TableHead>Status</TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{recentApplications.map((application) => (
+											<TableRow key={application.id}>
+												<TableCell className='font-medium truncate max-w-[100px]'>
+													{application.tenant_profiles?.first_name}{' '}
+													{application.tenant_profiles?.last_name ||
+														`Tenant #${application.tenant_id}`}
+													<p className='text-xs text-gray-400'>
+														{application.submitted_at_formatted ||
+															'Date unknown'}
+													</p>
+												</TableCell>
+												<TableCell className='truncate max-w-[100px]'>
+													{application.properties?.properties?.address?.split(
+														',',
+													)[0] || `Property #${application.property_id}`}
+												</TableCell>
+												<TableCell>
+													<Badge
+														variant={
+															application.status === 'approved'
+																? 'success'
+																: application.status === 'rejected'
+																? 'danger'
+																: application.status === 'pending'
+																? 'warning'
+																: 'default'
+														}
+													>
+														{application.status
+															? application.status.charAt(0).toUpperCase() +
+															  application.status.slice(1)
+															: 'Unknown'}
+													</Badge>
+												</TableCell>
+											</TableRow>
+										))}
+									</TableBody>
+								</Table>
 							</div>
 						) : (
 							<p className='text-gray-500 text-center py-4'>
-								No applications found
+								No recent applications found
 							</p>
 						)}
 
@@ -166,7 +229,7 @@ const AgentDashboard: React.FC = () => {
 							<Link to='/agent/applications'>
 								<Button
 									variant='outline'
-									className='w-full flex justify-between items-center'
+									className='w-full flex justify-center items-center gap-2'
 								>
 									<span>View All Applications</span>
 									<ArrowRight size={16} />
@@ -176,8 +239,61 @@ const AgentDashboard: React.FC = () => {
 					</CardContent>
 				</Card>
 
+				{/* Today's Appointments */}
+				<Card className='lg:col-span-1'>
+					<CardHeader className='flex items-center justify-between'>
+						<h2 className='text-lg font-semibold'>Today's Appointments</h2>
+						<CalendarDays className='h-5 w-5 text-blue-600' />
+					</CardHeader>
+					<CardContent>
+						{todaysAppointments.length > 0 ? (
+							<div className='max-h-72 overflow-y-auto'>
+								<Table>
+									<TableHeader>
+										<TableRow>
+											<TableHead>Time</TableHead>
+											<TableHead>Tenant</TableHead>
+											<TableHead>Property</TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{todaysAppointments.map((appointment) => (
+											<TableRow key={appointment.id}>
+												<TableCell className='font-medium'>
+													{appointment.start_time}
+												</TableCell>
+												<TableCell>
+													{appointment.tenant_name || 'N/A'}
+												</TableCell>
+												<TableCell>
+													{appointment.property_address?.split(',')[0] || 'N/A'}
+												</TableCell>
+											</TableRow>
+										))}
+									</TableBody>
+								</Table>
+							</div>
+						) : (
+							<p className='text-gray-500 text-center py-4'>
+								No appointments scheduled for today
+							</p>
+						)}
+						<div className='mt-4'>
+							<Link to='/agent/appointments'>
+								<Button
+									variant='outline'
+									className='w-full flex justify-between items-center'
+								>
+									<span>View All Appointments</span>
+									<ArrowRight size={16} />
+								</Button>
+							</Link>
+						</div>
+					</CardContent>
+				</Card>
+
 				{/* Recent Workflow Activities */}
-				<Card>
+				<Card className='lg:col-span-1'>
 					<CardHeader className='flex items-center justify-between'>
 						<h2 className='text-lg font-semibold'>
 							Recent Workflow Activities
@@ -247,12 +363,9 @@ const AgentDashboard: React.FC = () => {
 							</div>
 							<div className='w-full bg-gray-200 rounded-full h-2.5'>
 								<div
-									className='bg-yellow-500 h-2.5 rounded-full'
-									style={{
-										width: `${
-											(pendingApplications / applications.length) * 100
-										}%`,
-									}}
+									className={`bg-yellow-500 h-2.5 rounded-full w-[${
+										(pendingApplications / formattedApplications.length) * 100
+									}%]`}
 								></div>
 							</div>
 						</div>
@@ -264,12 +377,9 @@ const AgentDashboard: React.FC = () => {
 							</div>
 							<div className='w-full bg-gray-200 rounded-full h-2.5'>
 								<div
-									className='bg-green-500 h-2.5 rounded-full'
-									style={{
-										width: `${
-											(approvedApplications / applications.length) * 100
-										}%`,
-									}}
+									className={`bg-green-500 h-2.5 rounded-full w-[${
+										(approvedApplications / formattedApplications.length) * 100
+									}%]`}
 								></div>
 							</div>
 						</div>
@@ -281,12 +391,9 @@ const AgentDashboard: React.FC = () => {
 							</div>
 							<div className='w-full bg-gray-200 rounded-full h-2.5'>
 								<div
-									className='bg-red-500 h-2.5 rounded-full'
-									style={{
-										width: `${
-											(rejectedApplications / applications.length) * 100
-										}%`,
-									}}
+									className={`bg-red-500 h-2.5 rounded-full w-[${
+										(rejectedApplications / formattedApplications.length) * 100
+									}%]`}
 								></div>
 							</div>
 						</div>

@@ -8,6 +8,7 @@ import {
 	EmailWorkflow,
 	WorkflowLog,
 	InsertEmailWorkflow,
+	Appointment, // Import Appointment type
 } from '../types';
 
 // Add proper typing for the database workflow fields
@@ -57,6 +58,7 @@ interface AgentState {
 	properties: Property[];
 	workflows: EmailWorkflow[];
 	workflowLogs: WorkflowLog[];
+	appointments: Appointment[]; // Add appointments state
 	isLoading: boolean;
 	error: string | null;
 
@@ -83,6 +85,7 @@ interface AgentState {
 	) => Promise<void>; // Changed type
 	deleteWorkflow: (id: string) => Promise<void>;
 	fetchWorkflowLogs: (workflowId?: string) => Promise<void>;
+	fetchAppointments: (agentId: string) => Promise<void>; // Add fetchAppointments function signature
 	diagnosticCheck: () => Promise<void>; // New diagnostic function
 }
 
@@ -91,6 +94,7 @@ export const useAgentStore = create<AgentState>((set) => ({
 	properties: [],
 	workflows: [],
 	workflowLogs: [],
+	appointments: [], // Initialize appointments state
 	isLoading: false,
 	error: null,
 
@@ -458,6 +462,57 @@ export const useAgentStore = create<AgentState>((set) => ({
 		}
 	},
 
+	// Add fetchAppointments function
+	fetchAppointments: async (agentId) => {
+		set({ isLoading: true, error: null });
+		try {
+			console.log('Fetching appointments for agent:', agentId);
+			const { data, error } = await supabase
+				.from('appointments')
+				.select(
+					`
+					*,
+					tenant_profiles:tenant_id(id, first_name, last_name, phone),
+					properties:property_id(id, address, property_type, monthly_rent)
+				`,
+				)
+				.eq('agent_id', agentId);
+
+			if (error) {
+				console.error('Error fetching appointments:', error);
+				throw error;
+			}
+
+			// Format data similar to ManageAppointments component
+			const formattedAppointments = (data || []).map((appointment) => ({
+				...appointment,
+				tenant_name: appointment.tenant_profiles
+					? `${appointment.tenant_profiles.first_name} ${appointment.tenant_profiles.last_name}`
+					: 'Unknown Tenant',
+				tenant_phone: appointment.tenant_profiles?.phone,
+				property_address: appointment.properties?.address || 'Unknown Property',
+				property_type: appointment.properties?.property_type || 'Unknown Type',
+				monthly_rent: appointment.properties?.monthly_rent,
+				// Ensure start_time and end_time are strings if needed by Appointment type
+				start_time: String(appointment.start_time),
+				end_time: appointment.end_time ? String(appointment.end_time) : null,
+			}));
+
+			console.log(
+				'Appointments fetched successfully:',
+				formattedAppointments.length,
+			);
+			set({ appointments: formattedAppointments as any, isLoading: false });
+		} catch (error) {
+			console.error('Failed to fetch appointments:', {
+				error,
+				message: (error as Error).message,
+				stack: (error as Error).stack,
+			});
+			set({ error: (error as Error).message, isLoading: false });
+		}
+	},
+
 	// Add a diagnostic function to help troubleshoot database issues
 	diagnosticCheck: async () => {
 		try {
@@ -466,6 +521,9 @@ export const useAgentStore = create<AgentState>((set) => ({
 			await logTableSchema('properties');
 			await logTableSchema('tenant_profiles');
 			await logTableSchema('users');
+			await logTableSchema('appointments'); // Check appointments table too
+			await logTableSchema('email_workflows');
+			await logTableSchema('workflow_logs');
 
 			// Test a simple query to check RLS policies
 			const { data, error } = await supabase

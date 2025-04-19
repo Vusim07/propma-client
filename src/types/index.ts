@@ -81,10 +81,10 @@ export type UpdateApplication = UpdateTables<'applications'>;
 
 // Application with joined data and formatting
 export type ApplicationWithRelations = Application & {
-	property?: PropertyWithFormatting;
-	tenant?: TenantProfile;
-	created_at_formatted: string;
-	decision_at_formatted: string | null;
+	properties?: Property; // Changed from PropertyWithFormatting as formatting happens later
+	tenant_profiles?: TenantProfile; // Changed from tenant to tenant_profiles to match store query
+	submitted_at_formatted?: string; // Renamed from created_at_formatted
+	decision_at_formatted?: string | null;
 };
 
 // Screening report types
@@ -93,7 +93,32 @@ export type InsertScreeningReport = InsertTables<'screening_reports'>;
 export type UpdateScreeningReport = UpdateTables<'screening_reports'>;
 
 // Appointment types
-export type Appointment = Tables<'appointments'>;
+export type Appointment = Tables<'appointments'> & {
+	// Add fields populated by joins/formatting in store/components
+	tenant_profiles?: {
+		// Nested structure from Supabase join
+		id: string;
+		first_name: string;
+		last_name: string;
+		phone: string | null;
+	};
+	properties?: {
+		// Nested structure from Supabase join
+		id: string;
+		address: string;
+		property_type: string;
+		monthly_rent: number;
+	};
+	// Add fields added during formatting/processing
+	tenant_name?: string;
+	tenant_phone?: string | null;
+	property_address?: string;
+	property_type?: string;
+	monthly_rent?: number;
+	// Ensure start_time and end_time are consistently string | null
+	start_time: string; // Assuming it's always fetched as string or formatted to string
+	end_time: string | null;
+};
 export type InsertAppointment = InsertTables<'appointments'>;
 export type UpdateAppointment = UpdateTables<'appointments'>;
 
@@ -103,7 +128,9 @@ export type InsertEmailWorkflow = InsertTables<'email_workflows'>;
 export type UpdateEmailWorkflow = UpdateTables<'email_workflows'>;
 
 // Workflow log types
-export type WorkflowLog = Tables<'workflow_logs'>;
+export type WorkflowLog = Tables<'workflow_logs'> & {
+	triggered_at_formatted?: string; // Add formatted field
+};
 export type InsertWorkflowLog = InsertTables<'workflow_logs'>;
 export type UpdateWorkflowLog = UpdateTables<'workflow_logs'>;
 
@@ -184,7 +211,7 @@ export function formatApplication(
 		...application,
 		property: property ? formatProperty(property) : undefined,
 		tenant,
-		created_at_formatted: new Intl.DateTimeFormat('en-ZA', {
+		submitted_at_formatted: new Intl.DateTimeFormat('en-ZA', {
 			day: '2-digit',
 			month: '2-digit',
 			year: 'numeric',
