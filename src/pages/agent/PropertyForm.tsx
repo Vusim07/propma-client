@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { useAgentStore } from '../../stores/agentStore';
@@ -15,9 +16,11 @@ import {
 } from '../../components/ui/Select';
 import Spinner from '../../components/ui/Spinner';
 import Alert from '../../components/ui/Alert';
-import { ArrowLeft, Plus, X } from 'lucide-react';
+import { ArrowLeft, Plus, X, Upload } from 'lucide-react';
 import { Property } from '../../types';
 import { showToast } from '../../utils/toast';
+import { useDropzone } from 'react-dropzone';
+import { uploadPropertyImage } from '../../services/storageService';
 
 const PropertyForm: React.FC = () => {
 	const { id } = useParams<{ id: string }>();
@@ -58,6 +61,7 @@ const PropertyForm: React.FC = () => {
 	const [imageUrl, setImageUrl] = useState('');
 	const [formError, setFormError] = useState('');
 	const [isEditMode, setIsEditMode] = useState(false);
+	const [isUploading, setIsUploading] = useState(false);
 
 	useEffect(() => {
 		if (user) {
@@ -153,7 +157,7 @@ const PropertyForm: React.FC = () => {
 		});
 	};
 
-	const addImage = () => {
+	const addImageUrl = () => {
 		if (imageUrl.trim() && !formData.images?.includes(imageUrl.trim())) {
 			setFormData({
 				...formData,
@@ -169,6 +173,66 @@ const PropertyForm: React.FC = () => {
 			images: formData.images?.filter((_, i) => i !== index),
 		});
 	};
+
+	const onDrop = useCallback(
+		async (acceptedFiles: File[]) => {
+			if (!user) {
+				showToast.error('You must be logged in to upload images.');
+				return;
+			}
+
+			setIsUploading(true);
+			setFormError(null as any);
+
+			const uploadPromises = acceptedFiles.map(async (file) => {
+				try {
+					const uploadedUrl = await uploadPropertyImage(file, user.id, id);
+					return uploadedUrl;
+				} catch (uploadError) {
+					console.error('Image upload failed:', uploadError);
+					showToast.error(`Failed to upload ${file.name}.`);
+					return null;
+				}
+			});
+
+			try {
+				const results = await Promise.all(uploadPromises);
+				const successfulUrls = results.filter(
+					(url) => url !== null,
+				) as string[];
+
+				if (successfulUrls.length > 0) {
+					setFormData((prev) => ({
+						...prev,
+						images: [...(prev.images || []), ...successfulUrls],
+					}));
+					showToast.success(
+						`${successfulUrls.length} image(s) uploaded successfully.`,
+					);
+				}
+			} catch (error) {
+				console.error('Error processing uploads:', error);
+				setFormError('An error occurred during image upload.');
+			} finally {
+				setIsUploading(false);
+			}
+		},
+		[user, id],
+	);
+
+	const { getRootProps, getInputProps, isDragActive } = useDropzone({
+		onDrop,
+		accept: {
+			'image/jpeg': [],
+			'image/png': [],
+			'image/webp': [],
+		},
+		maxSize: 5 * 1024 * 1024,
+		onDropRejected: (fileRejections) => {
+			const message = fileRejections[0].errors[0].message;
+			showToast.error(`Image rejected: ${message}`);
+		},
+	});
 
 	const validateForm = () => {
 		if (!formData.address) {
@@ -531,8 +595,8 @@ const PropertyForm: React.FC = () => {
 					</CardHeader>
 					<CardContent>
 						<p className='text-sm text-gray-600 mb-4'>
-							Add image URLs for this property. These will be displayed to
-							potential tenants.
+							Add images by entering a URL or uploading files. These will be
+							displayed to potential tenants.
 						</p>
 
 						<div className='flex space-x-2 mb-4'>
@@ -544,12 +608,45 @@ const PropertyForm: React.FC = () => {
 							/>
 							<Button
 								type='button'
-								onClick={addImage}
+								onClick={addImageUrl}
 								disabled={!imageUrl.trim()}
 							>
 								<Plus size={16} className='mr-1' />
-								Add
+								Add URL
 							</Button>
+						</div>
+
+						<div
+							{...getRootProps()}
+							className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors mb-4 ${
+								isUploading ? 'bg-gray-100' : 'bg-white'
+							} ${
+								isDragActive
+									? 'border-blue-500 bg-blue-50'
+									: 'border-gray-300 hover:border-blue-400'
+							}`}
+						>
+							<input {...getInputProps()} />
+							{isUploading ? (
+								<div className='flex flex-col items-center justify-center'>
+									<Spinner className='mb-2' />
+									<p className='text-sm text-gray-600'>Uploading...</p>
+								</div>
+							) : (
+								<div className='flex flex-col items-center justify-center'>
+									<Upload className='h-10 w-10 text-gray-400 mb-2' />
+									{isDragActive ? (
+										<p className='text-blue-500'>Drop images here...</p>
+									) : (
+										<p className='text-gray-600'>
+											Drag & drop images here, or click to select
+										</p>
+									)}
+									<p className='text-xs text-gray-500 mt-1'>
+										Max 5MB per image (JPG, PNG, WEBP)
+									</p>
+								</div>
+							)}
 						</div>
 
 						<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4'>
@@ -584,10 +681,16 @@ const PropertyForm: React.FC = () => {
 						variant='secondary'
 						type='button'
 						onClick={() => navigate('/agent/properties')}
+						disabled={isLoading || isUploading}
 					>
 						Cancel
 					</Button>
-					<Button variant='primary' type='submit' isLoading={isLoading}>
+					<Button
+						variant='primary'
+						type='submit'
+						isLoading={isLoading || isUploading}
+						disabled={isLoading || isUploading}
+					>
 						{isEditMode ? 'Update Property' : 'Add Property'}
 					</Button>
 				</div>
