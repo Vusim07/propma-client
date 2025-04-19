@@ -23,6 +23,7 @@ import {
 import AuthLayout from '../../components/layout/AuthLayout';
 import LoginComponent from '../auth/Login';
 import RegisterComponent from '../auth/Register';
+import { Textarea } from '@/components/ui/Textarea';
 
 // Create context for auth flow type
 export const AuthFlowContext = createContext<{ isPropertyFlow: boolean }>({
@@ -910,7 +911,7 @@ const PropertyApplication: React.FC = () => {
 								>
 									Additional Notes (optional)
 								</label>
-								<textarea
+								<Textarea
 									id='notes'
 									className='w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
 									rows={3}

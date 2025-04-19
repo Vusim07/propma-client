@@ -21,6 +21,7 @@ import Badge from '../../components/ui/Badge';
 import 'react-calendar/dist/Calendar.css';
 import { supabase } from '../../services/supabase';
 import { Tables } from '../../services/database.types';
+import { Textarea } from '@/components/ui/Textarea';
 
 type ValuePiece = Date | null;
 type Value = ValuePiece | [ValuePiece, ValuePiece];
@@ -441,7 +442,7 @@ const AppointmentScheduling: React.FC = () => {
 							<label className='block text-sm font-medium text-gray-700 mb-1'>
 								Notes (Optional)
 							</label>
-							<textarea
+							<Textarea
 								value={notes}
 								onChange={(e) => setNotes(e.target.value)}
 								placeholder='Any special requests or questions about the property...'
