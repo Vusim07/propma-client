@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { Card, CardHeader, CardContent } from '../../components/ui/Card';
@@ -14,7 +15,7 @@ import {
 	SheetTitle,
 	SheetFooter,
 } from '../../components/ui/sheet';
-import { format, parseISO, isBefore, addDays } from 'date-fns';
+import { format, parseISO, isBefore, addDays, parse, isPast } from 'date-fns';
 import {
 	Calendar as CalendarIcon,
 	Clock,
@@ -124,7 +125,7 @@ const ManageAppointments: React.FC = () => {
 					}),
 				);
 
-				setAppointments(formattedAppointments);
+				setAppointments(formattedAppointments as any);
 				setIsLoading(false);
 			} catch (error: any) {
 				console.error('Error fetching data:', error);
@@ -221,6 +222,30 @@ const ManageAppointments: React.FC = () => {
 		setIsSheetOpen(true);
 	};
 
+	// Helper function to check if an appointment time has passed
+	const isAppointmentPast = (appointment: Appointment): boolean => {
+		const appointmentDateStr = appointment.date;
+		// Use end_time if available, otherwise use start_time
+		const appointmentTimeStr = appointment.end_time || appointment.start_time;
+
+		try {
+			// Combine date and time strings and parse
+			const appointmentDateTime = parse(
+				`${appointmentDateStr} ${appointmentTimeStr}`,
+				'yyyy-MM-dd HH:mm:ss', // Adjust format if your time is HH:mm
+				new Date(),
+			);
+
+			// Check if the parsed date is valid and if it's in the past
+			return (
+				!isNaN(appointmentDateTime.getTime()) && isPast(appointmentDateTime)
+			);
+		} catch (e) {
+			console.error('Error parsing appointment date/time:', e);
+			return false; // Treat parse errors as not past
+		}
+	};
+
 	const selectedDateAppointments = date
 		? getAppointmentsForDate(date as Date)
 		: [];
@@ -284,60 +309,80 @@ const ManageAppointments: React.FC = () => {
 									<Spinner />
 								</div>
 							) : selectedDateAppointments.length > 0 ? (
-								<div className='space-y-4'>
+								<div className='space-y-4 max-h-72 overflow-y-auto'>
 									{selectedDateAppointments
 										.sort((a, b) => a.start_time.localeCompare(b.start_time))
-										.map((appointment) => (
-											<div
-												key={appointment.id}
-												className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-													selectedAppointment?.id === appointment.id
-														? 'border-blue-500 bg-blue-50'
-														: 'border-gray-200 hover:bg-gray-50'
-												}`}
-											>
-												<div className='flex items-center justify-between mb-2'>
-													<div className='flex items-center'>
-														<Clock size={16} className='text-blue-500 mr-2' />
-														<span className='font-medium'>
-															{appointment.start_time}
-															{appointment.end_time
-																? ` - ${appointment.end_time}`
-																: ''}
-														</span>
+										.map((appointment) => {
+											const isPastAppointment = isAppointmentPast(appointment);
+											return (
+												<div
+													key={appointment.id}
+													className={`p-3 border rounded-lg transition-colors ${
+														selectedAppointment?.id === appointment.id
+															? 'border-blue-500 bg-blue-50'
+															: isPastAppointment
+															? 'border-gray-200 bg-gray-100 opacity-60 cursor-not-allowed'
+															: 'border-gray-200 hover:bg-gray-50 cursor-pointer'
+													}`}
+													// Disable click for past appointments
+													onClick={
+														isPastAppointment
+															? undefined
+															: () => handleViewDetailsClick(appointment)
+													}
+												>
+													<div className='flex items-center justify-between mb-2'>
+														<div className='flex items-center'>
+															<Clock size={16} className='text-blue-500 mr-2' />
+															<span className='font-medium'>
+																{appointment.start_time}
+																{appointment.end_time
+																	? ` - ${appointment.end_time}`
+																	: ''}
+															</span>
+														</div>
+														<Badge
+															variant={
+																isPastAppointment
+																	? 'warning'
+																	: appointment.status === 'scheduled'
+																	? 'info'
+																	: appointment.status === 'completed'
+																	? 'success'
+																	: 'warning'
+															}
+														>
+															{isPastAppointment
+																? 'Past'
+																: appointment.status.charAt(0).toUpperCase() +
+																  appointment.status.slice(1)}
+														</Badge>
 													</div>
-													<Badge
-														variant={
-															appointment.status === 'scheduled'
-																? 'info'
-																: appointment.status === 'completed'
-																? 'success'
-																: 'warning'
-														}
-													>
-														{appointment.status.charAt(0).toUpperCase() +
-															appointment.status.slice(1)}
-													</Badge>
+													<div className='flex items-center text-sm text-gray-600 mb-1'>
+														<User size={14} className='mr-1' />
+														{appointment.tenant_name}
+													</div>
+													<div className='flex items-center text-sm text-gray-600'>
+														<MapPin size={14} className='mr-1' />
+														{appointment.property_address?.split(',')[0]}
+													</div>
+													<div className='mt-2'>
+														<Button
+															variant='outline'
+															size='sm'
+															onClick={
+																isPastAppointment
+																	? undefined
+																	: () => handleViewDetailsClick(appointment)
+															}
+															disabled={isPastAppointment}
+														>
+															View Details
+														</Button>
+													</div>
 												</div>
-												<div className='flex items-center text-sm text-gray-600 mb-1'>
-													<User size={14} className='mr-1' />
-													{appointment.tenant_name}
-												</div>
-												<div className='flex items-center text-sm text-gray-600'>
-													<MapPin size={14} className='mr-1' />
-													{appointment.property_address?.split(',')[0]}
-												</div>
-												<div className='mt-2'>
-													<Button
-														variant='outline'
-														size='sm'
-														onClick={() => handleViewDetailsClick(appointment)}
-													>
-														View Details
-													</Button>
-												</div>
-											</div>
-										))}
+											);
+										})}
 								</div>
 							) : (
 								<div className='text-center py-8 text-gray-500'>
@@ -357,8 +402,9 @@ const ManageAppointments: React.FC = () => {
 							<div className='flex justify-center py-8'>
 								<Spinner />
 							</div>
-						) : appointments.filter((a) => a.status === 'scheduled').length >
-						  0 ? (
+						) : appointments.filter(
+								(a) => a.status === 'scheduled' && !isAppointmentPast(a),
+						  ).length > 0 ? (
 							<div className='overflow-x-auto'>
 								<table className='min-w-full divide-y divide-gray-200'>
 									<thead className='bg-gray-50'>
@@ -397,7 +443,10 @@ const ManageAppointments: React.FC = () => {
 									</thead>
 									<tbody className='bg-white divide-y divide-gray-200'>
 										{appointments
-											.filter((a) => a.status === 'scheduled')
+											.filter(
+												(a) =>
+													a.status === 'scheduled' && !isAppointmentPast(a),
+											)
 											.sort(
 												(a, b) =>
 													new Date(a.date).getTime() -

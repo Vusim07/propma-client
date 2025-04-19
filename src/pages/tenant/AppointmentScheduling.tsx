@@ -8,7 +8,7 @@ import Button from '../../components/ui/Button';
 import Alert from '../../components/ui/Alert';
 import Spinner from '../../components/ui/Spinner';
 import Calendar from 'react-calendar';
-import { format, isBefore, addDays } from 'date-fns';
+import { format, parse, isPast, isBefore, addDays } from 'date-fns'; // Re-add isBefore and addDays
 import {
 	Calendar as CalendarIcon,
 	Clock,
@@ -61,6 +61,58 @@ const AppointmentScheduling: React.FC = () => {
 		'15:00-15:30',
 		'16:00-16:30',
 	];
+
+	// Helper function to check if an appointment time has passed
+	const isAppointmentPast = (appointment: Tables<'appointments'>): boolean => {
+		const now = new Date(); // Keep now for logging comparison
+		const appointmentDateStr = appointment.date;
+		const appointmentTimeStr = appointment.end_time || appointment.start_time;
+
+		try {
+			// Combine date and time strings and parse
+			// Adjust format to match the actual date string (yyyy/MM/dd)
+			const dateTimeFormat =
+				appointmentTimeStr.split(':').length === 3
+					? 'yyyy/MM/dd HH:mm:ss' // Changed from yyyy-MM-dd
+					: 'yyyy/MM/dd HH:mm'; // Changed from yyyy-MM-dd
+			const appointmentDateTime = parse(
+				`${appointmentDateStr} ${appointmentTimeStr}`,
+				dateTimeFormat,
+				new Date(), // Reference date for parsing
+			);
+
+			const isValid = !isNaN(appointmentDateTime.getTime());
+			const isPastDate = isValid && isPast(appointmentDateTime);
+
+			// Add detailed logging for diagnostics
+			console.log(`--- Checking Appointment ID: ${appointment.id} ---`);
+			console.log(
+				`  Raw Date: ${appointmentDateStr}, Raw Time: ${appointmentTimeStr}`,
+			);
+			console.log(
+				`  Combined String: ${appointmentDateStr} ${appointmentTimeStr}`,
+			);
+			console.log(`  Parsing Format: ${dateTimeFormat}`);
+			console.log(
+				`  Parsed DateTime: ${
+					isValid ? appointmentDateTime.toISOString() : 'INVALID DATE'
+				}`,
+			);
+			console.log(`  Current Time: ${now.toISOString()}`);
+			console.log(`  Is Past? ${isPastDate}`);
+			console.log(`-------------------------------------------------`);
+
+			return isValid && isPastDate;
+		} catch (e) {
+			console.error(
+				'Error parsing appointment date/time:',
+				e,
+				`Date: ${appointmentDateStr}`,
+				`Time: ${appointmentTimeStr}`,
+			);
+			return false; // Treat parse errors as not past
+		}
+	};
 
 	useEffect(() => {
 		setPageTitle('Appointments');
@@ -501,50 +553,68 @@ const AppointmentScheduling: React.FC = () => {
 						<div className='flex justify-center py-8'>
 							<Spinner />
 						</div>
-					) : appointments.length > 0 ? (
+					) : appointments.filter((app) => !isAppointmentPast(app)).length >
+					  0 ? (
 						<div className='divide-y divide-gray-200'>
-							{appointments.map((appointment) => (
-								<div key={appointment.id} className='py-4 first:pt-0 last:pb-0'>
-									<div className='flex items-start justify-between'>
-										<div>
-											<div className='flex items-center mb-1'>
-												<CalendarIcon
-													size={16}
-													className='text-blue-500 mr-2'
-												/>
-												<span className='font-medium'>
-													{appointment.date} at {appointment.start_time}
-												</span>
-											</div>
-											<p className='text-sm text-gray-600 mb-1'>
-												<MapPin size={14} className='inline mr-1' />
-												{approvedApplication?.property_id ===
-												appointment.property_id
-													? `${propertyDetails.address}, ${propertyDetails.suburb}`
-													: `Property ID: ${appointment.property_id}`}
-											</p>
-											{appointment.notes && (
-												<p className='text-sm text-gray-600 mt-2'>
-													<span className='font-medium'>Notes:</span>{' '}
-													{appointment.notes}
-												</p>
-											)}
-										</div>
-										<Badge
-											variant={
-												appointment.status === 'scheduled'
-													? 'info'
-													: appointment.status === 'completed'
-													? 'success'
-													: 'warning'
-											}
+							{appointments
+								.filter((app) => !isAppointmentPast(app)) // Filter out past appointments
+								.sort((a, b) => {
+									// Corrected sort function
+									const dateComparison =
+										new Date(a.date).getTime() - new Date(b.date).getTime();
+									if (dateComparison !== 0) return dateComparison;
+									return a.start_time.localeCompare(b.start_time);
+								})
+								.map(
+									(
+										appointment, // Ensure map returns valid JSX
+									) => (
+										<div
+											key={appointment.id}
+											className='py-4 first:pt-0 last:pb-0'
 										>
-											{appointment.status.charAt(0).toUpperCase() +
-												appointment.status.slice(1)}
-										</Badge>
-									</div>
-								</div>
-							))}
+											<div className='flex items-start justify-between'>
+												<div>
+													<div className='flex items-center mb-1'>
+														<CalendarIcon
+															size={16}
+															className='text-blue-500 mr-2'
+														/>
+														<span className='font-medium'>
+															{format(new Date(appointment.date), 'dd/MM/yyyy')}{' '}
+															at {appointment.start_time}
+														</span>
+													</div>
+													<p className='text-sm text-gray-600 mb-1'>
+														<MapPin size={14} className='inline mr-1' />
+														{approvedApplication?.property_id ===
+															appointment.property_id && propertyDetails
+															? `${propertyDetails.address}, ${propertyDetails.suburb}`
+															: `Property ID: ${appointment.property_id}`}
+													</p>
+													{appointment.notes && (
+														<p className='text-sm text-gray-600 mt-2'>
+															<span className='font-medium'>Notes:</span>{' '}
+															{appointment.notes}
+														</p>
+													)}
+												</div>
+												<Badge
+													variant={
+														appointment.status === 'scheduled'
+															? 'info'
+															: appointment.status === 'completed'
+															? 'success'
+															: 'warning'
+													}
+												>
+													{appointment.status.charAt(0).toUpperCase() +
+														appointment.status.slice(1)}
+												</Badge>
+											</div>
+										</div>
+									),
+								)}
 						</div>
 					) : (
 						<div className='text-center py-8'>
