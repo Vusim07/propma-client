@@ -35,6 +35,7 @@ import WorkflowManagement from './pages/agent/WorkflowManagement';
 import PropertyManagement from './pages/agent/PropertyManagement';
 import PropertyDetail from './pages/agent/PropertyDetail';
 import PropertyForm from './pages/agent/PropertyForm';
+import SubscriptionPage from './pages/agent/SubscriptionPage';
 
 // Layout Components
 import TenantLayout from './components/layout/TenantLayout';
@@ -232,6 +233,7 @@ function App() {
 						<Route path='screening/:id' element={<DetailedScreening />} />
 						<Route path='appointments' element={<ManageAppointments />} />
 						<Route path='workflows' element={<WorkflowManagement />} />
+						<Route path='subscription' element={<SubscriptionPage />} />
 					</Route>
 
 					{/* Redirect root to appropriate dashboard based on role */}

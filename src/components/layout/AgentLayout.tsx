@@ -13,6 +13,7 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	Menu,
+	CreditCard,
 } from 'lucide-react';
 import Button from '../ui/Button';
 
@@ -57,6 +58,11 @@ const AgentLayout: React.FC = () => {
 			to: '/agent/workflows',
 			icon: <Workflow size={20} />,
 			label: 'Workflows',
+		},
+		{
+			to: '/agent/subscription',
+			icon: <CreditCard size={20} />,
+			label: 'Subscription',
 		},
 	];
 
