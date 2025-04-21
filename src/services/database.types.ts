@@ -583,6 +583,102 @@ export type Database = {
 						referencedRelation: 'users';
 						referencedColumns: ['id'];
 					},
+					{
+						foreignKeyName: 'credit_reports_tenant_id_fkey';
+						columns: ['tenant_id'];
+						isOneToOne: false;
+						referencedRelation: 'tenant_profiles';
+						referencedColumns: ['id'];
+					},
+				];
+			};
+			credit_reports: {
+				Row: {
+					id: string; // Unique identifier for the credit report
+					tenant_id: string; // Foreign key to the tenant_profiles table
+					status: string; // Status of the report (e.g., "Success")
+					risk_type: string | null; // Risk type (e.g., "AVERAGE RISK")
+					risk_color: string | null; // Risk color (e.g., "245,236,86")
+					credit_score: number | null; // Credit score (e.g., 636)
+					thin_file_indicator: boolean; // Indicates if the file is thin
+					score_version: string | null; // Version of the score (e.g., "2")
+					score_type: string | null; // Type of the score (e.g., "CPA")
+					decline_reasons: Json | null; // Decline reasons as JSON array
+					enquiry_counts: Json | null; // JSON object for enquiry counts
+					addresses: Json | null; // JSON array for addresses
+					employers: Json | null; // JSON array for employer history
+					accounts: Json | null; // JSON array for account details
+					public_records: Json | null; // JSON array for public records
+					payment_history: boolean; // Indicates if payment history is available
+					property_details: Json | null; // JSON object for property details
+					directors: Json | null; // JSON array for director information
+					nlr_summary: Json | null; // JSON object for NLR summary
+					raw_data: Json | null; // Full raw JSON response for future-proofing
+					pdf_file: string | null; // Base64-encoded PDF file
+					report_date: string; // Date of the report
+					created_at: string; // Timestamp when the record was created
+					updated_at: string; // Timestamp when the record was last updated
+				};
+				Insert: {
+					id?: string;
+					tenant_id: string;
+					status: string;
+					risk_type?: string | null;
+					risk_color?: string | null;
+					credit_score?: number | null;
+					thin_file_indicator?: boolean;
+					score_version?: string | null;
+					score_type?: string | null;
+					decline_reasons?: Json | null;
+					enquiry_counts?: Json | null;
+					addresses?: Json | null;
+					employers?: Json | null;
+					accounts?: Json | null;
+					public_records?: Json | null;
+					payment_history?: boolean;
+					property_details?: Json | null;
+					directors?: Json | null;
+					nlr_summary?: Json | null;
+					raw_data?: Json | null;
+					pdf_file?: string | null;
+					report_date?: string;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					id?: string;
+					tenant_id?: string;
+					status?: string;
+					risk_type?: string | null;
+					risk_color?: string | null;
+					credit_score?: number | null;
+					thin_file_indicator?: boolean;
+					score_version?: string | null;
+					score_type?: string | null;
+					decline_reasons?: Json | null;
+					enquiry_counts?: Json | null;
+					addresses?: Json | null;
+					employers?: Json | null;
+					accounts?: Json | null;
+					public_records?: Json | null;
+					payment_history?: boolean;
+					property_details?: Json | null;
+					directors?: Json | null;
+					nlr_summary?: Json | null;
+					raw_data?: Json | null;
+					pdf_file?: string | null;
+					report_date?: string;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'credit_reports_tenant_id_fkey';
+						columns: ['tenant_id'];
+						isOneToOne: false;
+						referencedRelation: 'tenant_profiles';
+						referencedColumns: ['id'];
+					},
 				];
 			};
 		};
