@@ -9,6 +9,7 @@ import {
 	WorkflowLog,
 	InsertEmailWorkflow,
 	Appointment, // Import Appointment type
+	Subscription, // Add Subscription type import
 } from '../types';
 
 // Add proper typing for the database workflow fields
@@ -59,6 +60,7 @@ interface AgentState {
 	workflows: EmailWorkflow[];
 	workflowLogs: WorkflowLog[];
 	appointments: Appointment[]; // Add appointments state
+	subscriptions: Subscription[]; // Add subscriptions state
 	isLoading: boolean;
 	error: string | null;
 
@@ -86,6 +88,7 @@ interface AgentState {
 	deleteWorkflow: (id: string) => Promise<void>;
 	fetchWorkflowLogs: (workflowId?: string) => Promise<void>;
 	fetchAppointments: (agentId: string) => Promise<void>; // Add fetchAppointments function signature
+	fetchSubscriptions: (userId: string) => Promise<Subscription | null>; // Add fetchSubscriptions function signature
 	diagnosticCheck: () => Promise<void>; // New diagnostic function
 }
 
@@ -95,6 +98,7 @@ export const useAgentStore = create<AgentState>((set) => ({
 	workflows: [],
 	workflowLogs: [],
 	appointments: [], // Initialize appointments state
+	subscriptions: [], // Initialize subscriptions state
 	isLoading: false,
 	error: null,
 
@@ -510,6 +514,59 @@ export const useAgentStore = create<AgentState>((set) => ({
 				stack: (error as Error).stack,
 			});
 			set({ error: (error as Error).message, isLoading: false });
+		}
+	},
+
+	// Add fetchSubscriptions function
+	fetchSubscriptions: async (userId) => {
+		set({ isLoading: true, error: null });
+		try {
+			// First, check if the table exists and is accessible
+			console.log('Checking subscriptions table access...');
+			const { count, error: countError } = await supabase
+				.from('subscriptions')
+				.select('*', { count: 'exact', head: true });
+
+			if (countError) {
+				console.error('Error accessing subscriptions table:', countError);
+				throw new Error(`Database error: ${countError.message}`);
+			}
+
+			console.log(`Found ${count} total subscription records`);
+
+			// Then proceed with the actual query
+			console.log(`Fetching active subscription for user ${userId}...`);
+			const { data, error } = await supabase
+				.from('subscriptions')
+				.select('*')
+				.eq('user_id', userId)
+				.eq('status', 'active')
+				.order('created_at', { ascending: false })
+				.limit(1);
+
+			if (error) {
+				console.error('Error fetching subscription:', error);
+				throw error;
+			}
+
+			// Instead of using single(), which can throw 406 errors,
+			// manually get the first item if available
+			const subscription = data && data.length > 0 ? data[0] : null;
+			console.log('Subscription data:', subscription);
+
+			set({
+				subscriptions: subscription ? [subscription] : [],
+				isLoading: false,
+			});
+
+			return subscription;
+		} catch (error) {
+			console.error('Error fetching subscription:', error);
+			set({
+				error: (error as Error).message,
+				isLoading: false,
+			});
+			return null;
 		}
 	},
 

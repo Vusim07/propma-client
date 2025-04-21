@@ -15,6 +15,7 @@ interface InitializeSubscriptionParams {
 	planPrice: number;
 	email: string;
 	usageLimit: number;
+	isOneTime?: boolean; // Flag to indicate if this is a one-time payment
 }
 
 interface VerifyTransactionResult {
@@ -95,56 +96,81 @@ class PaystackService {
 		params: InitializeSubscriptionParams,
 	): Promise<{ subscriptionId: string; authorizationUrl: string }> {
 		try {
-			// Step 1: Create or fetch the Paystack plan
-			const planName = `${params.planName}-${params.usageLimit}`;
-			let planCode: string;
+			let planCode: string | undefined;
 
-			try {
-				// Try to create the plan (this will fail if it already exists)
-				planCode = await this.createPlan({
-					name: planName,
-					price: params.planPrice,
-					interval: 'monthly', // Set to monthly recurring
-				});
-				console.log(`Created new plan with code: ${planCode}`);
-			} catch (error) {
-				// Plan might already exist, so fetch plans and find matching one
-				console.log(
-					`Plan creation failed, checking if plan already exists: ${error}`,
-				);
-				const plansResponse = await this.makeRequest<{
-					data: Array<{ name: string; plan_code: string }>;
-				}>('GET', '/plan');
+			// For recurring subscriptions, create or fetch a plan
+			if (!params.isOneTime) {
+				// Step 1: Create or fetch the Paystack plan
+				const planName = `${params.planName}-${params.usageLimit}`;
 
-				const existingPlan = plansResponse.data.find(
-					(plan) => plan.name === planName,
-				);
-				if (!existingPlan) {
-					throw new Error('Failed to create plan and no matching plan found');
+				try {
+					// Try to create the plan (this will fail if it already exists)
+					planCode = await this.createPlan({
+						name: planName,
+						price: params.planPrice,
+						interval: 'monthly', // Set to monthly recurring
+					});
+					console.log(`Created new plan with code: ${planCode}`);
+				} catch (error) {
+					// Plan might already exist, so fetch plans and find matching one
+					console.log(
+						`Plan creation failed, checking if plan already exists: ${error}`,
+					);
+					const plansResponse = await this.makeRequest<{
+						data: Array<{ name: string; plan_code: string }>;
+					}>('GET', '/plan');
+
+					const existingPlan = plansResponse.data.find(
+						(plan) => plan.name === planName,
+					);
+					if (!existingPlan) {
+						throw new Error('Failed to create plan and no matching plan found');
+					}
+
+					planCode = existingPlan.plan_code;
+					console.log(`Using existing plan with code: ${planCode}`);
 				}
-
-				planCode = existingPlan.plan_code;
-				console.log(`Using existing plan with code: ${planCode}`);
 			}
 
-			// Step 2: Initialize a transaction to get authorization for the subscription
-			const response = await this.makeRequest<{
-				data: {
-					reference: string;
-					authorization_url: string;
+			// Step 2: Initialize a transaction with or without a plan
+			interface TransactionData {
+				email: string;
+				amount: number;
+				metadata: {
+					userId: string;
+					planName: string;
+					planPrice: number;
+					usageLimit: number;
+					isOneTime: boolean;
+					planCode?: string;
 				};
-			}>('POST', '/transaction/initialize', {
+				plan?: string;
+			}
+
+			const transactionData: TransactionData = {
 				email: params.email,
-				amount: params.planPrice * 100, // First payment amount
+				amount: params.planPrice * 100, // Payment amount in kobo (ZAR cents)
 				metadata: {
 					userId: params.userId,
 					planName: params.planName,
 					planPrice: params.planPrice,
 					usageLimit: params.usageLimit,
-					planCode: planCode, // Store the plan code for subscription creation
+					isOneTime: params.isOneTime || false,
 				},
-				plan: planCode, // Include the plan code
-			});
+			};
+
+			// Only add plan code for recurring subscriptions
+			if (planCode && !params.isOneTime) {
+				transactionData.plan = planCode;
+				transactionData.metadata.planCode = planCode;
+			}
+
+			const response = await this.makeRequest<{
+				data: {
+					reference: string;
+					authorization_url: string;
+				};
+			}>('POST', '/transaction/initialize', transactionData);
 
 			// Step 3: Save initial subscription record
 			const startDate = new Date();
@@ -156,10 +182,10 @@ class PaystackService {
 				plan_price: params.planPrice,
 				usage_limit: params.usageLimit,
 				current_usage: 0,
-				status: 'pending',
+				status: 'inactive',
 				paystack_subscription_id: response.data.reference,
 				start_date: startDate.toISOString(),
-				end_date: endDate.toISOString(),
+				end_date: params.isOneTime ? undefined : endDate.toISOString(),
 			};
 
 			const { data: subscription, error } = await supabase

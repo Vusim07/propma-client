@@ -165,7 +165,7 @@ async function handlePaymentFailed(data) {
 	// Update subscription status
 	const { error } = await supabase
 		.from('subscriptions')
-		.update({ status: 'payment_failed' })
+		.update({ status: 'failed' })
 		.eq('paystack_subscription_id', subscriptionCode);
 
 	if (error) {

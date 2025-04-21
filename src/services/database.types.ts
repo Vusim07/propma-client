@@ -583,13 +583,6 @@ export type Database = {
 						referencedRelation: 'users';
 						referencedColumns: ['id'];
 					},
-					{
-						foreignKeyName: 'credit_reports_tenant_id_fkey';
-						columns: ['tenant_id'];
-						isOneToOne: false;
-						referencedRelation: 'tenant_profiles';
-						referencedColumns: ['id'];
-					},
 				];
 			};
 			credit_reports: {

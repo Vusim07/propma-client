@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore';
+import { useAgentStore } from '../../stores/agentStore';
 import paystackService from '../../services/paystackService';
-import { supabase } from '../../services/supabase';
 import { Subscription } from '../../types';
 import { usePageTitle } from '../../context/PageTitleContext';
 import {
@@ -103,9 +103,13 @@ const creditBundles = [
 
 const SubscriptionPage: React.FC = () => {
 	const { user } = useAuthStore();
+	const {
+		fetchSubscriptions,
+		isLoading: storeLoading,
+		error: storeError,
+	} = useAgentStore();
 	const { setPageTitle } = usePageTitle();
 	const [subscription, setSubscription] = useState<Subscription | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
 	const [selectedPlanId, setSelectedPlanId] = useState<string>('');
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -121,33 +125,22 @@ const SubscriptionPage: React.FC = () => {
 	const fetchCurrentSubscription = async () => {
 		if (!user) return;
 
-		setIsLoading(true);
 		try {
-			const { data, error } = await supabase
-				.from('subscriptions')
-				.select('*')
-				.eq('user_id', user.id)
-				.eq('status', 'active')
-				.order('created_at', { ascending: false })
-				.limit(1)
-				.single();
-
-			if (error && error.code !== 'PGRST116') {
-				// PGRST116 is the "no rows returned" error
-				throw error;
-			}
-
-			setSubscription(data || null);
+			const subscriptionData = await fetchSubscriptions(user.id);
+			setSubscription(subscriptionData);
 
 			// If no active subscription, default to the Starter plan
-			if (!data && !selectedPlanId) {
+			if (!subscriptionData && !selectedPlanId) {
 				setSelectedPlanId('starter');
+			}
+
+			// Update error state if there's an error from the store
+			if (storeError) {
+				setError(storeError);
 			}
 		} catch (error) {
 			console.error('Error fetching subscription:', error);
 			setError('Failed to load subscription information');
-		} finally {
-			setIsLoading(false);
 		}
 	};
 
@@ -191,6 +184,7 @@ const SubscriptionPage: React.FC = () => {
 				planPrice,
 				email: user.email,
 				usageLimit,
+				isOneTime: subscriptionType === 'paygo',
 			});
 
 			// Redirect to Paystack payment page
@@ -220,7 +214,7 @@ const SubscriptionPage: React.FC = () => {
 		}
 	};
 
-	if (isLoading) {
+	if (storeLoading) {
 		return (
 			<div className='flex items-center justify-center h-64'>
 				<Loader2 className='h-8 w-8 animate-spin text-blue-600' />
