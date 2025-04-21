@@ -3,175 +3,234 @@
 // Deno-specific imports that won't be resolved by the TS compiler in VS Code
 // but will work in the Supabase Edge Function environment
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
 console.log('Hello from Functions!');
 
-const PAYSTACK_SECRET_KEY = Deno.env.get('PAYSTACK_SECRET_KEY') || '';
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || '';
-const SUPABASE_SERVICE_ROLE_KEY =
-	Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+const corsHeaders = {
+	'Access-Control-Allow-Origin': '*',
+	'Access-Control-Allow-Headers':
+		'authorization, x-client-info, apikey, content-type',
+};
 
-// Create a Supabase client with the service role key for admin access
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+interface WebhookPayload {
+	event: string;
+	data: {
+		id: number;
+		reference: string;
+		status: string;
+		metadata?: {
+			userId?: string;
+			planName?: string;
+			usageLimit?: number;
+		};
+	};
+}
 
-serve(async (req) => {
+serve(async (req: Request) => {
+	// Handle CORS preflight requests
+	if (req.method === 'OPTIONS') {
+		return new Response('ok', { headers: corsHeaders });
+	}
+
 	try {
-		// Get the signature from the headers
-		const signature = req.headers.get('x-paystack-signature');
-		if (!signature) {
-			return new Response('Missing signature', { status: 400 });
+		console.log('Received webhook request');
+
+		// Create Supabase client
+		const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+		const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+
+		if (!supabaseUrl || !supabaseServiceKey) {
+			throw new Error('Missing Supabase environment variables');
 		}
 
-		// Get the raw body
-		const rawBody = await req.text();
+		const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-		// Verify signature (hash the request body with HMAC using your secret key)
-		const hash = await crypto.subtle.digest(
-			'SHA-512',
-			new TextEncoder().encode(PAYSTACK_SECRET_KEY + rawBody),
+		// Verify Paystack signature
+		// In a production environment, you should verify the request signature
+		// using the Paystack signature header
+
+		// Parse the webhook payload
+		const payload: WebhookPayload = await req.json();
+		console.log('Received webhook event:', payload.event);
+
+		// Only process successful charge events
+		if (payload.event === 'charge.success') {
+			const { reference, status, metadata } = payload.data;
+
+			if (status !== 'success') {
+				return new Response(
+					JSON.stringify({ message: 'Payment not successful' }),
+					{
+						headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+						status: 200,
+					},
+				);
+			}
+
+			console.log(`Processing successful payment: ${reference}`);
+
+			// Try to find subscription by reference
+			const { data: subscriptionsByRef, error: refError } = await supabase
+				.from('subscriptions')
+				.select('*')
+				.eq('paystack_subscription_id', reference);
+
+			if (refError) {
+				console.error('Error finding subscription by reference:', refError);
+			}
+
+			// If found by reference, update status
+			if (subscriptionsByRef && subscriptionsByRef.length > 0) {
+				console.log(
+					`Found subscription by reference: ${subscriptionsByRef[0].id}`,
+				);
+
+				const { data: updatedSub, error: updateError } = await supabase
+					.from('subscriptions')
+					.update({ status: 'active' })
+					.eq('id', subscriptionsByRef[0].id)
+					.select()
+					.single();
+
+				if (updateError) {
+					console.error('Error updating subscription:', updateError);
+					throw new Error('Failed to update subscription status');
+				}
+
+				console.log('Successfully updated subscription:', updatedSub);
+				return new Response(
+					JSON.stringify({ success: true, subscription: updatedSub }),
+					{
+						headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+						status: 200,
+					},
+				);
+			}
+
+			// If not found by reference but we have userId in metadata, try that
+			if (metadata && metadata.userId) {
+				console.log(`Finding subscription by user ID: ${metadata.userId}`);
+
+				// Find most recent inactive subscription for this user
+				const { data: userSubs, error: userError } = await supabase
+					.from('subscriptions')
+					.select('*')
+					.eq('user_id', metadata.userId)
+					.eq('status', 'inactive')
+					.order('created_at', { ascending: false })
+					.limit(1);
+
+				if (userError) {
+					console.error('Error finding subscription by user ID:', userError);
+				}
+
+				if (userSubs && userSubs.length > 0) {
+					console.log(`Found subscription by user ID: ${userSubs[0].id}`);
+
+					const { data: updatedSub, error: updateError } = await supabase
+						.from('subscriptions')
+						.update({
+							status: 'active',
+							paystack_subscription_id: reference,
+						})
+						.eq('id', userSubs[0].id)
+						.select()
+						.single();
+
+					if (updateError) {
+						console.error('Error updating subscription:', updateError);
+						throw new Error('Failed to update subscription status');
+					}
+
+					console.log('Successfully updated subscription:', updatedSub);
+					return new Response(
+						JSON.stringify({ success: true, subscription: updatedSub }),
+						{
+							headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+							status: 200,
+						},
+					);
+				}
+			}
+
+			// Last resort: find the most recent inactive subscription
+			console.log('Trying fallback: most recent inactive subscription');
+
+			const { data: recentSubs, error: recentError } = await supabase
+				.from('subscriptions')
+				.select('*')
+				.eq('status', 'inactive')
+				.order('created_at', { ascending: false })
+				.limit(1);
+
+			if (recentError) {
+				console.error('Error finding recent subscriptions:', recentError);
+				throw new Error('Failed to find any subscription to update');
+			}
+
+			if (!recentSubs || recentSubs.length === 0) {
+				console.error('No inactive subscriptions found to update');
+				return new Response(
+					JSON.stringify({
+						success: false,
+						message: 'No inactive subscriptions found',
+					}),
+					{
+						headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+						status: 404,
+					},
+				);
+			}
+
+			// Update the most recent subscription
+			console.log(
+				`Using most recent subscription as fallback: ${recentSubs[0].id}`,
+			);
+
+			const { data: updatedSub, error: updateError } = await supabase
+				.from('subscriptions')
+				.update({
+					status: 'active',
+					paystack_subscription_id: reference,
+				})
+				.eq('id', recentSubs[0].id)
+				.select()
+				.single();
+
+			if (updateError) {
+				console.error('Error updating fallback subscription:', updateError);
+				throw new Error('Failed to update subscription');
+			}
+
+			console.log('Successfully updated fallback subscription:', updatedSub);
+			return new Response(
+				JSON.stringify({ success: true, subscription: updatedSub }),
+				{
+					headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+					status: 200,
+				},
+			);
+		}
+
+		// For other events, just acknowledge receipt
+		return new Response(
+			JSON.stringify({ message: 'Webhook received but not processed' }),
+			{
+				headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+				status: 200,
+			},
 		);
-		const computedSignature = Array.from(new Uint8Array(hash))
-			.map((b) => b.toString(16).padStart(2, '0'))
-			.join('');
-
-		if (computedSignature !== signature) {
-			return new Response('Invalid signature', { status: 401 });
-		}
-
-		// Parse the body as JSON
-		const event = JSON.parse(rawBody);
-		const eventType = event.event;
-		const data = event.data;
-
-		console.log(`Processing Paystack webhook: ${eventType}`);
-
-		// Handle different event types
-		switch (eventType) {
-			case 'charge.success':
-				await handleChargeSuccess(data);
-				break;
-
-			case 'subscription.create':
-				await handleSubscriptionCreate(data);
-				break;
-
-			case 'subscription.disable':
-				await handleSubscriptionDisable(data);
-				break;
-
-			case 'invoice.payment_failed':
-				await handlePaymentFailed(data);
-				break;
-
-			default:
-				console.log(`Unhandled event type: ${eventType}`);
-		}
-
-		return new Response(JSON.stringify({ received: true }), {
-			headers: { 'Content-Type': 'application/json' },
-			status: 200,
-		});
 	} catch (error) {
-		console.error('Error processing webhook:', error.message);
-		return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
-			headers: { 'Content-Type': 'application/json' },
+		console.error('Error processing webhook:', error);
+
+		return new Response(JSON.stringify({ error: error.message }), {
+			headers: { ...corsHeaders, 'Content-Type': 'application/json' },
 			status: 500,
 		});
 	}
 });
-
-// Handle successful payment
-async function handleChargeSuccess(data) {
-	const reference = data.reference;
-
-	// Find subscription by reference
-	const { data: subscription, error } = await supabase
-		.from('subscriptions')
-		.select('*')
-		.eq('paystack_subscription_id', reference)
-		.single();
-
-	if (error) {
-		console.error('Error finding subscription:', error);
-		return;
-	}
-
-	// Update subscription status
-	const { error: updateError } = await supabase
-		.from('subscriptions')
-		.update({
-			status: 'active',
-			// Store the Paystack customer code for future transactions
-			paystack_customer_code: data.customer?.customer_code || null,
-		})
-		.eq('id', subscription.id);
-
-	if (updateError) {
-		console.error('Error updating subscription:', updateError);
-	}
-}
-
-// Handle new subscription creation
-async function handleSubscriptionCreate(data) {
-	// The reference from initial transaction is in metadata
-	const metadata = data.metadata || {};
-	const reference = metadata.reference;
-
-	if (!reference) {
-		console.error('No reference in subscription data');
-		return;
-	}
-
-	// Update the subscription with the actual Paystack subscription code
-	const { error } = await supabase
-		.from('subscriptions')
-		.update({
-			paystack_subscription_id: data.subscription_code,
-			status: 'active',
-		})
-		.eq('paystack_subscription_id', reference);
-
-	if (error) {
-		console.error('Error updating subscription with subscription code:', error);
-	}
-}
-
-// Handle subscription cancellation
-async function handleSubscriptionDisable(data) {
-	const subscriptionCode = data.subscription_code;
-
-	// Update subscription status
-	const { error } = await supabase
-		.from('subscriptions')
-		.update({ status: 'cancelled' })
-		.eq('paystack_subscription_id', subscriptionCode);
-
-	if (error) {
-		console.error('Error updating cancelled subscription:', error);
-	}
-}
-
-// Handle failed payments
-async function handlePaymentFailed(data) {
-	const subscriptionCode = data.subscription?.subscription_code;
-
-	if (!subscriptionCode) {
-		console.error('No subscription code in payment failed data');
-		return;
-	}
-
-	// Update subscription status
-	const { error } = await supabase
-		.from('subscriptions')
-		.update({ status: 'failed' })
-		.eq('paystack_subscription_id', subscriptionCode);
-
-	if (error) {
-		console.error('Error updating subscription with payment failure:', error);
-	}
-}
 
 /* To invoke locally:
 

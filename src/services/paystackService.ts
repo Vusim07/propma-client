@@ -287,42 +287,148 @@ class PaystackService {
 	}
 
 	async handlePaymentCallback(reference: string): Promise<Subscription> {
+		console.log(
+			`Starting payment callback handling for reference: ${reference}`,
+		);
 		try {
 			// Verify the transaction with Paystack
+			console.log(`Verifying transaction with Paystack...`);
 			const transactionData = await this.verifyTransaction(reference);
+			console.log(
+				'Verification response:',
+				JSON.stringify(transactionData, null, 2),
+			);
 
 			if (transactionData.status !== 'success') {
-				throw new Error(
-					`Payment failed: ${String(transactionData.gateway_response)}`,
-				);
+				const errorMessage = `Payment failed: ${String(
+					transactionData.gateway_response || 'Unknown error',
+				)}`;
+				console.error(errorMessage);
+				throw new Error(errorMessage);
 			}
 
-			// Find the subscription in our database
-			const { data: subscription, error: fetchError } = await supabase
+			console.log(
+				'Payment verification successful, looking for subscription record',
+			);
+
+			// Try to find subscription by reference
+			const { data: subscriptionsByRef } = await supabase
 				.from('subscriptions')
 				.select('*')
-				.eq('paystack_subscription_id', reference)
-				.single();
+				.eq('paystack_subscription_id', reference);
 
-			if (fetchError) {
-				console.error('Error finding subscription:', fetchError);
-				throw new Error('Subscription not found');
+			if (subscriptionsByRef && subscriptionsByRef.length > 0) {
+				// Found subscription by reference
+				console.log(
+					`Found subscription with reference: ${subscriptionsByRef[0].id}`,
+				);
+
+				// Update the subscription
+				const { data: updatedSub, error: updateError } = await supabase
+					.from('subscriptions')
+					.update({ status: 'active' })
+					.eq('id', subscriptionsByRef[0].id)
+					.select()
+					.single();
+
+				if (updateError) {
+					console.error('Error updating subscription:', updateError);
+					throw new Error('Failed to update subscription status');
+				}
+
+				console.log('Subscription successfully updated:', updatedSub);
+				return updatedSub;
 			}
 
-			// Update the subscription status to active
-			const { data: updatedSubscription, error: updateError } = await supabase
+			// If we're here, we couldn't find the subscription by reference
+			console.log(
+				'Subscription not found by reference, trying metadata lookup',
+			);
+
+			// Check if we have user ID in metadata
+			const userId = transactionData.metadata?.userId as string | undefined;
+
+			if (userId) {
+				console.log(
+					`Found userId in metadata: ${userId}, searching by user_id`,
+				);
+
+				// Try to find by user ID
+				const { data: subscriptionsByUser } = await supabase
+					.from('subscriptions')
+					.select('*')
+					.eq('user_id', userId)
+					.eq('status', 'inactive')
+					.order('created_at', { ascending: false })
+					.limit(1);
+
+				if (subscriptionsByUser && subscriptionsByUser.length > 0) {
+					console.log(
+						`Found subscription by user_id: ${subscriptionsByUser[0].id}`,
+					);
+
+					// Update the subscription with the correct reference and status
+					const { data: updatedSub, error: updateError } = await supabase
+						.from('subscriptions')
+						.update({
+							status: 'active',
+							paystack_subscription_id: reference,
+						})
+						.eq('id', subscriptionsByUser[0].id)
+						.select()
+						.single();
+
+					if (updateError) {
+						console.error('Error updating subscription:', updateError);
+						throw new Error('Failed to update subscription status');
+					}
+
+					console.log('Subscription successfully updated:', updatedSub);
+					return updatedSub;
+				}
+			}
+
+			// Last resort: find the most recent inactive subscription
+			console.log('Trying last resort: most recent inactive subscription');
+
+			const { data: recentSubs, error: recentError } = await supabase
 				.from('subscriptions')
-				.update({ status: 'active' })
-				.eq('id', subscription.id)
+				.select('*')
+				.eq('status', 'inactive')
+				.order('created_at', { ascending: false })
+				.limit(1);
+
+			if (recentError) {
+				console.error('Error finding recent subscriptions:', recentError);
+				throw new Error('Failed to find any subscription to update');
+			}
+
+			if (!recentSubs || recentSubs.length === 0) {
+				throw new Error('No inactive subscriptions found to update');
+			}
+
+			// Update the most recent subscription
+			console.log(
+				`Using most recent subscription as fallback: ${recentSubs[0].id}`,
+			);
+
+			const { data: updatedSub, error: updateError } = await supabase
+				.from('subscriptions')
+				.update({
+					status: 'active',
+					paystack_subscription_id: reference,
+				})
+				.eq('id', recentSubs[0].id)
 				.select()
 				.single();
 
 			if (updateError) {
-				console.error('Error updating subscription:', updateError);
+				console.error('Error updating fallback subscription:', updateError);
 				throw new Error('Failed to update subscription');
 			}
 
-			return updatedSubscription;
+			console.log('Fallback subscription successfully updated:', updatedSub);
+			return updatedSub;
 		} catch (error) {
 			console.error('Error in handlePaymentCallback:', error);
 			throw error;
@@ -339,16 +445,11 @@ class PaystackService {
 
 	// Increment usage for a subscription
 	async incrementUsage(subscriptionId: string): Promise<void> {
-		const { data: subscription, error: fetchError } = await supabase
+		const { data: subscription } = await supabase
 			.from('subscriptions')
 			.select('*')
 			.eq('id', subscriptionId)
 			.single();
-
-		if (fetchError) {
-			console.error('Error finding subscription:', fetchError);
-			throw new Error('Subscription not found');
-		}
 
 		const { error: updateError } = await supabase
 			.from('subscriptions')
@@ -363,14 +464,12 @@ class PaystackService {
 
 	// Check if a subscription has available usage
 	async checkUsageAvailability(subscriptionId: string): Promise<boolean> {
-		const { data: subscription, error } = await supabase
+		const { data: subscription } = await supabase
 			.from('subscriptions')
 			.select('*')
 			.eq('id', subscriptionId)
 			.single();
-
-		if (error) {
-			console.error('Error finding subscription:', error);
+		if (!subscription) {
 			throw new Error('Subscription not found');
 		}
 

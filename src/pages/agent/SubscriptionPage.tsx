@@ -122,6 +122,78 @@ const SubscriptionPage: React.FC = () => {
 		fetchCurrentSubscription();
 	}, [setPageTitle]);
 
+	useEffect(() => {
+		// Get the URL search parameters
+		const searchParams = new URLSearchParams(window.location.search);
+		const reference =
+			searchParams.get('reference') || searchParams.get('trxref');
+
+		if (reference) {
+			console.log('Payment reference detected:', reference);
+			// Store the reference in sessionStorage (more persistent than localStorage)
+			sessionStorage.setItem('paystack_reference', reference);
+			// Clear the URL to prevent multiple processing
+			window.history.replaceState({}, document.title, window.location.pathname);
+
+			// Immediately try to process the payment if the user is authenticated
+			if (user) {
+				console.log(
+					'User authenticated, processing payment reference:',
+					reference,
+				);
+				setIsProcessing(true);
+				paystackService
+					.handlePaymentCallback(reference)
+					.then((updatedSubscription) => {
+						console.log('Payment successfully verified:', updatedSubscription);
+						setSubscription(updatedSubscription);
+					})
+					.catch((error) => {
+						console.error('Payment verification failed:', error);
+						setError('Payment verification failed. Please contact support.');
+					})
+					.finally(() => {
+						setIsProcessing(false);
+						fetchCurrentSubscription();
+					});
+			}
+		}
+	}, []);
+
+	// Add separate effect to handle restoration of auth and process stored reference
+	useEffect(() => {
+		// Check for stored reference in sessionStorage when user becomes available
+		if (user) {
+			const storedReference = sessionStorage.getItem('paystack_reference');
+			if (storedReference) {
+				console.log(
+					'Found stored payment reference after auth restored:',
+					storedReference,
+				);
+
+				// Remove from sessionStorage to prevent duplicate processing
+				sessionStorage.removeItem('paystack_reference');
+
+				// Process the payment
+				setIsProcessing(true);
+				paystackService
+					.handlePaymentCallback(storedReference)
+					.then((updatedSubscription) => {
+						console.log('Payment successfully verified:', updatedSubscription);
+						setSubscription(updatedSubscription);
+					})
+					.catch((error) => {
+						console.error('Payment verification failed:', error);
+						setError('Payment verification failed. Please contact support.');
+					})
+					.finally(() => {
+						setIsProcessing(false);
+						fetchCurrentSubscription();
+					});
+			}
+		}
+	}, [user]); // This effect runs when user auth state changes
+
 	const fetchCurrentSubscription = async () => {
 		if (!user) return;
 
