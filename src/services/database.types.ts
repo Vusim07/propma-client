@@ -532,6 +532,59 @@ export type Database = {
 					},
 				];
 			};
+			subscriptions: {
+				Row: {
+					id: string; // Unique identifier for the subscription
+					user_id: string; // Foreign key to the users table
+					plan_name: string; // Name of the subscription plan (e.g., "Basic", "Pro", "Enterprise")
+					plan_price: number; // Price of the plan in cents (ZAR)
+					usage_limit: number; // Maximum usage allowed for the plan
+					current_usage: number; // Current usage count
+					status: string; // Subscription status (e.g., "active", "inactive", "cancelled")
+					paystack_subscription_id: string; // Paystack subscription ID for integration
+					start_date: string; // Subscription start date
+					end_date: string | null; // Subscription end date (nullable for ongoing subscriptions)
+					created_at: string; // Timestamp when the subscription was created
+					updated_at: string; // Timestamp when the subscription was last updated
+				};
+				Insert: {
+					id?: string;
+					user_id: string;
+					plan_name: string;
+					plan_price: number;
+					usage_limit: number;
+					current_usage?: number; // Defaults to 0
+					status: string;
+					paystack_subscription_id: string;
+					start_date: string;
+					end_date?: string | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					id?: string;
+					user_id?: string;
+					plan_name?: string;
+					plan_price?: number;
+					usage_limit?: number;
+					current_usage?: number;
+					status?: string;
+					paystack_subscription_id?: string;
+					start_date?: string;
+					end_date?: string | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'subscriptions_user_id_fkey';
+						columns: ['user_id'];
+						isOneToOne: false;
+						referencedRelation: 'users';
+						referencedColumns: ['id'];
+					},
+				];
+			};
 		};
 		Views: {
 			[_ in never]: never;
