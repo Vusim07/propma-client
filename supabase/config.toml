@@ -37,3 +37,6 @@ enabled = true
 verify_jwt = true
 import_map = "./functions/calendar-create-event/deno.json"
 entrypoint = "./functions/calendar-create-event/index.ts"
+
+[functions.email-gmail-oauth]
+  verify_jwt = false

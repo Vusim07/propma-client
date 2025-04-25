@@ -6,6 +6,7 @@ import Spinner from '../ui/Spinner';
 import { Inbox } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useAgentStore } from '../../stores/agentStore';
+import { supabase } from '@/services/supabase';
 
 interface EmailProvider {
 	id: string;
@@ -53,7 +54,6 @@ const InboxIntegration: React.FC = () => {
 	const {
 		emailIntegration,
 		fetchEmailIntegration,
-		connectEmailIntegration,
 		disconnectEmailIntegration,
 		isLoading,
 	} = useAgentStore();
@@ -82,14 +82,37 @@ const InboxIntegration: React.FC = () => {
 		setEmailConnectStep(1);
 		setLocalError(null);
 		try {
-			// Simulate OAuth: in production, redirect to provider and handle callback
-			// Here, just fake tokens for demo
-			await new Promise((res) => setTimeout(res, 1200));
-			await connectEmailIntegration(user.id, providerId, {
-				refresh_token: 'demo-refresh-token',
-				access_token: 'demo-access-token',
-				email_address: user.email,
-			});
+			// Get a fresh session token
+			const { data: sessionData, error: sessionError } =
+				await supabase.auth.getSession();
+			if (sessionError || !sessionData?.session?.access_token) {
+				throw new Error('Authentication session expired. Please log in again.');
+			}
+			const accessToken = sessionData.session.access_token;
+			// Call Supabase Edge Function to get Gmail OAuth URL
+			const response = await fetch(
+				`${
+					import.meta.env.VITE_SUPABASE_FUNCTIONS_URL
+				}/email-gmail-oauth?user_id=${user.id}`,
+				{
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${accessToken}`,
+						apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+					},
+				},
+			);
+			if (!response.ok) {
+				const errorText = await response.text();
+				throw new Error(errorText || 'Failed to get Gmail authorization URL');
+			}
+			const data = await response.json();
+			if (data.url) {
+				window.location.href = data.url;
+			} else {
+				throw new Error('Failed to get Gmail authorization URL');
+			}
 		} catch (err: any) {
 			setLocalError(err.message || 'Failed to connect email');
 			setEmailConnectStep(0);
