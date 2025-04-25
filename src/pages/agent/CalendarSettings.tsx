@@ -5,7 +5,7 @@ import { supabase } from '../../services/supabase';
 import Button from '../../components/ui/Button';
 import { Card, CardHeader, CardContent } from '../../components/ui/Card';
 import Alert from '../../components/ui/Alert';
-import { Calendar, Plus, Check, X } from 'lucide-react';
+import { Calendar, Check, X } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 
 interface CalendarIntegration {
@@ -39,6 +39,7 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 		null,
 	);
 	const [loading, setLoading] = useState(true);
+	const [connectingCalendar, setConnectingCalendar] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState<string | null>(null);
 	const [availableCalendars, setAvailableCalendars] = useState<
@@ -127,6 +128,7 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 		if (!user) return;
 
 		try {
+			setConnectingCalendar(true);
 			const { data: sessionData } = await supabase.auth.getSession();
 
 			const response = await fetch(
@@ -151,6 +153,7 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 		} catch (err: unknown) {
 			const apiError = err as ApiError;
 			setError(`Failed to connect calendar: ${apiError.message}`);
+			setConnectingCalendar(false);
 		}
 	};
 
@@ -248,7 +251,7 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 				<CardContent>
 					{loading ? (
 						<div className='flex items-center justify-center p-6'>
-							<div className='animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500'></div>
+							<div className='animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500'></div>
 							<span className='ml-2'>Loading...</span>
 						</div>
 					) : integration ? (
@@ -321,7 +324,7 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 								</div>
 							)}
 
-							<div className='mt-4 bg-blue-50 p-3 rounded-md text-sm text-blue-800'>
+							<div className='mt-4 bg-blue-50 p-3 rounded-md text-sm text-primary-800'>
 								<p>
 									Your appointments will automatically be synced with your
 									calendar. Tenants will see your availability based on your
@@ -344,8 +347,17 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 								will allow tenants to see your availability and automatically
 								create calendar events.
 							</p>
-							<Button onClick={connectGoogleCalendar}>
-								<Plus className='h-4 w-4 mr-2' /> Connect Google Calendar
+							<Button
+								onClick={connectGoogleCalendar}
+								isLoading={connectingCalendar}
+								className='bg-primary-500 hover:bg-primary-600'
+							>
+								<img
+									src='/assets/icons8-google.svg'
+									alt='Google'
+									className='h-5 w-5 mr-2'
+								/>
+								Connect Google Calendar
 							</Button>
 						</div>
 					)}

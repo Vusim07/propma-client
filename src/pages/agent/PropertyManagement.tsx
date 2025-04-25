@@ -159,7 +159,10 @@ const PropertyManagement: React.FC = () => {
 					</p>
 				</div>
 				<div className='mt-4 md:mt-0'>
-					<Button onClick={() => navigate('/agent/properties/new')}>
+					<Button
+						onClick={() => navigate('/agent/properties/new')}
+						className='bg-primary-500 text-white hover:bg-primary-600'
+					>
 						<Plus size={16} className='mr-2' />
 						Add New Property
 					</Button>

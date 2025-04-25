@@ -72,7 +72,7 @@ const AgentLayout: React.FC = () => {
 	];
 
 	return (
-		<div className='min-h-screen bg-gray-100 flex flex-col md:flex-row'>
+		<div className='min-h-screen bg-primary-900 flex flex-col md:flex-row'>
 			{/* Mobile Menu Button - Made sticky */}
 			<div className='md:hidden bg-white p-4 flex justify-between items-center shadow-md sticky top-0 z-40'>
 				<img

@@ -25,7 +25,6 @@ import {
 	Phone,
 	Home,
 	DollarSign,
-	Plus,
 	MapPin,
 } from 'lucide-react';
 import 'react-calendar/dist/Calendar.css';
@@ -76,6 +75,7 @@ const ManageAppointments: React.FC = () => {
 	const { user } = useAuthStore();
 	const [appointments, setAppointments] = useState<Appointment[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
+	const [connectingCalendar, setConnectingCalendar] = useState(false);
 	const [error, setError] = useState('');
 	const [success, setSuccess] = useState('');
 	const [date, setDate] = useState<Value>(new Date());
@@ -268,6 +268,7 @@ const ManageAppointments: React.FC = () => {
 		if (!user) return;
 
 		try {
+			setConnectingCalendar(true);
 			const { data: sessionData } = await supabase.auth.getSession();
 
 			const response = await fetch(
@@ -291,6 +292,7 @@ const ManageAppointments: React.FC = () => {
 			}
 		} catch (err: any) {
 			setError(`Failed to connect calendar: ${err.message}`);
+			setConnectingCalendar(false);
 		}
 	};
 
@@ -334,8 +336,16 @@ const ManageAppointments: React.FC = () => {
 										</p>
 									</div>
 								</div>
-								<Button onClick={connectGoogleCalendar}>
-									<Plus className='h-4 w-4 mr-2' /> Connect Google Calendar
+								<Button
+									onClick={connectGoogleCalendar}
+									isLoading={connectingCalendar}
+								>
+									<img
+										src='/assets/icons8-google.svg'
+										alt='Google'
+										className='h-5 w-5 mr-2'
+									/>
+									Connect Google Calendar
 								</Button>
 							</div>
 						</CardContent>
