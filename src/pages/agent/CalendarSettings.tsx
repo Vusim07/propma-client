@@ -480,6 +480,7 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 												value={selectedCalendarId || ''}
 												onChange={(e) => setSelectedCalendarId(e.target.value)}
 												className='w-full p-2 border border-gray-300 rounded-md mb-3'
+												title='Select a calendar'
 											>
 												<option value=''>Select a calendar</option>
 												{availableCalendars.map((cal) => (
@@ -528,9 +529,12 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 
 							<div className='mt-4 bg-blue-50 p-3 rounded-md text-sm text-primary-800'>
 								<p>
-									Your appointments will automatically be synced with your
+									Your appointments will automatically be synced with your{' '}
+									<span className='font-semibold capitalize'>
+										{integration.provider}
+									</span>{' '}
 									calendar. Tenants will see your availability based on your
-									calendar.
+									calendar when scheduling appointments.
 								</p>
 							</div>
 						</div>
