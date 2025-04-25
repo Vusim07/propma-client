@@ -36,6 +36,8 @@ import PropertyManagement from './pages/agent/PropertyManagement';
 import PropertyDetail from './pages/agent/PropertyDetail';
 import PropertyForm from './pages/agent/PropertyForm';
 import SubscriptionPage from './pages/agent/SubscriptionPage';
+import CalendarSettings from './pages/agent/CalendarSettings';
+import Settings from './pages/agent/Settings';
 
 // Layout Components
 import TenantLayout from './components/layout/TenantLayout';
@@ -232,8 +234,10 @@ function App() {
 						<Route path='applications' element={<ReviewApplications />} />
 						<Route path='screening/:id' element={<DetailedScreening />} />
 						<Route path='appointments' element={<ManageAppointments />} />
+						<Route path='calendar-settings' element={<CalendarSettings />} />
 						<Route path='workflows' element={<WorkflowManagement />} />
 						<Route path='subscription' element={<SubscriptionPage />} />
+						<Route path='settings' element={<Settings />} />
 					</Route>
 
 					{/* Redirect root to appropriate dashboard based on role */}

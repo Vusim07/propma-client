@@ -15,11 +15,9 @@ import {
 	SheetTitle,
 	SheetFooter,
 } from '../../components/ui/sheet';
-import { format, parseISO, isBefore, addDays, parse, isPast } from 'date-fns';
+import { format, parseISO, isBefore, isPast, parse } from 'date-fns';
 import {
-	Calendar as CalendarIcon,
-	Clock,
-	MapPin,
+	CalendarIcon,
 	User,
 	Check,
 	X,
@@ -27,6 +25,8 @@ import {
 	Phone,
 	Home,
 	DollarSign,
+	Plus,
+	MapPin,
 } from 'lucide-react';
 import 'react-calendar/dist/Calendar.css';
 import { supabase } from '../../services/supabase';
@@ -82,9 +82,11 @@ const ManageAppointments: React.FC = () => {
 	const [selectedAppointment, setSelectedAppointment] =
 		useState<Appointment | null>(null);
 	const [isSheetOpen, setIsSheetOpen] = useState(false);
+	const [calendarIntegration, setCalendarIntegration] = useState<any>(null);
+	const [loadingIntegration, setLoadingIntegration] = useState<boolean>(false);
 
 	useEffect(() => {
-		setPageTitle('Viewing Appointments');
+		setPageTitle('Manage Appointments');
 		const fetchData = async () => {
 			setIsLoading(true);
 			setError('');
@@ -126,7 +128,17 @@ const ManageAppointments: React.FC = () => {
 				);
 
 				setAppointments(formattedAppointments as any);
-				setIsLoading(false);
+
+				// Fetch calendar integration status
+				setLoadingIntegration(true);
+				const { data: integration, error: integrationError } = await supabase
+					.from('calendar_integrations')
+					.select('*')
+					.eq('user_id', user.id)
+					.maybeSingle();
+
+				if (integrationError) throw integrationError;
+				setCalendarIntegration(integration);
 			} catch (error: any) {
 				console.error('Error fetching data:', error);
 				setError(
@@ -134,7 +146,9 @@ const ManageAppointments: React.FC = () => {
 						error.message || 'Please try again.'
 					}`,
 				);
+			} finally {
 				setIsLoading(false);
+				setLoadingIntegration(false);
 			}
 		};
 
@@ -250,12 +264,43 @@ const ManageAppointments: React.FC = () => {
 		? getAppointmentsForDate(date as Date)
 		: [];
 
+	const connectGoogleCalendar = async () => {
+		if (!user) return;
+
+		try {
+			const { data: sessionData } = await supabase.auth.getSession();
+
+			const response = await fetch(
+				`${
+					import.meta.env.VITE_SUPABASE_FUNCTIONS_URL
+				}/calendar-oauth?user_id=${user.id}`,
+				{
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${sessionData.session?.access_token}`,
+					},
+				},
+			);
+
+			const data = await response.json();
+			if (data.url) {
+				window.location.href = data.url;
+			} else {
+				throw new Error('Failed to get authorization URL');
+			}
+		} catch (err: any) {
+			setError(`Failed to connect calendar: ${err.message}`);
+		}
+	};
+
 	return (
 		<Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
 			<div>
 				<div className='mb-6'>
+					<h1 className='text-2xl font-bold text-gray-900'>Appointments</h1>
 					<p className='text-gray-600 mt-1'>
-						Schedule and manage property viewing appointments
+						Manage your property viewing appointments
 					</p>
 				</div>
 
@@ -271,122 +316,159 @@ const ManageAppointments: React.FC = () => {
 					</Alert>
 				)}
 
+				{!calendarIntegration && !loadingIntegration && (
+					<Card className='mb-6'>
+						<CardContent className='p-6'>
+							<div className='flex items-center justify-between'>
+								<div className='flex items-center'>
+									<div className='bg-blue-100 p-2 rounded-full mr-4'>
+										<CalendarIcon className='h-6 w-6 text-blue-600' />
+									</div>
+									<div>
+										<h3 className='text-lg font-medium'>
+											Connect Your Calendar
+										</h3>
+										<p className='text-sm text-gray-600 mt-1'>
+											Sync appointments with your calendar and let tenants see
+											your availability
+										</p>
+									</div>
+								</div>
+								<Button onClick={connectGoogleCalendar}>
+									<Plus className='h-4 w-4 mr-2' /> Connect Google Calendar
+								</Button>
+							</div>
+						</CardContent>
+					</Card>
+				)}
+
 				<div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
-					<Card className='lg:col-span-2'>
+					<Card className='lg:col-span-1'>
 						<CardHeader>
-							<h2 className='text-lg font-semibold'>Appointment Calendar</h2>
+							<h2 className='text-lg font-semibold'>Select a Date</h2>
 						</CardHeader>
 						<CardContent>
-							{isLoading ? (
-								<div className='flex justify-center py-8'>
-									<Spinner />
-								</div>
-							) : (
-								<div className='calendar-container'>
-									<Calendar
-										onChange={handleDateChange}
-										value={date}
-										tileDisabled={tileDisabled}
-										tileContent={tileContent}
-										minDate={new Date()}
-										maxDate={addDays(new Date(), 30)}
-										className='w-full border-none'
-									/>
-								</div>
-							)}
+							<div className='calendar-container'>
+								<Calendar
+									onChange={handleDateChange}
+									value={date}
+									tileContent={tileContent}
+									tileDisabled={tileDisabled}
+									className='w-full border-none'
+								/>
+							</div>
 						</CardContent>
 					</Card>
 
-					<Card>
+					<Card className='lg:col-span-2'>
 						<CardHeader>
 							<h2 className='text-lg font-semibold'>
-								{date ? format(date as Date, 'dd/MM/yyyy') : 'Select a Date'}
+								Appointments for {format(date as Date, 'PPP')}
 							</h2>
 						</CardHeader>
 						<CardContent>
 							{isLoading ? (
-								<div className='flex justify-center py-8'>
+								<div className='flex justify-center items-center py-20'>
 									<Spinner />
+									<span className='ml-2 text-gray-500'>
+										Loading appointments...
+									</span>
 								</div>
 							) : selectedDateAppointments.length > 0 ? (
-								<div className='space-y-4 max-h-72 overflow-y-auto'>
-									{selectedDateAppointments
-										.sort((a, b) => a.start_time.localeCompare(b.start_time))
-										.map((appointment) => {
-											const isPastAppointment = isAppointmentPast(appointment);
-											return (
-												<div
-													key={appointment.id}
-													className={`p-3 border rounded-lg transition-colors ${
-														selectedAppointment?.id === appointment.id
-															? 'border-blue-500 bg-blue-50'
-															: isPastAppointment
-															? 'border-gray-200 bg-gray-100 opacity-60 cursor-not-allowed'
-															: 'border-gray-200 hover:bg-gray-50 cursor-pointer'
-													}`}
-													// Disable click for past appointments
-													onClick={
-														isPastAppointment
-															? undefined
-															: () => handleViewDetailsClick(appointment)
-													}
-												>
-													<div className='flex items-center justify-between mb-2'>
-														<div className='flex items-center'>
-															<Clock size={16} className='text-blue-500 mr-2' />
-															<span className='font-medium'>
-																{appointment.start_time}
-																{appointment.end_time
-																	? ` - ${appointment.end_time}`
-																	: ''}
-															</span>
-														</div>
+								<div className='space-y-4 max-h-[280px] overflow-y-auto pr-2'>
+									{selectedDateAppointments.map((appointment) => (
+										<div
+											key={appointment.id}
+											className='bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow'
+										>
+											<div className='flex justify-between items-start'>
+												<div>
+													<h3 className='font-medium text-lg'>
+														{appointment.tenant_name}
+													</h3>
+													<p className='text-gray-600'>
+														{appointment.property_address}
+													</p>
+													<div className='flex space-x-2 mt-2'>
+														<span className='flex items-center text-sm text-gray-500'>
+															<CalendarIcon size={14} className='mr-1' />
+															{format(new Date(appointment.date), 'PPP')}
+														</span>
+														<span className='flex items-center text-sm text-gray-500'>
+															<CalendarIcon size={14} className='mr-1' />
+															{appointment.start_time}
+															{appointment.end_time &&
+																` - ${appointment.end_time}`}
+														</span>
+													</div>
+													<div className='mt-2'>
 														<Badge
 															variant={
-																isPastAppointment
-																	? 'warning'
-																	: appointment.status === 'scheduled'
+																appointment.status === 'scheduled'
 																	? 'info'
 																	: appointment.status === 'completed'
 																	? 'success'
-																	: 'warning'
+																	: 'danger'
 															}
 														>
-															{isPastAppointment
-																? 'Past'
-																: appointment.status.charAt(0).toUpperCase() +
-																  appointment.status.slice(1)}
+															{appointment.status === 'scheduled'
+																? 'Scheduled'
+																: appointment.status === 'completed'
+																? 'Completed'
+																: 'Cancelled'}
 														</Badge>
 													</div>
-													<div className='flex items-center text-sm text-gray-600 mb-1'>
-														<User size={14} className='mr-1' />
-														{appointment.tenant_name}
-													</div>
-													<div className='flex items-center text-sm text-gray-600'>
-														<MapPin size={14} className='mr-1' />
-														{appointment.property_address?.split(',')[0]}
-													</div>
-													<div className='mt-2'>
-														<Button
-															variant='outline'
-															size='sm'
-															onClick={
-																isPastAppointment
-																	? undefined
-																	: () => handleViewDetailsClick(appointment)
-															}
-															disabled={isPastAppointment}
-														>
-															View Details
-														</Button>
-													</div>
 												</div>
-											);
-										})}
+												<div className='flex space-x-2'>
+													<Button
+														variant='outline'
+														size='sm'
+														onClick={() => handleViewDetailsClick(appointment)}
+													>
+														View Details
+													</Button>
+													{!isAppointmentPast(appointment) && (
+														<>
+															{appointment.status === 'scheduled' && (
+																<>
+																	<Button
+																		variant='outline'
+																		size='sm'
+																		className='border-red-300 text-red-600 hover:bg-red-50'
+																		onClick={() =>
+																			handleStatusChange(
+																				appointment.id,
+																				'cancelled',
+																			)
+																		}
+																	>
+																		Cancel
+																	</Button>
+																	<Button
+																		variant='outline'
+																		size='sm'
+																		className='border-green-300 text-green-600 hover:bg-green-50'
+																		onClick={() =>
+																			handleStatusChange(
+																				appointment.id,
+																				'completed',
+																			)
+																		}
+																	>
+																		Complete
+																	</Button>
+																</>
+															)}
+														</>
+													)}
+												</div>
+											</div>
+										</div>
+									))}
 								</div>
 							) : (
-								<div className='text-center py-8 text-gray-500'>
-									No appointments scheduled for this date
+								<div className='text-center py-10'>
+									<p className='text-gray-500'>No appointments for this date</p>
 								</div>
 							)}
 						</CardContent>

@@ -9,7 +9,7 @@ export default defineConfig({
 		port: 5173,
 		strictPort: true,
 		hmr: {
-			clientPort: 443,
+			clientPort: 5173,
 		},
 		cors: true,
 		allowedHosts: ['renewed-cockatoo-liked.ngrok-free.app', 'localhost'],

@@ -12,6 +12,19 @@ import {
 	Subscription, // Add Subscription type import
 } from '../types';
 
+// Define CalendarIntegration type
+export interface CalendarIntegration {
+	id: string;
+	user_id: string;
+	provider: string;
+	refresh_token: string;
+	access_token: string | null;
+	token_expiry: string | null;
+	calendar_id: string | null;
+	created_at: string;
+	updated_at: string;
+}
+
 // Add proper typing for the database workflow fields
 interface WorkflowUpdateFields {
 	name?: string;
@@ -33,7 +46,8 @@ const logTableSchema = async (
 		| 'screening_reports'
 		| 'appointments'
 		| 'email_workflows'
-		| 'workflow_logs',
+		| 'workflow_logs'
+		| 'calendar_integrations',
 ) => {
 	console.log(`Checking schema for table: ${tableName}`);
 	try {
@@ -61,6 +75,7 @@ interface AgentState {
 	workflowLogs: WorkflowLog[];
 	appointments: Appointment[]; // Add appointments state
 	subscriptions: Subscription[]; // Add subscriptions state
+	calendarIntegration: CalendarIntegration | null; // Add calendar integration state
 	isLoading: boolean;
 	error: string | null;
 
@@ -90,6 +105,13 @@ interface AgentState {
 	fetchAppointments: (agentId: string) => Promise<void>; // Add fetchAppointments function signature
 	fetchSubscriptions: (userId: string) => Promise<Subscription | null>; // Add fetchSubscriptions function signature
 	diagnosticCheck: () => Promise<void>; // New diagnostic function
+
+	// Calendar integration functions
+	fetchCalendarIntegration: (
+		userId: string,
+	) => Promise<CalendarIntegration | null>;
+	connectGoogleCalendar: (userId: string) => Promise<{ url: string }>;
+	disconnectCalendar: (integrationId: string) => Promise<void>;
 }
 
 export const useAgentStore = create<AgentState>((set) => ({
@@ -99,6 +121,7 @@ export const useAgentStore = create<AgentState>((set) => ({
 	workflowLogs: [],
 	appointments: [], // Initialize appointments state
 	subscriptions: [], // Initialize subscriptions state
+	calendarIntegration: null, // Initialize calendar integration state
 	isLoading: false,
 	error: null,
 
@@ -595,6 +618,100 @@ export const useAgentStore = create<AgentState>((set) => ({
 			console.log('Diagnostic check complete');
 		} catch (err) {
 			console.error('Diagnostic check failed:', err);
+		}
+	},
+
+	// Add new calendar integration functions
+	fetchCalendarIntegration: async (userId) => {
+		set({ isLoading: true, error: null });
+		try {
+			const { data, error } = await supabase
+				.from('calendar_integrations')
+				.select('*')
+				.eq('user_id', userId)
+				.maybeSingle();
+
+			if (error) throw error;
+
+			set({ calendarIntegration: data, isLoading: false });
+			return data;
+		} catch (error) {
+			console.error('Error fetching calendar integration:', error);
+			set({
+				error:
+					error instanceof Error
+						? error.message
+						: 'Failed to fetch calendar integration',
+				isLoading: false,
+			});
+			return null;
+		}
+	},
+
+	connectGoogleCalendar: async (userId) => {
+		set({ isLoading: true, error: null });
+		try {
+			const { data: sessionData } = await supabase.auth.getSession();
+
+			const response = await fetch(
+				`${
+					import.meta.env.VITE_SUPABASE_FUNCTIONS_URL
+				}/calendar-oauth?user_id=${userId}`,
+				{
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${sessionData.session?.access_token}`,
+					},
+				},
+			);
+
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+
+			const data = await response.json();
+			set({ isLoading: false });
+
+			if (!data.url) {
+				throw new Error('Failed to get authorization URL');
+			}
+
+			return data;
+		} catch (error) {
+			console.error('Error connecting Google Calendar:', error);
+			set({
+				error:
+					error instanceof Error
+						? error.message
+						: 'Failed to connect Google Calendar',
+				isLoading: false,
+			});
+			throw error;
+		}
+	},
+
+	disconnectCalendar: async (integrationId) => {
+		set({ isLoading: true, error: null });
+		try {
+			const { error } = await supabase
+				.from('calendar_integrations')
+				.delete()
+				.eq('id', integrationId);
+
+			if (error) throw error;
+
+			set({ calendarIntegration: null, isLoading: false });
+		} catch (error) {
+			console.error('Error disconnecting calendar:', error);
+			set({
+				error:
+					error instanceof Error
+						? error.message
+						: 'Failed to disconnect calendar',
+				isLoading: false,
+			});
+			throw error;
 		}
 	},
 }));

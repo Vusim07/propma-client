@@ -674,6 +674,50 @@ export type Database = {
 					},
 				];
 			};
+			calendar_integrations: {
+				Row: {
+					id: string;
+					user_id: string;
+					provider: string;
+					refresh_token: string;
+					access_token: string | null;
+					token_expiry: string | null;
+					calendar_id: string | null;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					id?: string;
+					user_id: string;
+					provider: string;
+					refresh_token: string;
+					access_token?: string | null;
+					token_expiry?: string | null;
+					calendar_id?: string | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					id?: string;
+					user_id?: string;
+					provider?: string;
+					refresh_token?: string;
+					access_token?: string | null;
+					token_expiry?: string | null;
+					calendar_id?: string | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'calendar_integrations_user_id_fkey';
+						columns: ['user_id'];
+						isOneToOne: false;
+						referencedRelation: 'users';
+						referencedColumns: ['id'];
+					},
+				];
+			};
 		};
 		Views: {
 			[_ in never]: never;

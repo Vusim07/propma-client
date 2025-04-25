@@ -1,0 +1,94 @@
+import React, { useState } from 'react';
+import { usePageTitle } from '../../context/PageTitleContext';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from '@/components/ui/Card';
+import { User, CreditCard, Plug } from 'lucide-react';
+import CalendarSettings from './CalendarSettings';
+
+const Settings: React.FC = () => {
+	const { setPageTitle } = usePageTitle();
+	const [activeTab, setActiveTab] = useState('profile');
+
+	React.useEffect(() => {
+		setPageTitle('Settings');
+	}, [setPageTitle]);
+
+	return (
+		<div>
+			<div className='mb-6'>
+				<h1 className='text-2xl font-bold text-gray-900'>Settings</h1>
+				<p className='text-gray-600 mt-1'>
+					Manage your account settings and preferences
+				</p>
+			</div>
+
+			<Tabs
+				defaultValue='profile'
+				value={activeTab}
+				onValueChange={setActiveTab}
+				className='w-full'
+			>
+				<TabsList className='grid w-full grid-cols-3 mb-8'>
+					<TabsTrigger value='profile' className='flex items-center'>
+						<User className='h-4 w-4 mr-2' />
+						<span>Profile</span>
+					</TabsTrigger>
+					<TabsTrigger value='billing' className='flex items-center'>
+						<CreditCard className='h-4 w-4 mr-2' />
+						<span>Billing</span>
+					</TabsTrigger>
+					<TabsTrigger value='integrations' className='flex items-center'>
+						<Plug className='h-4 w-4 mr-2' />
+						<span>Integrations</span>
+					</TabsTrigger>
+				</TabsList>
+
+				<TabsContent value='profile'>
+					<Card>
+						<CardHeader>
+							<CardTitle>Personal Information</CardTitle>
+							<CardDescription>
+								Update your personal and company information
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<p className='text-muted-foreground'>
+								Personal profile settings will be implemented here.
+							</p>
+							{/* Profile form will go here */}
+						</CardContent>
+					</Card>
+				</TabsContent>
+
+				<TabsContent value='billing'>
+					<Card>
+						<CardHeader>
+							<CardTitle>Billing Information</CardTitle>
+							<CardDescription>
+								Manage your billing details and subscription
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<p className='text-muted-foreground'>
+								Billing and subscription management will be implemented here.
+							</p>
+							{/* Billing form will go here */}
+						</CardContent>
+					</Card>
+				</TabsContent>
+
+				<TabsContent value='integrations'>
+					<CalendarSettings hideTitle={true} />
+				</TabsContent>
+			</Tabs>
+		</div>
+	);
+};
+
+export default Settings;

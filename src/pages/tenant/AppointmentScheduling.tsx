@@ -38,7 +38,7 @@ const AppointmentScheduling: React.FC = () => {
 		profile,
 		appointments,
 		fetchAppointments,
-		scheduleAppointment,
+		// scheduleAppointment,
 		isLoading,
 		fetchProfile,
 	} = useTenantStore();
@@ -51,17 +51,8 @@ const AppointmentScheduling: React.FC = () => {
 	const [approvedApplication, setApprovedApplication] =
 		useState<ApprovedApplication | null>(null);
 	const [isFetchingApplication, setIsFetchingApplication] = useState(true);
-
-	// TODO: Replace with dynamic slots fetched from agent's calendar API
-	const availableTimeSlots = [
-		'09:00-09:30',
-		'10:00-10:30',
-		'11:00-11:30',
-		'13:00-13:30',
-		'14:00-14:30',
-		'15:00-15:30',
-		'16:00-16:30',
-	];
+	const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+	const [availableSlots, setAvailableSlots] = useState<string[]>([]);
 
 	// Helper function to check if an appointment time has passed
 	const isAppointmentPast = (appointment: Tables<'appointments'>): boolean => {
@@ -112,6 +103,64 @@ const AppointmentScheduling: React.FC = () => {
 				`Time: ${appointmentTimeStr}`,
 			);
 			return false; // Treat parse errors as not past
+		}
+	};
+
+	// Add this function to fetch available times from agent's calendar
+	const fetchAvailableSlots = async (selectedDate: Date, agentId: string) => {
+		setIsLoadingSlots(true);
+		try {
+			const { data: sessionData } = await supabase.auth.getSession();
+
+			const response = await fetch(
+				`${
+					import.meta.env.VITE_SUPABASE_FUNCTIONS_URL
+				}/calendar-available-slots`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${sessionData.session?.access_token}`,
+					},
+					body: JSON.stringify({
+						agentId,
+						date: format(selectedDate, 'yyyy-MM-dd'),
+						duration: 60, // 1 hour appointments
+					}),
+				},
+			);
+
+			const data = await response.json();
+			if (data.error) {
+				throw new Error(data.error);
+			}
+
+			// Transform the slots format from API (e.g. '9:00') to display format (e.g. '09:00-10:00')
+			const formattedSlots = data.slots.map((slot: string) => {
+				const [hours, minutes] = slot.split(':').map(Number);
+				const startHour = hours.toString().padStart(2, '0');
+				const endHour = (hours + 1).toString().padStart(2, '0');
+				return `${startHour}:${minutes
+					.toString()
+					.padStart(2, '0')}-${endHour}:${minutes.toString().padStart(2, '0')}`;
+			});
+
+			setAvailableSlots(formattedSlots);
+		} catch (err: any) {
+			console.error('Error fetching slots:', err);
+			setError(`Failed to load available slots: ${err.message}`);
+			// Fallback to default slots
+			setAvailableSlots([
+				'09:00-09:30',
+				'10:00-10:30',
+				'11:00-11:30',
+				'13:00-13:30',
+				'14:00-14:30',
+				'15:00-15:30',
+				'16:00-16:30',
+			]);
+		} finally {
+			setIsLoadingSlots(false);
 		}
 	};
 
@@ -177,6 +226,11 @@ const AppointmentScheduling: React.FC = () => {
 					} else if (applicationData) {
 						console.log('Fetched approved application:', applicationData);
 						setApprovedApplication(applicationData as ApprovedApplication);
+
+						// After getting the approved application, fetch available slots
+						if (date) {
+							fetchAvailableSlots(date as Date, applicationData.agent_id);
+						}
 					} else {
 						console.log('No approved application found for this user.');
 						setError(
@@ -199,14 +253,20 @@ const AppointmentScheduling: React.FC = () => {
 		} else if (!user) {
 			setIsFetchingApplication(false);
 		}
-	}, [user, profile, fetchAppointments, fetchProfile, setPageTitle]);
+	}, [user, profile, fetchAppointments, fetchProfile, setPageTitle, date]);
 
+	// Modified handleDateChange to fetch available slots
 	const handleDateChange = (value: Value) => {
 		setDate(value);
 		setTimeSlot('');
-		// TODO: Fetch available slots for the selected date from agent's calendar API
+
+		// Fetch available slots if we have an approved application
+		if (value && approvedApplication?.agent_id) {
+			fetchAvailableSlots(value as Date, approvedApplication.agent_id);
+		}
 	};
 
+	// Modified handleSubmit to use the calendar-create-event endpoint
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setError('');
@@ -240,20 +300,43 @@ const AppointmentScheduling: React.FC = () => {
 			const selectedDate = date as Date;
 			const [startTime, endTime] = timeSlot.split('-');
 
-			// TODO: Add a check here against fetched agent availability before scheduling
+			// Use the calendar-create-event endpoint
+			const { data: sessionData } = await supabase.auth.getSession();
 
-			await scheduleAppointment({
-				tenant_id: profile.id, // Ensure this is the PK from tenant_profiles
-				property_id: approvedApplication.property_id,
-				agent_id: approvedApplication.agent_id,
-				date: format(selectedDate, 'yyyy-MM-dd'),
-				start_time: startTime, // Corrected field name
-				end_time: endTime,
-				status: 'scheduled',
-				notes: notes,
-			});
+			const response = await fetch(
+				`${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/calendar-create-event`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${sessionData.session?.access_token}`,
+					},
+					body: JSON.stringify({
+						agentId: approvedApplication.agent_id,
+						tenantId: profile.id,
+						propertyId: approvedApplication.property_id,
+						date: format(selectedDate, 'yyyy-MM-dd'),
+						startTime,
+						endTime,
+						notes,
+					}),
+				},
+			);
 
-			setSuccess('Appointment scheduled successfully!');
+			const data = await response.json();
+			if (data.error) {
+				throw new Error(data.error);
+			}
+
+			// Show success message with Google Meet link if present
+			if (data.meetLink) {
+				setSuccess(
+					`Appointment scheduled successfully! A Google Meet link has been sent to your email.`,
+				);
+			} else {
+				setSuccess('Appointment scheduled successfully!');
+			}
+
 			setDate(new Date());
 			setTimeSlot('');
 			setNotes('');
@@ -261,14 +344,11 @@ const AppointmentScheduling: React.FC = () => {
 				fetchAppointments(profile.id);
 			}
 		} catch (err: any) {
-			setError(
-				`Failed to schedule appointment. Please try again: ${err.message}`,
-			);
+			setError(`Failed to schedule appointment: ${err.message}`);
 		}
 	};
 
 	const tileDisabled = ({ date }: { date: Date }) => {
-		// TODO: Potentially disable dates based on agent availability fetched from API
 		return (
 			isBefore(date, new Date()) &&
 			!format(date, 'yyyy-MM-dd').includes(format(new Date(), 'yyyy-MM-dd'))
@@ -276,7 +356,6 @@ const AppointmentScheduling: React.FC = () => {
 	};
 
 	const isTimeSlotBooked = (slot: string) => {
-		// TODO: This check should ideally use the fetched agent availability data
 		if (!date) return false;
 
 		const selectedDateStr = format(date as Date, 'yyyy-MM-dd');
@@ -391,37 +470,53 @@ const AppointmentScheduling: React.FC = () => {
 										{format(date as Date, 'MMMM d, yyyy')}
 									</span>
 								</p>
-								<div className='space-y-2'>
-									{availableTimeSlots.map((slot) => {
-										const isBooked = isTimeSlotBooked(slot);
-										return (
-											<button
-												key={slot}
-												onClick={() => !isBooked && setTimeSlot(slot)}
-												disabled={isBooked}
-												className={`w-full py-2 px-4 rounded-md text-left ${
-													isBooked
-														? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-														: timeSlot === slot
-														? 'bg-blue-100 border border-blue-500 text-blue-700'
-														: 'bg-white border border-gray-300 hover:bg-gray-50'
-												}`}
-											>
-												<div className='flex items-center justify-between'>
-													<span className='flex items-center'>
-														<Clock size={16} className='mr-2' />
-														{slot}
-													</span>
-													{isBooked ? (
-														<Badge variant='danger'>Booked</Badge>
-													) : timeSlot === slot ? (
-														<Check size={16} className='text-blue-600' />
-													) : null}
-												</div>
-											</button>
-										);
-									})}
-								</div>
+								{isLoadingSlots ? (
+									<div className='flex justify-center items-center py-8'>
+										<Spinner size='sm' />
+										<span className='ml-2 text-sm text-gray-500'>
+											Loading available slots...
+										</span>
+									</div>
+								) : (
+									<div className='space-y-2'>
+										{availableSlots.length > 0 ? (
+											availableSlots.map((slot) => {
+												const isBooked = isTimeSlotBooked(slot);
+												return (
+													<button
+														key={slot}
+														onClick={() => !isBooked && setTimeSlot(slot)}
+														disabled={isBooked}
+														className={`w-full py-2 px-4 rounded-md text-left ${
+															isBooked
+																? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+																: timeSlot === slot
+																? 'bg-blue-100 border border-blue-500 text-blue-700'
+																: 'bg-white border border-gray-300 hover:bg-gray-50'
+														}`}
+													>
+														<div className='flex items-center justify-between'>
+															<span className='flex items-center'>
+																<Clock size={16} className='mr-2' />
+																{slot}
+															</span>
+															{isBooked ? (
+																<Badge variant='danger'>Booked</Badge>
+															) : timeSlot === slot ? (
+																<Check size={16} className='text-blue-600' />
+															) : null}
+														</div>
+													</button>
+												);
+											})
+										) : (
+											<div className='text-center py-4 text-gray-500'>
+												No available slots for this date. Please select another
+												date.
+											</div>
+										)}
+									</div>
+								)}
 							</div>
 						) : (
 							<div className='text-center py-8 text-gray-500'>

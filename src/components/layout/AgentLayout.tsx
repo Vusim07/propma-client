@@ -60,6 +60,11 @@ const AgentLayout: React.FC = () => {
 			label: 'Workflows',
 		},
 		{
+			to: '/agent/settings',
+			icon: <User size={20} />,
+			label: 'Settings',
+		},
+		{
 			to: '/agent/subscription',
 			icon: <CreditCard size={20} />,
 			label: 'Subscription',

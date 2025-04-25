@@ -19,3 +19,21 @@ entrypoint = "./functions/paystack-webhook/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/paystack-webhook/*.html" ]
+
+[functions.calendar-oauth]
+enabled = true
+verify_jwt = false
+import_map = "./functions/calendar-oauth/deno.json"
+entrypoint = "./functions/calendar-oauth/index.ts"
+
+[functions.calendar-available-slots]
+enabled = true
+verify_jwt = true
+import_map = "./functions/calendar-available-slots/deno.json"
+entrypoint = "./functions/calendar-available-slots/index.ts"
+
+[functions.calendar-create-event]
+enabled = true
+verify_jwt = true
+import_map = "./functions/calendar-create-event/deno.json"
+entrypoint = "./functions/calendar-create-event/index.ts"
