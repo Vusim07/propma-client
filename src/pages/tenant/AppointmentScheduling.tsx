@@ -272,9 +272,13 @@ const AppointmentScheduling: React.FC = () => {
 		}
 	}, [user, profile, fetchAppointments, fetchProfile, setPageTitle, date]);
 
-	// Modified handleDateChange to fetch available slots without page reload
+	useEffect(() => {
+		if (isFetchingApplication) {
+			setIsFetchingApplication(false); // Ensure it resets after fetching
+		}
+	}, [isFetchingApplication]);
+
 	const handleDateChange = (value: Value) => {
-		// Prevent default behavior
 		if (!value) return;
 
 		setDate(value);
@@ -491,6 +495,9 @@ const AppointmentScheduling: React.FC = () => {
 								minDate={new Date()}
 								maxDate={addDays(new Date(), 30)}
 								className='w-full border-none'
+								onClickDay={(value) => {
+									handleDateChange(value);
+								}}
 							/>
 						</div>
 					</CardContent>
