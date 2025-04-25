@@ -4,13 +4,34 @@
 // but will work in the Supabase Edge Function environment
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
-import { google } from 'https://esm.sh/googleapis@128.0.0';
-import { corsHeaders } from '../_shared/cors.ts';
+
+// Simplified CORS handler function
+const handleCors = (req) => {
+	// Get origin from request
+	const origin = req.headers.get('Origin') || 'http://localhost:5173';
+
+	// Basic CORS headers - allowing the request origin or localhost
+	const headers = {
+		'Access-Control-Allow-Origin': origin,
+		'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+		'Access-Control-Allow-Headers':
+			'authorization, x-client-info, apikey, content-type',
+		'Access-Control-Allow-Credentials': 'true',
+	};
+
+	// Immediately handle OPTIONS request
+	if (req.method === 'OPTIONS') {
+		// 204 responses should not have a body
+		return new Response(null, { headers, status: 204 });
+	}
+
+	// For other requests, just return the headers to apply
+	return headers;
+};
 
 // Get OAuth credentials directly from environment variables
 const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID') || '';
 const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET') || '';
-const GOOGLE_REDIRECT_URI = Deno.env.get('GOOGLE_REDIRECT_URI') || '';
 
 // Helper function to format time as HH:MM
 function formatTime(date: Date): string {
@@ -76,79 +97,164 @@ function generateTimeSlots(
 }
 
 serve(async (req) => {
-	// Handle CORS
+	// Process CORS first, before any other logic
+	const corsResult = handleCors(req);
+
+	// If this was an OPTIONS request, handleCors already returned a Response
 	if (req.method === 'OPTIONS') {
-		return new Response('ok', { headers: corsHeaders });
+		return corsResult;
 	}
 
 	try {
-		const { date, slotDuration = 30 } = await req.json();
+		// Extract and log auth headers for debugging
+		const authHeader = req.headers.get('Authorization');
+		const apiKey = req.headers.get('apikey');
 
-		// Validate required parameters
-		if (!date) {
+		console.log('Auth header present:', !!authHeader);
+		console.log('API key present:', !!apiKey);
+
+		if (!authHeader) {
 			return new Response(
 				JSON.stringify({
-					error: 'Missing required parameters',
-					required: ['date'],
+					error: 'Unauthorized',
+					details: 'Missing Authorization header',
+				}),
+				{
+					status: 401,
+					headers: {
+						...corsResult,
+						'Content-Type': 'application/json',
+					},
+				},
+			);
+		}
+
+		// Parse request body
+		let requestData;
+		try {
+			requestData = await req.json();
+		} catch {
+			return new Response(
+				JSON.stringify({
+					error: 'Invalid request',
+					details: 'Failed to parse request body as JSON',
 				}),
 				{
 					status: 400,
-					headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+					headers: {
+						...corsResult,
+						'Content-Type': 'application/json',
+					},
 				},
 			);
 		}
 
-		// Get user ID from the JWT
-		const supabaseClient = createClient(
-			Deno.env.get('SUPABASE_URL') || '',
-			Deno.env.get('SUPABASE_ANON_KEY') || '',
-			{
-				global: {
-					headers: { Authorization: req.headers.get('Authorization') || '' },
-				},
-			},
-		);
+		const { date, agentId, slotDuration = 30 } = requestData;
 
-		const supabaseAdmin = createClient(
-			Deno.env.get('SUPABASE_URL') || '',
-			Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '',
-			{
-				auth: {
-					autoRefreshToken: false,
-					persistSession: false,
+		// Validate required parameters
+		if (!date || !agentId) {
+			return new Response(
+				JSON.stringify({
+					error: 'Missing required parameters',
+					required: ['date', 'agentId'],
+				}),
+				{
+					status: 400,
+					headers: {
+						...corsResult,
+						'Content-Type': 'application/json',
+					},
 				},
-			},
-		);
+			);
+		}
 
-		// Get the authenticated user
+		// Get environment variables
+		const supabaseUrl = Deno.env.get('SUPABASE_URL');
+		const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+		const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+		console.log('Supabase URL available:', !!supabaseUrl);
+		console.log('Anon key available:', !!supabaseAnonKey);
+		console.log('Service role key available:', !!supabaseServiceRoleKey);
+
+		if (!supabaseUrl || !supabaseServiceRoleKey) {
+			return new Response(
+				JSON.stringify({
+					error: 'Server Configuration Error',
+					details: 'Missing required environment variables',
+				}),
+				{
+					status: 500,
+					headers: {
+						...corsResult,
+						'Content-Type': 'application/json',
+					},
+				},
+			);
+		}
+
+		// Create an admin client with service role key to perform operations
+		const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
+			auth: {
+				autoRefreshToken: false,
+				persistSession: false,
+			},
+		});
+
+		// Get the JWT token from the authorization header
+		const token = authHeader.replace('Bearer ', '');
+
+		// Verify the JWT token directly
 		const {
 			data: { user },
-			error: userError,
-		} = await supabaseClient.auth.getUser();
-		if (userError || !user) {
+			error: jwtError,
+		} = await supabaseAdmin.auth.getUser(token);
+
+		if (jwtError || !user) {
+			console.error(
+				'JWT verification error:',
+				jwtError?.message || 'User not found',
+			);
 			return new Response(
-				JSON.stringify({ error: 'Unauthorized', details: userError?.message }),
+				JSON.stringify({
+					error: 'Unauthorized',
+					details: jwtError?.message || 'Invalid token',
+					code: jwtError?.code || 'unknown',
+				}),
 				{
 					status: 401,
-					headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+					headers: {
+						...corsResult,
+						'Content-Type': 'application/json',
+					},
 				},
 			);
 		}
 
-		// Get calendar integration for the user
+		console.log('Authenticated user:', user.id);
+
+		// Get calendar integration for the agent (not the authenticated user)
 		const { data: integration, error: integrationError } = await supabaseAdmin
 			.from('calendar_integrations')
 			.select('*')
-			.eq('user_id', user.id)
+			.eq('user_id', agentId)
 			.eq('provider', 'google')
 			.single();
 
 		if (integrationError || !integration) {
+			console.error('No calendar integration found for agent:', agentId);
 			return new Response(
-				JSON.stringify({ error: 'No calendar integration found' }),
+				JSON.stringify({
+					error: 'No calendar integration found',
+					details:
+						integrationError?.message || 'Agent has no calendar integration',
+				}),
 				{
 					status: 404,
-					headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+					headers: {
+						...corsResult,
+						'Content-Type': 'application/json',
+					},
 				},
 			);
 		}
@@ -157,7 +263,7 @@ serve(async (req) => {
 		const { data: settings, error: settingsError } = await supabaseAdmin
 			.from('user_settings')
 			.select('availability_hours')
-			.eq('user_id', user.id)
+			.eq('user_id', agentId)
 			.single();
 
 		if (settingsError) {
@@ -171,49 +277,81 @@ serve(async (req) => {
 			end: '17:00',
 		};
 
-		// Initialize Google Calendar client
-		const oauth2Client = new google.auth.OAuth2(
-			GOOGLE_CLIENT_ID,
-			GOOGLE_CLIENT_SECRET,
-			GOOGLE_REDIRECT_URI,
-		);
-
-		// Set credentials and refresh if needed
-		oauth2Client.setCredentials({
-			refresh_token: integration.refresh_token,
-		});
-
-		// Refresh the token if it's expired
+		// Check if token is expired and refresh if needed
+		let accessToken = integration.access_token;
 		if (new Date(integration.token_expiry) < new Date()) {
-			const { tokens } = await oauth2Client.refreshAccessToken();
+			try {
+				console.log('Token expired, refreshing...');
 
-			// Update the tokens in the database
-			if (tokens.refresh_token) {
-				await supabaseAdmin
+				const refreshResponse = await fetch(
+					'https://oauth2.googleapis.com/token',
+					{
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/x-www-form-urlencoded',
+						},
+						body: new URLSearchParams({
+							client_id: GOOGLE_CLIENT_ID,
+							client_secret: GOOGLE_CLIENT_SECRET,
+							refresh_token: integration.refresh_token,
+							grant_type: 'refresh_token',
+						}),
+					},
+				);
+
+				if (!refreshResponse.ok) {
+					const errorData = await refreshResponse.text();
+					throw new Error(
+						`Token refresh failed: ${refreshResponse.status} ${errorData}`,
+					);
+				}
+
+				const tokens = await refreshResponse.json();
+				console.log('Token refreshed successfully');
+
+				// Update access token for this request
+				accessToken = tokens.access_token;
+
+				// Update the tokens in the database
+				const updateData = {
+					access_token: tokens.access_token,
+					token_expiry: new Date(
+						Date.now() + (tokens.expires_in || 3600) * 1000,
+					).toISOString(),
+				};
+
+				// If we received a new refresh token, update that too
+				if (tokens.refresh_token) {
+					updateData.refresh_token = tokens.refresh_token;
+				}
+
+				const { error: updateError } = await supabaseAdmin
 					.from('calendar_integrations')
-					.update({
-						access_token: tokens.access_token,
-						refresh_token: tokens.refresh_token,
-						token_expiry: new Date(
-							Date.now() + (tokens.expires_in || 3600) * 1000,
-						).toISOString(),
-					})
+					.update(updateData)
 					.eq('id', integration.id);
-			} else {
-				await supabaseAdmin
-					.from('calendar_integrations')
-					.update({
-						access_token: tokens.access_token,
-						token_expiry: new Date(
-							Date.now() + (tokens.expires_in || 3600) * 1000,
-						).toISOString(),
-					})
-					.eq('id', integration.id);
+
+				if (updateError) {
+					console.error('Error updating tokens in database:', updateError);
+				}
+			} catch (refreshError) {
+				console.error('Token refresh error:', refreshError.message);
+				return new Response(
+					JSON.stringify({
+						error: 'Failed to refresh token',
+						message:
+							'Calendar authorization has expired. Please reconnect the calendar.',
+						details: refreshError.message,
+					}),
+					{
+						status: 401,
+						headers: {
+							...corsResult,
+							'Content-Type': 'application/json',
+						},
+					},
+				);
 			}
 		}
-
-		// Create calendar client
-		const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
 		// Set up time boundaries for the query
 		const dateObj = new Date(date);
@@ -226,18 +364,36 @@ serve(async (req) => {
 		// Get calendar ID (use primary or specified)
 		const calendarId = integration.calendar_id || 'primary';
 
-		// Query for busy times
-		const freeBusy = await calendar.freebusy.query({
-			requestBody: {
-				timeMin: timeMin.toISOString(),
-				timeMax: timeMax.toISOString(),
-				items: [{ id: calendarId }],
+		// Use direct API call instead of googleapis
+		console.log('Fetching freebusy information for calendar:', calendarId);
+		const freeBusyResponse = await fetch(
+			'https://www.googleapis.com/calendar/v3/freeBusy',
+			{
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					timeMin: timeMin.toISOString(),
+					timeMax: timeMax.toISOString(),
+					items: [{ id: calendarId }],
+				}),
 			},
-		});
+		);
+
+		if (!freeBusyResponse.ok) {
+			const errorBody = await freeBusyResponse.text();
+			throw new Error(
+				`Google Calendar API error: ${freeBusyResponse.status} ${errorBody}`,
+			);
+		}
+
+		const freeBusyData = await freeBusyResponse.json();
 
 		// Extract busy slots
 		const busySlots =
-			freeBusy.data.calendars?.[calendarId]?.busy?.map((slot) => ({
+			freeBusyData.calendars?.[calendarId]?.busy?.map((slot) => ({
 				start: new Date(slot.start || ''),
 				end: new Date(slot.end || ''),
 			})) || [];
@@ -250,16 +406,21 @@ serve(async (req) => {
 			busySlots,
 		);
 
+		// Transform to simplified format for the frontend
+		const simplifiedSlots = availableSlots.map((slot) => slot.start);
+
 		return new Response(
 			JSON.stringify({
+				slots: simplifiedSlots,
 				date,
-				work_hours: workHours,
-				slot_duration: slotDuration,
-				slots: availableSlots,
+				workHours,
 			}),
 			{
 				status: 200,
-				headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+				headers: {
+					...corsResult,
+					'Content-Type': 'application/json',
+				},
 			},
 		);
 	} catch (error) {
@@ -267,11 +428,14 @@ serve(async (req) => {
 		return new Response(
 			JSON.stringify({
 				error: 'Failed to retrieve available slots',
-				message: error.message,
+				message: error.message || 'Unknown error occurred',
 			}),
 			{
 				status: 500,
-				headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+				headers: {
+					...corsResult,
+					'Content-Type': 'application/json',
+				},
 			},
 		);
 	}

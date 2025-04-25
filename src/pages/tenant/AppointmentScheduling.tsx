@@ -109,8 +109,33 @@ const AppointmentScheduling: React.FC = () => {
 	// Add this function to fetch available times from agent's calendar
 	const fetchAvailableSlots = async (selectedDate: Date, agentId: string) => {
 		setIsLoadingSlots(true);
+		setError('');
 		try {
-			const { data: sessionData } = await supabase.auth.getSession();
+			// Get a fresh session token
+			const { data: session, error: sessionError } =
+				await supabase.auth.getSession();
+
+			if (sessionError) {
+				console.error('Session error:', sessionError);
+				throw new Error(`Failed to get session: ${sessionError.message}`);
+			}
+
+			if (!session?.session?.access_token) {
+				// Try to refresh the session
+				const { data: refreshData, error: refreshError } =
+					await supabase.auth.refreshSession();
+
+				if (refreshError || !refreshData?.session?.access_token) {
+					throw new Error(
+						'Your authentication session has expired. Please log in again.',
+					);
+				}
+
+				// Use the refreshed token
+				session.session = refreshData.session;
+			}
+
+			const accessToken = session.session.access_token;
 
 			const response = await fetch(
 				`${
@@ -120,7 +145,8 @@ const AppointmentScheduling: React.FC = () => {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
-						Authorization: `Bearer ${sessionData.session?.access_token}`,
+						Authorization: `Bearer ${accessToken}`,
+						apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
 					},
 					body: JSON.stringify({
 						agentId,
@@ -129,6 +155,16 @@ const AppointmentScheduling: React.FC = () => {
 					}),
 				},
 			);
+
+			if (!response.ok) {
+				const errorText = await response.text();
+				console.error('Calendar API error response:', {
+					status: response.status,
+					statusText: response.statusText,
+					body: errorText,
+				});
+				throw new Error(`API error: ${response.status} ${errorText}`);
+			}
 
 			const data = await response.json();
 			if (data.error) {
@@ -255,8 +291,11 @@ const AppointmentScheduling: React.FC = () => {
 		}
 	}, [user, profile, fetchAppointments, fetchProfile, setPageTitle, date]);
 
-	// Modified handleDateChange to fetch available slots
+	// Modified handleDateChange to fetch available slots without page reload
 	const handleDateChange = (value: Value) => {
+		// Prevent default behavior
+		if (!value) return;
+
 		setDate(value);
 		setTimeSlot('');
 
@@ -266,7 +305,7 @@ const AppointmentScheduling: React.FC = () => {
 		}
 	};
 
-	// Modified handleSubmit to use the calendar-create-event endpoint
+	// Modified handleSubmit to include the required fields for calendar-create-event
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setError('');
@@ -299,6 +338,19 @@ const AppointmentScheduling: React.FC = () => {
 		try {
 			const selectedDate = date as Date;
 			const [startTime, endTime] = timeSlot.split('-');
+			const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+
+			// Create the start and end datetime strings in ISO format
+			const startDateTime = `${formattedDate}T${startTime}:00`;
+			const endDateTime = `${formattedDate}T${endTime}:00`;
+
+			// Property address for title
+			const propertyAddress = propertyDetails
+				? `${propertyDetails.address}, ${propertyDetails.suburb}`
+				: 'Property Viewing';
+
+			// Create a descriptive title
+			const appointmentTitle = `Property Viewing: ${propertyAddress}`;
 
 			// Use the calendar-create-event endpoint
 			const { data: sessionData } = await supabase.auth.getSession();
@@ -312,13 +364,19 @@ const AppointmentScheduling: React.FC = () => {
 						Authorization: `Bearer ${sessionData.session?.access_token}`,
 					},
 					body: JSON.stringify({
+						// Required fields for calendar event creation
+						title: appointmentTitle,
+						description:
+							notes ||
+							`Property viewing appointment with ${profile.first_name} ${profile.last_name}`,
+						start: startDateTime,
+						end: endDateTime,
+						attendees: [profile.email],
+
+						// Additional fields for your application
 						agentId: approvedApplication.agent_id,
 						tenantId: profile.id,
 						propertyId: approvedApplication.property_id,
-						date: format(selectedDate, 'yyyy-MM-dd'),
-						startTime,
-						endTime,
-						notes,
 					}),
 				},
 			);
@@ -478,7 +536,7 @@ const AppointmentScheduling: React.FC = () => {
 										</span>
 									</div>
 								) : (
-									<div className='space-y-2'>
+									<div className='space-y-2 h-[270px] overflow-y-auto pr-2'>
 										{availableSlots.length > 0 ? (
 											availableSlots.map((slot) => {
 												const isBooked = isTimeSlotBooked(slot);
