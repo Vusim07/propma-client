@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand';
 import { supabase } from '../services/supabase';
@@ -36,6 +37,15 @@ export interface EmailIntegration {
 	email_address: string | null;
 	created_at: string;
 	updated_at: string;
+}
+
+// Gmail message type
+export interface GmailMessage {
+	id: string;
+	subject: string;
+	from: string;
+	date: string;
+	body: string;
 }
 
 // Add proper typing for the database workflow fields
@@ -138,9 +148,17 @@ interface AgentState {
 	) => Promise<CalendarIntegration | null>;
 	connectGoogleCalendar: (userId: string) => Promise<{ url: string }>;
 	disconnectCalendar: (integrationId: string) => Promise<void>;
+
+	// Gmail integration functions
+	fetchGmailMessages: () => Promise<GmailMessage[]>;
+	sendGmailMessage: (
+		to: string,
+		subject: string,
+		body: string,
+	) => Promise<boolean>;
 }
 
-export const useAgentStore = create<AgentState>((set) => ({
+export const useAgentStore = create<AgentState>((set, get) => ({
 	applications: [],
 	properties: [],
 	workflows: [],
@@ -798,6 +816,73 @@ export const useAgentStore = create<AgentState>((set) => ({
 				isLoading: false,
 			});
 			throw error;
+		}
+	},
+
+	// Add Gmail integration functions
+	fetchGmailMessages: async () => {
+		set({ isLoading: true, error: null });
+		try {
+			const { data: sessionData, error: sessionError } =
+				await supabase.auth.getSession();
+			if (sessionError || !sessionData?.session?.access_token)
+				throw new Error('Session expired');
+			const response = await fetch(
+				`${
+					import.meta.env.VITE_SUPABASE_FUNCTIONS_URL
+				}/email-gmail-list-messages`,
+				{
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${sessionData.session.access_token}`,
+						apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+					},
+				},
+			);
+			if (!response.ok) throw new Error(await response.text());
+			const { emails } = await response.json();
+			set({ isLoading: false });
+			return emails as GmailMessage[];
+		} catch (error: any) {
+			set({
+				error: error.message || 'Failed to fetch Gmail messages',
+				isLoading: false,
+			});
+			return [];
+		}
+	},
+
+	sendGmailMessage: async (to, subject, body) => {
+		set({ isLoading: true, error: null });
+		try {
+			const { data: sessionData, error: sessionError } =
+				await supabase.auth.getSession();
+			if (sessionError || !sessionData?.session?.access_token)
+				throw new Error('Session expired');
+			const response = await fetch(
+				`${
+					import.meta.env.VITE_SUPABASE_FUNCTIONS_URL
+				}/email-gmail-send-message`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${sessionData.session.access_token}`,
+						apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+					},
+					body: JSON.stringify({ to, subject, body }),
+				},
+			);
+			if (!response.ok) throw new Error(await response.text());
+			set({ isLoading: false });
+			return true;
+		} catch (error: any) {
+			set({
+				error: error.message || 'Failed to send Gmail message',
+				isLoading: false,
+			});
+			return false;
 		}
 	},
 }));

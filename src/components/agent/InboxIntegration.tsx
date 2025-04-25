@@ -5,7 +5,7 @@ import Badge from '../ui/Badge';
 import Spinner from '../ui/Spinner';
 import { Inbox } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
-import { useAgentStore } from '../../stores/agentStore';
+import { useAgentStore, GmailMessage } from '../../stores/agentStore';
 import { supabase } from '@/services/supabase';
 
 interface EmailProvider {
@@ -56,11 +56,15 @@ const InboxIntegration: React.FC = () => {
 		fetchEmailIntegration,
 		disconnectEmailIntegration,
 		isLoading,
+		fetchGmailMessages,
 	} = useAgentStore();
 
 	const [emailConnectStep, setEmailConnectStep] = useState<number>(0);
 	const [selectedProvider, setSelectedProvider] = useState<string>('');
 	const [localError, setLocalError] = useState<string | null>(null);
+	const [gmailMessages, setGmailMessages] = useState<GmailMessage[]>([]);
+	const [fetchingEmails, setFetchingEmails] = useState(false);
+	const [emailError, setEmailError] = useState<string | null>(null);
 
 	React.useEffect(() => {
 		if (user?.id) fetchEmailIntegration(user.id);
@@ -125,6 +129,19 @@ const InboxIntegration: React.FC = () => {
 			await disconnectEmailIntegration(emailIntegration.id);
 		} catch (err: any) {
 			setLocalError(err.message || 'Failed to disconnect');
+		}
+	};
+
+	const handleFetchEmails = async () => {
+		setFetchingEmails(true);
+		setEmailError(null);
+		try {
+			const emails = await fetchGmailMessages();
+			setGmailMessages(emails);
+		} catch (err: any) {
+			setEmailError(err.message || 'Failed to fetch emails');
+		} finally {
+			setFetchingEmails(false);
 		}
 	};
 
@@ -217,6 +234,37 @@ const InboxIntegration: React.FC = () => {
 						</button>
 					</div>
 				</CardContent>
+				<div className='w-full mt-4'>
+					<button
+						onClick={handleFetchEmails}
+						className='text-xs text-blue-600 underline hover:text-blue-800 mb-2'
+						disabled={fetchingEmails}
+					>
+						{fetchingEmails ? 'Fetching emails...' : 'Fetch Recent Emails'}
+					</button>
+					{emailError && (
+						<div className='text-xs text-red-600 mb-2'>{emailError}</div>
+					)}
+					{gmailMessages.length > 0 && (
+						<div className='bg-gray-50 rounded p-2 max-h-48 overflow-y-auto'>
+							{gmailMessages.map((msg) => (
+								<div
+									key={msg.id}
+									className='mb-2 border-b border-gray-200 pb-2 last:border-b-0'
+								>
+									<div className='font-medium text-xs'>{msg.subject}</div>
+									<div className='text-[11px] text-gray-500'>
+										From: {msg.from}
+									</div>
+									<div className='text-[11px] text-gray-400'>{msg.date}</div>
+									<div className='text-xs text-gray-700 mt-1 whitespace-pre-line'>
+										{msg.body}
+									</div>
+								</div>
+							))}
+						</div>
+					)}
+				</div>
 			</Card>
 		);
 	}
