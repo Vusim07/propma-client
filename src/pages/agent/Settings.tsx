@@ -12,6 +12,7 @@ import { User, CreditCard, Plug } from 'lucide-react';
 import CalendarSettings from './CalendarSettings';
 import SubscriptionPage from './SubscriptionPage';
 import AgentProfileForm from '../../components/agent/AgentProfileForm';
+import InboxIntegration from '../../components/agent/InboxIntegration';
 
 const Settings: React.FC = () => {
 	const { setPageTitle } = usePageTitle();
@@ -79,7 +80,10 @@ const Settings: React.FC = () => {
 				</TabsContent>
 
 				<TabsContent value='integrations'>
-					<CalendarSettings hideTitle={true} />
+					<div className='space-y-4'>
+						<CalendarSettings hideTitle={true} />
+						<InboxIntegration />
+					</div>
 				</TabsContent>
 			</Tabs>
 		</div>

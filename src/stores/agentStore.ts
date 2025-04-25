@@ -25,6 +25,19 @@ export interface CalendarIntegration {
 	updated_at: string;
 }
 
+// EmailIntegration type
+export interface EmailIntegration {
+	id: string;
+	user_id: string;
+	provider: string;
+	refresh_token: string;
+	access_token: string | null;
+	token_expiry: string | null;
+	email_address: string | null;
+	created_at: string;
+	updated_at: string;
+}
+
 // Add proper typing for the database workflow fields
 interface WorkflowUpdateFields {
 	name?: string;
@@ -76,6 +89,7 @@ interface AgentState {
 	appointments: Appointment[]; // Add appointments state
 	subscriptions: Subscription[]; // Add subscriptions state
 	calendarIntegration: CalendarIntegration | null; // Add calendar integration state
+	emailIntegration: EmailIntegration | null; // Add email integration state
 	isLoading: boolean;
 	error: string | null;
 
@@ -104,6 +118,18 @@ interface AgentState {
 	fetchWorkflowLogs: (workflowId?: string) => Promise<void>;
 	fetchAppointments: (agentId: string) => Promise<void>; // Add fetchAppointments function signature
 	fetchSubscriptions: (userId: string) => Promise<Subscription | null>; // Add fetchSubscriptions function signature
+	fetchEmailIntegration: (userId: string) => Promise<EmailIntegration | null>; // Add fetchEmailIntegration function signature
+	connectEmailIntegration: (
+		userId: string,
+		provider: string,
+		tokens: {
+			refresh_token: string;
+			access_token?: string;
+			token_expiry?: string;
+			email_address?: string;
+		},
+	) => Promise<EmailIntegration>; // Add connectEmailIntegration function signature
+	disconnectEmailIntegration: (integrationId: string) => Promise<void>; // Add disconnectEmailIntegration function signature
 	diagnosticCheck: () => Promise<void>; // New diagnostic function
 
 	// Calendar integration functions
@@ -122,6 +148,7 @@ export const useAgentStore = create<AgentState>((set) => ({
 	appointments: [], // Initialize appointments state
 	subscriptions: [], // Initialize subscriptions state
 	calendarIntegration: null, // Initialize calendar integration state
+	emailIntegration: null, // Initialize email integration state
 	isLoading: false,
 	error: null,
 
@@ -590,6 +617,65 @@ export const useAgentStore = create<AgentState>((set) => ({
 				isLoading: false,
 			});
 			return null;
+		}
+	},
+
+	// Add fetchEmailIntegration function
+	fetchEmailIntegration: async (userId) => {
+		set({ isLoading: true, error: null });
+		try {
+			const { data, error } = await supabase
+				.from('email_integrations')
+				.select('*')
+				.eq('user_id', userId)
+				.maybeSingle();
+			if (error) throw error;
+			set({ emailIntegration: data, isLoading: false });
+			return data;
+		} catch (error) {
+			set({ error: (error as Error).message, isLoading: false });
+			return null;
+		}
+	},
+
+	// Add connectEmailIntegration function
+	connectEmailIntegration: async (userId, provider, tokens) => {
+		set({ isLoading: true, error: null });
+		try {
+			const { data, error } = await supabase
+				.from('email_integrations')
+				.insert({
+					user_id: userId,
+					provider,
+					refresh_token: tokens.refresh_token,
+					access_token: tokens.access_token || null,
+					token_expiry: tokens.token_expiry || null,
+					email_address: tokens.email_address || null,
+				})
+				.select()
+				.single();
+			if (error) throw error;
+			set({ emailIntegration: data, isLoading: false });
+			return data;
+		} catch (error) {
+			set({ error: (error as Error).message, isLoading: false });
+			throw error;
+		}
+	},
+
+	// Add disconnectEmailIntegration function
+	disconnectEmailIntegration: async (integrationId) => {
+		set({ isLoading: true, error: null });
+		try {
+			const { error } = await supabase
+				.from('email_integrations')
+				.delete()
+				.eq('id', integrationId);
+			if (error) throw error;
+			set({ emailIntegration: null, isLoading: false });
+		} catch (error) {
+			set({ error: (error as Error).message, isLoading: false });
+			throw error;
 		}
 	},
 
