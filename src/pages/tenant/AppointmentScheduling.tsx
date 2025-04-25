@@ -56,7 +56,6 @@ const AppointmentScheduling: React.FC = () => {
 
 	// Helper function to check if an appointment time has passed
 	const isAppointmentPast = (appointment: Tables<'appointments'>): boolean => {
-		const now = new Date(); // Keep now for logging comparison
 		const appointmentDateStr = appointment.date;
 		const appointmentTimeStr = appointment.end_time || appointment.start_time;
 
@@ -75,24 +74,6 @@ const AppointmentScheduling: React.FC = () => {
 
 			const isValid = !isNaN(appointmentDateTime.getTime());
 			const isPastDate = isValid && isPast(appointmentDateTime);
-
-			// Add detailed logging for diagnostics
-			console.log(`--- Checking Appointment ID: ${appointment.id} ---`);
-			console.log(
-				`  Raw Date: ${appointmentDateStr}, Raw Time: ${appointmentTimeStr}`,
-			);
-			console.log(
-				`  Combined String: ${appointmentDateStr} ${appointmentTimeStr}`,
-			);
-			console.log(`  Parsing Format: ${dateTimeFormat}`);
-			console.log(
-				`  Parsed DateTime: ${
-					isValid ? appointmentDateTime.toISOString() : 'INVALID DATE'
-				}`,
-			);
-			console.log(`  Current Time: ${now.toISOString()}`);
-			console.log(`  Is Past? ${isPastDate}`);
-			console.log(`-------------------------------------------------`);
 
 			return isValid && isPastDate;
 		} catch (e) {
