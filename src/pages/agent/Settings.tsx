@@ -10,6 +10,8 @@ import {
 } from '@/components/ui/Card';
 import { User, CreditCard, Plug } from 'lucide-react';
 import CalendarSettings from './CalendarSettings';
+import SubscriptionPage from './SubscriptionPage';
+import AgentProfileForm from '../../components/agent/AgentProfileForm';
 
 const Settings: React.FC = () => {
 	const { setPageTitle } = usePageTitle();
@@ -57,10 +59,7 @@ const Settings: React.FC = () => {
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<p className='text-muted-foreground'>
-								Personal profile settings will be implemented here.
-							</p>
-							{/* Profile form will go here */}
+							<AgentProfileForm />
 						</CardContent>
 					</Card>
 				</TabsContent>
@@ -74,10 +73,7 @@ const Settings: React.FC = () => {
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<p className='text-muted-foreground'>
-								Billing and subscription management will be implemented here.
-							</p>
-							{/* Billing form will go here */}
+							<SubscriptionPage />
 						</CardContent>
 					</Card>
 				</TabsContent>

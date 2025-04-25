@@ -437,10 +437,10 @@ const AppointmentScheduling: React.FC = () => {
 				<h1 className='text-2xl font-bold text-gray-900 mb-6'>
 					Schedule a Viewing
 				</h1>
-				<Alert variant='info'>
+				{/* <Alert variant='info'>
 					Please log in and ensure you have an approved application to schedule
 					a viewing.
-				</Alert>
+				</Alert> */}
 			</div>
 		);
 	}
