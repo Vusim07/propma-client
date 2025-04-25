@@ -3,7 +3,6 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { usePageTitle } from '../../context/PageTitleContext';
 import {
-	Home,
 	FileText,
 	Calendar,
 	LogOut,
@@ -14,6 +13,7 @@ import {
 	ChevronRight,
 	Menu,
 	CreditCard,
+	LayoutDashboard,
 } from 'lucide-react';
 import Button from '../ui/Button';
 
@@ -38,7 +38,7 @@ const AgentLayout: React.FC = () => {
 	};
 
 	const navItems = [
-		{ to: '/agent', icon: <Home size={20} />, label: 'Dashboard' },
+		{ to: '/agent', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
 		{
 			to: '/agent/properties',
 			icon: <HomeIcon size={20} />,

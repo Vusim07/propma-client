@@ -3,7 +3,6 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { usePageTitle } from '../../context/PageTitleContext';
 import {
-	Home,
 	FileText,
 	CheckSquare,
 	Calendar,
@@ -12,6 +11,7 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	Menu,
+	LayoutDashboard,
 } from 'lucide-react';
 import Button from '../ui/Button';
 
@@ -36,7 +36,7 @@ const TenantLayout: React.FC = () => {
 	};
 
 	const navItems = [
-		{ to: '/tenant', icon: <Home size={20} />, label: 'Dashboard' },
+		{ to: '/tenant', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
 		{
 			to: '/tenant/documents',
 			icon: <FileText size={20} />,
