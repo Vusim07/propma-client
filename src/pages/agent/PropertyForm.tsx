@@ -55,6 +55,7 @@ const PropertyForm: React.FC = () => {
 		images: [],
 		suburb: '',
 		deposit_amount: 0,
+		web_reference: '',
 	});
 
 	const [amenity, setAmenity] = useState('');
@@ -98,6 +99,7 @@ const PropertyForm: React.FC = () => {
 					images: propertyToEdit.images || [],
 					suburb: propertyToEdit.suburb,
 					deposit_amount: propertyToEdit.deposit_amount,
+					web_reference: propertyToEdit.web_reference,
 				});
 			}
 		}
@@ -519,6 +521,21 @@ const PropertyForm: React.FC = () => {
 									value={formData.available_from}
 									onChange={handleInputChange}
 									required
+								/>
+							</div>
+							<div>
+								<label
+									htmlFor='web_reference'
+									className='text-sm font-medium text-gray-700 block mb-1'
+								>
+									Web Reference (Listing Web Ref. Optional)
+								</label>
+								<Input
+									name='web_reference'
+									type='text'
+									value={formData.web_reference}
+									onChange={handleInputChange}
+									placeholder='e.g. RR3603605'
 								/>
 							</div>
 						</div>

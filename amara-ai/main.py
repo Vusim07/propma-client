@@ -12,6 +12,9 @@ import logging
 from src.affordability_crew import AffordabilityAnalysisCrew
 from src.affordability_crew.config import setup_config
 
+# Import email connector module
+from src.email_connector import register_routes
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -34,6 +37,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Register email connector routes
+register_routes(app)
 
 # Mount static files directory
 try:
@@ -198,11 +204,8 @@ async def debug_crew_config():
         return {
             "context_data": context_data,
             "task_description": task_config.get("description") if task_config else None,
-            "expected_output": (
-                task_config.get("expected_output") if task_config else None
-            ),
-            "agent_config": (
-                crew_instance.agents_config.get("financial_analyst")
+            "agents_config": (
+                crew_instance.agents_config
                 if hasattr(crew_instance, "agents_config")
                 else None
             ),
@@ -212,7 +215,11 @@ async def debug_crew_config():
         raise HTTPException(status_code=500, detail=f"Debug error: {str(e)}")
 
 
+# Start the server directly when the script is run
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    host = os.environ.get("HOST", "0.0.0.0")
+    # Use reload=True for development
+    uvicorn.run(app, host=host, port=port)

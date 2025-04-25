@@ -195,6 +195,7 @@ export type Database = {
 					images: string[];
 					square_feet: number;
 					description: string;
+					web_reference: string;
 				};
 				Insert: {
 					address: string;

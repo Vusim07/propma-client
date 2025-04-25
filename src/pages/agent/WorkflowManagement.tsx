@@ -29,6 +29,9 @@ import {
 	MessageSquare,
 	Search,
 	Clock,
+	Home,
+	Link as LinkIcon,
+	Inbox,
 } from 'lucide-react';
 import { Tables } from '../../services/database.types';
 
@@ -51,6 +54,14 @@ interface WorkflowViewModel {
 	actions: WorkflowActions;
 	created_at: string;
 	updated_at: string;
+}
+
+// Email provider type
+interface EmailProvider {
+	id: string;
+	name: string;
+	connected: boolean;
+	logo: string;
 }
 
 // Function to map DB type to view model type
@@ -85,11 +96,15 @@ const WorkflowManagement: React.FC = () => {
 		deleteWorkflow,
 		isLoading,
 		error,
+		properties,
+		fetchProperties,
 	} = useAgentStore();
 
 	const [isCreating, setIsCreating] = useState(false);
 	const [isEditing, setIsEditing] = useState<string | null>(null);
 	const [success, setSuccess] = useState('');
+	const [emailConnectStep, setEmailConnectStep] = useState<number>(0);
+	const [selectedProvider, setSelectedProvider] = useState<string>('');
 
 	// Form state
 	const [name, setName] = useState('');
@@ -97,10 +112,29 @@ const WorkflowManagement: React.FC = () => {
 	const [bodyFilters, setBodyFilters] = useState('');
 	const [sendApplicationLink, setSendApplicationLink] = useState(true);
 	const [customMessage, setCustomMessage] = useState('');
+	const [selectedPropertyPatterns, setSelectedPropertyPatterns] = useState<
+		string[]
+	>([]);
 
 	const [currentWorkflows, setCurrentWorkflows] = useState<WorkflowViewModel[]>(
 		[],
 	);
+
+	// Mock email providers - in a real app, this would come from an API
+	const emailProviders: EmailProvider[] = [
+		{
+			id: 'gmail',
+			name: 'Gmail',
+			connected: false,
+			logo: '/icons/gmail-logo.png',
+		},
+		{
+			id: 'outlook',
+			name: 'Outlook',
+			connected: false,
+			logo: '/icons/outlook-logo.png',
+		},
+	];
 
 	useEffect(() => {
 		setPageTitle('Workflows & Automation');
@@ -110,6 +144,7 @@ const WorkflowManagement: React.FC = () => {
 				try {
 					await fetchWorkflows(user.id);
 					await fetchWorkflowLogs();
+					await fetchProperties(user.id); // Fetch properties for reference
 				} catch (err) {
 					console.error('Error loading workflows:', err);
 					// No need to do anything special, the error state will be set by the store
@@ -118,7 +153,7 @@ const WorkflowManagement: React.FC = () => {
 
 			loadWorkflows();
 		}
-	}, [user, fetchWorkflows, fetchWorkflowLogs, setPageTitle]);
+	}, [user, fetchWorkflows, fetchWorkflowLogs, fetchProperties, setPageTitle]);
 
 	useEffect(() => {
 		// Transform workflows to view model format
@@ -126,12 +161,61 @@ const WorkflowManagement: React.FC = () => {
 		setCurrentWorkflows(viewModels);
 	}, [workflows]);
 
+	// Helper function to extract property references from properties
+	const extractPropertyReferences = () => {
+		const references: string[] = [];
+
+		properties.forEach((property) => {
+			// Extract property references like "RR3603605" from the example
+			const reference = property.address.split(' ').pop();
+			if (reference && reference.length > 3) {
+				references.push(reference);
+			}
+
+			// You might also want to add the property ID as a reference
+			// references.push(property.id);
+			references.push(property.web_reference);
+
+			// Add property address keywords
+			const addressWords = property.address.split(' ');
+			if (addressWords.length > 1) {
+				references.push(addressWords.slice(-2).join(' ')); // Last two words of address
+			}
+		});
+
+		return references;
+	};
+
+	// Generate example property patterns
+	const propertyPatterns = extractPropertyReferences();
+
 	const resetForm = () => {
 		setName('');
 		setSubjectFilters('');
 		setBodyFilters('');
 		setSendApplicationLink(true);
 		setCustomMessage('');
+		setSelectedPropertyPatterns([]);
+	};
+
+	// Connect email provider function
+	const connectEmailProvider = (providerId: string) => {
+		setSelectedProvider(providerId);
+		setEmailConnectStep(1);
+
+		// In a real implementation, this would trigger an OAuth flow
+		// For now, we'll just simulate a successful connection after a delay
+		setTimeout(() => {
+			setEmailConnectStep(2);
+			setSuccess(
+				`Successfully connected to ${
+					providerId === 'gmail' ? 'Gmail' : 'Outlook'
+				}`,
+			);
+
+			// Clear success message after 3 seconds
+			setTimeout(() => setSuccess(''), 3000);
+		}, 2000);
 	};
 
 	const handleCreateWorkflow = async () => {
@@ -139,15 +223,21 @@ const WorkflowManagement: React.FC = () => {
 			return;
 		}
 
+		// Combine selected property patterns with manually entered filters
+		const subjectPatterns = [
+			...subjectFilters.split(',').map((s) => s.trim()),
+			...selectedPropertyPatterns.map((p) => p.trim()),
+		].filter(Boolean);
+
 		try {
 			await createWorkflow({
 				agent_id: user?.id || '',
 				name,
-				trigger_event: 'email_received', // Add this field
-				email_template: '', // Add this field
-				active: true, // Map to is_active
+				trigger_event: 'email_received',
+				email_template: '', // This field is required but will be populated by the AI
+				active: true,
 				email_filter: {
-					subject_contains: subjectFilters.split(',').map((s) => s.trim()),
+					subject_contains: subjectPatterns,
 					body_contains: bodyFilters.split(',').map((s) => s.trim()),
 				},
 				actions: {
@@ -174,18 +264,34 @@ const WorkflowManagement: React.FC = () => {
 		setBodyFilters(workflow.email_filter.body_contains?.join(', ') || '');
 		setSendApplicationLink(workflow.actions.send_application_link);
 		setCustomMessage(workflow.actions.custom_message || '');
+
+		// If any of the subject filters match property patterns, select them
+		setSelectedPropertyPatterns(
+			workflow.email_filter.subject_contains?.filter((subject) =>
+				propertyPatterns.includes(subject),
+			) || [],
+		);
 	};
 
 	const handleUpdateWorkflow = async (id: string) => {
-		if (!name || (!subjectFilters && !bodyFilters)) {
+		if (
+			!name ||
+			(!subjectFilters && !bodyFilters && selectedPropertyPatterns.length === 0)
+		) {
 			return;
 		}
+
+		// Combine selected property patterns with manually entered filters
+		const subjectPatterns = [
+			...subjectFilters.split(',').map((s) => s.trim()),
+			...selectedPropertyPatterns.map((p) => p.trim()),
+		].filter(Boolean);
 
 		try {
 			await updateWorkflow(id, {
 				name,
 				email_filter: {
-					subject_contains: subjectFilters.split(',').map((s) => s.trim()),
+					subject_contains: subjectPatterns,
 					body_contains: bodyFilters.split(',').map((s) => s.trim()),
 				},
 				actions: {
@@ -239,6 +345,16 @@ const WorkflowManagement: React.FC = () => {
 		resetForm();
 	};
 
+	const togglePropertyPattern = (pattern: string) => {
+		if (selectedPropertyPatterns.includes(pattern)) {
+			setSelectedPropertyPatterns(
+				selectedPropertyPatterns.filter((p) => p !== pattern),
+			);
+		} else {
+			setSelectedPropertyPatterns([...selectedPropertyPatterns, pattern]);
+		}
+	};
+
 	if (isLoading && workflows.length === 0) {
 		return (
 			<div className='flex justify-center items-center h-64'>
@@ -246,6 +362,103 @@ const WorkflowManagement: React.FC = () => {
 			</div>
 		);
 	}
+
+	// Email connection UI
+	const renderEmailConnectionUI = () => {
+		if (emailConnectStep === 0) {
+			return (
+				<Card className='mb-6'>
+					<CardHeader>
+						<h2 className='text-lg font-semibold flex items-center'>
+							<Inbox className='h-5 w-5 text-blue-500 mr-2' />
+							Connect your Email
+						</h2>
+					</CardHeader>
+					<CardContent>
+						<p className='text-gray-600 mb-4'>
+							Connect your email inbox to enable automated responses to property
+							inquiries.
+						</p>
+						<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+							{emailProviders.map((provider) => (
+								<button
+									key={provider.id}
+									onClick={() => connectEmailProvider(provider.id)}
+									className='flex items-center p-4 border rounded-lg hover:bg-gray-50 transition-colors'
+								>
+									<div className='w-10 h-10 mr-3 flex-shrink-0'>
+										{/* In a real app, use actual logos */}
+										{provider.id === 'gmail' ? (
+											<Mail className='w-full h-full text-red-500' />
+										) : (
+											<Mail className='w-full h-full text-blue-500' />
+										)}
+									</div>
+									<div className='flex-grow'>
+										<h3 className='font-medium'>{provider.name}</h3>
+										<p className='text-sm text-gray-500'>
+											{provider.connected ? 'Connected' : 'Not connected'}
+										</p>
+									</div>
+								</button>
+							))}
+						</div>
+					</CardContent>
+				</Card>
+			);
+		} else if (emailConnectStep === 1) {
+			return (
+				<Card className='mb-6'>
+					<CardHeader>
+						<h2 className='text-lg font-semibold'>
+							Connecting to {selectedProvider === 'gmail' ? 'Gmail' : 'Outlook'}
+						</h2>
+					</CardHeader>
+					<CardContent className='flex flex-col items-center justify-center py-8'>
+						<Spinner size='lg' className='mb-4' />
+						<p className='text-gray-600'>
+							Please authorize access to your{' '}
+							{selectedProvider === 'gmail' ? 'Gmail' : 'Outlook'} account
+						</p>
+						<p className='text-sm text-gray-500 mt-2'>
+							You will be redirected to the authorization page...
+						</p>
+					</CardContent>
+				</Card>
+			);
+		} else {
+			return (
+				<Card className='mb-6'>
+					<CardHeader>
+						<div className='flex justify-between items-center'>
+							<h2 className='text-lg font-semibold flex items-center'>
+								<Inbox className='h-5 w-5 text-blue-500 mr-2' />
+								Email Connection
+							</h2>
+							<Badge variant='success'>Connected</Badge>
+						</div>
+					</CardHeader>
+					<CardContent>
+						<div className='flex items-center'>
+							{selectedProvider === 'gmail' ? (
+								<Mail className='w-8 h-8 text-red-500 mr-3' />
+							) : (
+								<Mail className='w-8 h-8 text-blue-500 mr-3' />
+							)}
+							<div>
+								<h3 className='font-medium'>
+									{selectedProvider === 'gmail' ? 'Gmail' : 'Outlook'}
+								</h3>
+								<p className='text-sm text-gray-500'>
+									Connected and monitoring for property inquiries
+								</p>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+			);
+		}
+	};
 
 	return (
 		<div>
@@ -277,6 +490,9 @@ const WorkflowManagement: React.FC = () => {
 				</Alert>
 			)}
 
+			{/* Email Connection UI */}
+			{renderEmailConnectionUI()}
+
 			{/* Create New Workflow Button */}
 			{!isCreating && (
 				<div className='mb-6'>
@@ -295,35 +511,87 @@ const WorkflowManagement: React.FC = () => {
 					</CardHeader>
 					<CardContent>
 						<div className='space-y-4'>
-							<Input
-								value={name}
-								onChange={(e) => setName(e.target.value)}
-								placeholder='e.g., Property Inquiry Response'
-							/>
+							<div>
+								<label className='block text-sm font-medium text-gray-700 mb-1'>
+									Workflow Name
+								</label>
+								<Input
+									value={name}
+									onChange={(e) => setName(e.target.value)}
+									placeholder='e.g., Property Inquiry Response'
+								/>
+							</div>
 
 							<div className='bg-gray-50 p-4 rounded-lg mb-4'>
 								<h3 className='font-medium mb-3 flex items-center'>
 									<Search className='h-5 w-5 text-blue-500 mr-2' />
 									Email Filters
 								</h3>
+
+								{/* Property Reference Patterns */}
+								{propertyPatterns.length > 0 && (
+									<div className='mb-4'>
+										<label className='block text-sm font-medium text-gray-700 mb-2'>
+											Property References (Select all that apply)
+										</label>
+										<div className='flex flex-wrap gap-2'>
+											{propertyPatterns.map((pattern, index) => (
+												<button
+													key={index}
+													type='button'
+													onClick={() => togglePropertyPattern(pattern)}
+													className={`px-3 py-1 text-sm rounded-full ${
+														selectedPropertyPatterns.includes(pattern)
+															? 'bg-blue-100 text-blue-700 border-blue-300'
+															: 'bg-gray-100 text-gray-700 border-gray-300'
+													} border`}
+												>
+													{pattern}
+												</button>
+											))}
+										</div>
+										<p className='text-xs text-gray-500 mt-1'>
+											These patterns will match property references in email
+											subjects
+										</p>
+									</div>
+								)}
+
 								<div className='space-y-4'>
-									<Input
-										value={subjectFilters}
-										onChange={(e) => setSubjectFilters(e.target.value)}
-										placeholder='e.g., property inquiry, available, interested in'
-									/>
-									<Input
-										value={bodyFilters}
-										onChange={(e) => setBodyFilters(e.target.value)}
-										placeholder='e.g., looking for, interested in renting, availability'
-									/>
+									<div>
+										<label className='block text-sm font-medium text-gray-700 mb-1'>
+											Subject Contains (comma separated)
+										</label>
+										<Input
+											value={subjectFilters}
+											onChange={(e) => setSubjectFilters(e.target.value)}
+											placeholder='e.g., property inquiry, available, interested in'
+										/>
+										<p className='text-xs text-gray-500 mt-1'>
+											Words or phrases to match in email subjects
+										</p>
+									</div>
+
+									<div>
+										<label className='block text-sm font-medium text-gray-700 mb-1'>
+											Body Contains (comma separated)
+										</label>
+										<Input
+											value={bodyFilters}
+											onChange={(e) => setBodyFilters(e.target.value)}
+											placeholder='e.g., looking for, interested in renting, availability'
+										/>
+										<p className='text-xs text-gray-500 mt-1'>
+											Words or phrases to match in email body content
+										</p>
+									</div>
 								</div>
 							</div>
 
 							<div className='bg-gray-50 p-4 rounded-lg'>
 								<h3 className='font-medium mb-3 flex items-center'>
 									<MessageSquare className='h-5 w-5 text-blue-500 mr-2' />
-									Actions
+									Response Actions
 								</h3>
 								<div className='space-y-4'>
 									<div className='flex items-center'>
@@ -338,21 +606,37 @@ const WorkflowManagement: React.FC = () => {
 											htmlFor='send-application-link'
 											className='ml-2 block text-sm text-gray-900'
 										>
-											Send application link
+											Send application link automatically
 										</label>
 									</div>
-									<label
-										htmlFor='custom-message'
-										className='block text-sm font-medium text-gray-700'
-									>
-										Custom Message
-									</label>
 
-									<Textarea
-										value={customMessage}
-										onChange={(e) => setCustomMessage(e.target.value)}
-										placeholder='Thank you for your interest in our property. Please complete the application at the link below:'
-									/>
+									<div>
+										<label
+											htmlFor='custom-message'
+											className='block text-sm font-medium text-gray-700 mb-1'
+										>
+											Custom Message
+										</label>
+
+										<Textarea
+											value={customMessage}
+											onChange={(e) => setCustomMessage(e.target.value)}
+											placeholder='Thank you for your interest in our property. Please complete the application at the link below:'
+											rows={4}
+										/>
+										<p className='text-xs text-gray-500 mt-1'>
+											Amara will customise this message with property details
+											and your application link.
+										</p>
+									</div>
+
+									<div className='flex items-center p-3 bg-blue-50 text-blue-700 rounded-lg'>
+										<LinkIcon className='h-5 w-5 mr-2 flex-shrink-0' />
+										<p className='text-sm'>
+											Amara will automatically identify the property being
+											inquired about and include the correct application link.
+										</p>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -371,7 +655,12 @@ const WorkflowManagement: React.FC = () => {
 							variant='primary'
 							onClick={handleCreateWorkflow}
 							isLoading={isLoading}
-							disabled={!name || (!subjectFilters && !bodyFilters)}
+							disabled={
+								!name ||
+								(!subjectFilters &&
+									!bodyFilters &&
+									selectedPropertyPatterns.length === 0)
+							}
 						>
 							Create Workflow
 						</Button>
@@ -392,35 +681,79 @@ const WorkflowManagement: React.FC = () => {
 									</CardHeader>
 									<CardContent>
 										<div className='space-y-4'>
-											<Input
-												value={name}
-												onChange={(e) => setName(e.target.value)}
-												placeholder='e.g., Property Inquiry Response'
-											/>
+											<div>
+												<label className='block text-sm font-medium text-gray-700 mb-1'>
+													Workflow Name
+												</label>
+												<Input
+													value={name}
+													onChange={(e) => setName(e.target.value)}
+													placeholder='e.g., Property Inquiry Response'
+												/>
+											</div>
 
 											<div className='bg-gray-50 p-4 rounded-lg mb-4'>
 												<h3 className='font-medium mb-3 flex items-center'>
 													<Search className='h-5 w-5 text-blue-500 mr-2' />
 													Email Filters
 												</h3>
+
+												{/* Property Reference Patterns */}
+												{propertyPatterns.length > 0 && (
+													<div className='mb-4'>
+														<label className='block text-sm font-medium text-gray-700 mb-2'>
+															Property References (Select all that apply)
+														</label>
+														<div className='flex flex-wrap gap-2'>
+															{propertyPatterns.map((pattern, index) => (
+																<button
+																	key={index}
+																	type='button'
+																	onClick={() => togglePropertyPattern(pattern)}
+																	className={`px-3 py-1 text-sm rounded-full ${
+																		selectedPropertyPatterns.includes(pattern)
+																			? 'bg-blue-100 text-blue-700 border-blue-300'
+																			: 'bg-gray-100 text-gray-700 border-gray-300'
+																	} border`}
+																>
+																	{pattern}
+																</button>
+															))}
+														</div>
+													</div>
+												)}
+
 												<div className='space-y-4'>
-													<Input
-														value={subjectFilters}
-														onChange={(e) => setSubjectFilters(e.target.value)}
-														placeholder='e.g., property inquiry, available, interested in'
-													/>
-													<Input
-														value={bodyFilters}
-														onChange={(e) => setBodyFilters(e.target.value)}
-														placeholder='e.g., looking for, interested in renting, availability'
-													/>
+													<div>
+														<label className='block text-sm font-medium text-gray-700 mb-1'>
+															Subject Contains (comma separated)
+														</label>
+														<Input
+															value={subjectFilters}
+															onChange={(e) =>
+																setSubjectFilters(e.target.value)
+															}
+															placeholder='e.g., property inquiry, available, interested in'
+														/>
+													</div>
+
+													<div>
+														<label className='block text-sm font-medium text-gray-700 mb-1'>
+															Body Contains (comma separated)
+														</label>
+														<Input
+															value={bodyFilters}
+															onChange={(e) => setBodyFilters(e.target.value)}
+															placeholder='e.g., looking for, interested in renting, availability'
+														/>
+													</div>
 												</div>
 											</div>
 
 											<div className='bg-gray-50 p-4 rounded-lg'>
 												<h3 className='font-medium mb-3 flex items-center'>
 													<MessageSquare className='h-5 w-5 text-blue-500 mr-2' />
-													Actions
+													Response Actions
 												</h3>
 												<div className='space-y-4'>
 													<div className='flex items-center'>
@@ -437,21 +770,25 @@ const WorkflowManagement: React.FC = () => {
 															htmlFor='edit-send-application-link'
 															className='ml-2 block text-sm text-gray-900'
 														>
-															Send application link
+															Send application link automatically
 														</label>
 													</div>
-													<label
-														htmlFor='edit-custom-message'
-														className='block text-sm font-medium text-gray-700'
-													>
-														Custom Message
-													</label>
 
-													<Textarea
-														value={customMessage}
-														onChange={(e) => setCustomMessage(e.target.value)}
-														placeholder='Thank you for your interest in our property. Please complete the application at the link below:'
-													/>
+													<div>
+														<label
+															htmlFor='edit-custom-message'
+															className='block text-sm font-medium text-gray-700 mb-1'
+														>
+															Custom Message
+														</label>
+
+														<Textarea
+															value={customMessage}
+															onChange={(e) => setCustomMessage(e.target.value)}
+															placeholder='Thank you for your interest in our property. Please complete the application at the link below:'
+															rows={4}
+														/>
+													</div>
 												</div>
 											</div>
 										</div>
@@ -464,7 +801,12 @@ const WorkflowManagement: React.FC = () => {
 											variant='primary'
 											onClick={() => handleUpdateWorkflow(workflow.id)}
 											isLoading={isLoading}
-											disabled={!name || (!subjectFilters && !bodyFilters)}
+											disabled={
+												!name ||
+												(!subjectFilters &&
+													!bodyFilters &&
+													selectedPropertyPatterns.length === 0)
+											}
 										>
 											<Save size={16} className='mr-2' />
 											Save Changes
@@ -502,9 +844,16 @@ const WorkflowManagement: React.FC = () => {
 																		(filter: string, index: number) => (
 																			<span
 																				key={index}
-																				className='inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800'
+																				className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+																					propertyPatterns.includes(filter)
+																						? 'bg-blue-100 text-blue-800'
+																						: 'bg-gray-100 text-gray-800'
+																				}`}
 																			>
 																				{filter}
+																				{propertyPatterns.includes(filter) && (
+																					<Home className='h-3 w-3 ml-1' />
+																				)}
 																			</span>
 																		),
 																	)}
