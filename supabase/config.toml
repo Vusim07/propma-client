@@ -40,3 +40,6 @@ entrypoint = "./functions/calendar-create-event/index.ts"
 
 [functions.email-gmail-oauth]
   verify_jwt = false
+
+[functions.email-gmail-list-messages]
+  verify_jwt = false

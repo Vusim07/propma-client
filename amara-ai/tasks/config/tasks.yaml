@@ -1,0 +1,11 @@
+analyze_email:
+  description: |
+    Analyze the email content to identify which property is being inquired about.
+    Match the inquiry details against the available properties.
+  expected_output: "A JSON object with a 'property' key containing the matched property details."
+
+generate_response:
+  description: |
+    Generate a professional response to the property inquiry.
+    Include the application link and any custom message template provided.
+  expected_output: "A JSON object with a 'response' key containing the reply message."

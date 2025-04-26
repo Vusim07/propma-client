@@ -108,11 +108,15 @@ serve(async (req) => {
 	const { to, subject, body } = await req.json();
 
 	// Construct raw email
-	const message =
-		`To: ${to}\r\n` +
-		`Subject: ${subject}\r\n` +
-		`Content-Type: text/plain; charset="UTF-8"\r\n` +
-		`\r\n${body}`;
+	const messageParts = [
+		'Content-Type: text/plain; charset=utf-8',
+		'MIME-Version: 1.0',
+		`To: ${to}`,
+		`Subject: =?utf-8?B?${Buffer.from(subject).toString('base64')}?=`, // Properly encode subject
+		'',
+		body,
+	];
+	const message = messageParts.join('\r\n');
 
 	const encodedMessage = btoa(message)
 		.replace(/\+/g, '-')

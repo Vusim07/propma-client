@@ -150,24 +150,24 @@ const WorkflowManagement: React.FC = () => {
 		const references: string[] = [];
 
 		properties.forEach((property) => {
-			// Extract property references like "RR3603605" from the example
-			const reference = property.address.split(' ').pop();
-			if (reference && reference.length > 3) {
-				references.push(reference);
+			// Add web reference if available
+			if (property.web_reference) {
+				references.push(property.web_reference);
 			}
 
-			// You might also want to add the property ID as a reference
-			// references.push(property.id);
-			references.push(property.web_reference);
-
-			// Add property address keywords
+			// Add address components
 			const addressWords = property.address.split(' ');
 			if (addressWords.length > 1) {
 				references.push(addressWords.slice(-2).join(' ')); // Last two words of address
 			}
+
+			// Add suburb if available
+			if (property.suburb) {
+				references.push(property.suburb);
+			}
 		});
 
-		return references;
+		return [...new Set(references)]; // Remove duplicates
 	};
 
 	// Generate example property patterns

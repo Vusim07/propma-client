@@ -157,9 +157,8 @@ async def analyze_affordability(request: AffordabilityRequest):
 
 
 @app.get("/health")
-async def health_check():
-    """Health check endpoint to verify if the service is running"""
-    return {"status": "healthy", "service": "amara-ai-affordability"}
+def health():
+    return {"status": "ok"}
 
 
 @app.get("/debug-crew-config")

@@ -42,10 +42,11 @@ export interface EmailIntegration {
 // Gmail message type
 export interface GmailMessage {
 	id: string;
-	subject: string;
+	subject: string; // Make sure subject is required
 	from: string;
-	date: string;
 	body: string;
+	date: string;
+	threadId?: string;
 }
 
 // Add proper typing for the database workflow fields
