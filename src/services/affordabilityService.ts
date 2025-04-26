@@ -1,5 +1,14 @@
 import { supabase } from '../services/supabase';
 import { Tables, Json } from './database.types';
+import {
+	calculateRentToIncomeRatio,
+	generateAffordabilityNotes,
+	generateRecommendationText,
+} from '../utils/financialUtils';
+import {
+	getTransactionsFromDocuments,
+	fetchDocuments,
+} from '../utils/documentUtils';
 
 export interface Transaction {
 	description: string;
@@ -19,6 +28,24 @@ export interface PayslipData {
 	incomeFrequency: 'weekly' | 'bi-weekly' | 'monthly' | 'unknown';
 }
 
+export interface CreditReportAccounts {
+	total: number;
+	good_standing: number;
+	negative: number;
+}
+
+export interface EmploymentRecord {
+	employerName: string;
+	startDate: string;
+	endDate?: string;
+}
+
+export interface PublicRecord {
+	type: string;
+	date: string;
+	amount?: number;
+}
+
 export interface CreditReportData {
 	creditScore: number;
 	reportDate: string;
@@ -27,16 +54,8 @@ export interface CreditReportData {
 		accountsInGoodStanding: number;
 		negativeAccounts: number;
 	};
-	employmentHistory?: Array<{
-		employerName: string;
-		startDate: string;
-		endDate?: string;
-	}>;
-	publicRecords?: Array<{
-		type: string;
-		date: string;
-		amount?: number;
-	}>;
+	employmentHistory?: Array<EmploymentRecord>;
+	publicRecords?: Array<PublicRecord>;
 	raw?: Record<string, unknown>;
 }
 
@@ -88,11 +107,6 @@ class AffordabilityService {
 
 	/**
 	 * Creates a comprehensive affordability analysis for a tenant application
-	 *
-	 * @param applicationId Application ID to analyze
-	 * @param tenantId Tenant ID for fetching profile information
-	 * @param propertyId Property ID for fetching rental information
-	 * @returns Complete affordability analysis
 	 */
 	async createAffordabilityAnalysis(
 		applicationId: string,
@@ -105,44 +119,41 @@ class AffordabilityService {
 			);
 
 			// 1. Get transactions AND raw bank statement data
-			const { transactions, rawBankStatementData } =
-				await this.getTransactionsAndRawData(tenantId, applicationId);
-			console.log(
-				`Found ${
-					transactions.length
-				} transactions. Has raw bank statement data: ${!!rawBankStatementData}`,
-			);
-
-			// 2. Get payslip data AND raw payslip data
-			const { payslipData, rawPayslipData } = await this.getPayslipAndRawData(
+			const documents = await fetchDocuments(
 				tenantId,
+				'bank_statement',
 				applicationId,
 			);
-			console.log(
-				`Payslip data found: ${
-					payslipData !== null
-				}. Has raw payslip data: ${!!rawPayslipData}`,
-			);
+			const transactions = await getTransactionsFromDocuments(documents);
+			const rawBankStatementData =
+				documents.length > 0 ? documents.map((d) => d.extracted_data) : null;
 
-			// 3. Get tenant income information from profile
+			// 2. Get payslip data
+			const { data: payslipDocs } = await supabase
+				.from('documents')
+				.select('*')
+				.eq('user_id', tenantId)
+				.eq('application_id', applicationId)
+				.eq('document_type', 'payslip')
+				.order('created_at', { ascending: false })
+				.limit(1)
+				.maybeSingle();
+
+			const rawPayslipData = payslipDocs?.extracted_data || null;
+
+			// 3. Get tenant income information
 			const tenantIncome = await this.getTenantIncomeData(
 				tenantId,
 				applicationId,
 			);
-			console.log(`Tenant income data: ${JSON.stringify(tenantIncome)}`);
 
-			// 4. Generate mock credit report
+			// 4. Generate credit report
 			const creditReport = await this.generateCreditReport(tenantId);
-			console.log(
-				'Generated credit report with score:',
-				creditReport.creditScore,
-			);
 
 			// 5. Get target rent amount
 			const targetRent = await this.getTargetRent(propertyId);
-			console.log(`Target rent: R${targetRent}`);
 
-			// 6. Analyze affordability with all data, including raw extracted data
+			// 6. Analyze affordability with all data
 			const affordabilityResponse = await this.analyzeAffordability({
 				transactions,
 				target_rent: targetRent,
@@ -163,7 +174,7 @@ class AffordabilityService {
 				affordabilityResponse.metrics.target_rent = targetRent;
 			}
 
-			// 7. Save results to database (Modified to use RPC call)
+			// 7. Save results to database
 			await this.saveAnalysisResultsViaRpc(
 				applicationId,
 				affordabilityResponse,
@@ -178,9 +189,6 @@ class AffordabilityService {
 
 	/**
 	 * Analyzes affordability with provided data
-	 *
-	 * @param requestData Complete request data with all financial information
-	 * @returns Analysis results including affordability assessment
 	 */
 	async analyzeAffordability(
 		requestData: AffordabilityRequest,
@@ -225,190 +233,6 @@ class AffordabilityService {
 	}
 
 	/**
-	 * Extracts transactions and raw data from bank statement documents
-	 *
-	 * @param tenantId Tenant ID for fetching documents
-	 * @param applicationId Optional application ID to filter documents
-	 * @returns Formatted transactions and raw extracted data for analysis
-	 */
-	async getTransactionsAndRawData(
-		tenantId: string,
-		applicationId?: string,
-	): Promise<{
-		transactions: Transaction[];
-		rawBankStatementData: Json | null;
-	}> {
-		let rawData: Json | null = null; // Store combined raw data
-
-		try {
-			// Build query for bank statement documents
-			let query = supabase
-				.from('documents')
-				.select('*')
-				.eq('user_id', tenantId)
-				.eq('document_type', 'bank_statement');
-
-			// Add application filter if provided
-			if (applicationId) {
-				query = query.eq('application_id', applicationId);
-			}
-
-			// Execute query
-			const { data: documents, error } = await query;
-
-			if (error) throw error;
-
-			if (!documents || documents.length === 0) {
-				console.log('No bank statement documents found');
-				return { transactions: [], rawBankStatementData: null };
-			}
-
-			console.log(`Found ${documents.length} bank statement documents`);
-
-			// Extract and format transactions from document data
-			const transactions: Transaction[] = [];
-			const allExtractedData: Json[] = []; // Array to hold raw data from each doc
-
-			for (const doc of documents) {
-				console.log(
-					`Processing document ${doc.id} for raw data and transactions`,
-				);
-				const extractedData = doc.extracted_data; // Keep as Json
-
-				if (extractedData) {
-					// Store the raw extracted data
-					allExtractedData.push(extractedData);
-
-					// Attempt to parse transactions from the raw data if possible
-					if (
-						typeof extractedData === 'object' &&
-						extractedData !== null &&
-						'transactions' in extractedData &&
-						Array.isArray(extractedData.transactions)
-					) {
-						const docTransactions = (
-							extractedData.transactions as Record<string, unknown>[]
-						).map((t: Record<string, unknown>) => ({
-							description:
-								(t.description as string) || (t.narrative as string) || '',
-							amount: parseFloat(
-								((t.amount as string) || '0').replace(/[^0-9.-]+/g, ''),
-							),
-							date: t.date as string, // Assuming date is already string DD/MM/YYYY
-							type:
-								parseFloat(
-									((t.amount as string) || '0').replace(/[^0-9.-]+/g, ''),
-								) >= 0
-									? 'credit'
-									: 'debit',
-						}));
-						console.log(
-							`Added ${docTransactions.length} transactions from document ${doc.id}`,
-						);
-						transactions.push(...docTransactions);
-					} else {
-						console.log(
-							`No standard 'transactions' array found in extracted data for doc ${doc.id}`,
-						);
-					}
-				} else {
-					console.log(`No extracted_data found in document ${doc.id}`);
-				}
-			}
-
-			// Combine raw data from all documents into a single JSON object or array if needed
-			// For simplicity, let's send an array of the extracted data objects.
-			// The Python backend might need adjustment to handle an array.
-			rawData = allExtractedData.length > 0 ? allExtractedData : null;
-
-			return { transactions, rawBankStatementData: rawData };
-		} catch (error) {
-			console.error('Error fetching transactions and raw data:', error);
-			return { transactions: [], rawBankStatementData: null };
-		}
-	}
-
-	/**
-	 * Extracts payslip data and raw data from uploaded documents
-	 */
-	async getPayslipAndRawData(
-		tenantId: string,
-		applicationId: string,
-	): Promise<{ payslipData?: PayslipData; rawPayslipData: Json | null }> {
-		let rawData: Json | null = null;
-		let formattedPayslipData: PayslipData | undefined = undefined;
-
-		try {
-			// Get payslip documents
-			const { data: documents, error } = await supabase
-				.from('documents')
-				.select('*')
-				.eq('user_id', tenantId)
-				.eq('application_id', applicationId)
-				.eq('document_type', 'payslip');
-
-			if (error) throw error;
-			if (!documents || documents.length === 0)
-				return { payslipData: undefined, rawPayslipData: null };
-
-			// Use the most recent payslip for both raw and formatted data
-			const latestPayslip = documents.sort(
-				(a, b) =>
-					new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-			)[0];
-
-			rawData = latestPayslip.extracted_data; // Store raw JSON data
-
-			if (
-				rawData &&
-				typeof rawData === 'object' &&
-				rawData !== null &&
-				!Array.isArray(rawData)
-			) {
-				// Attempt to format into PayslipData interface from raw data
-				formattedPayslipData = {
-					employer:
-						this.extractStringValue(rawData, ['employer', 'company_name']) ||
-						'Unknown',
-					employeeName:
-						this.extractStringValue(rawData, ['employee_name', 'employee']) ||
-						'Unknown Employee',
-					employeeId:
-						this.extractStringValue(rawData, [
-							'employee_id',
-							'employee_number',
-						]) || undefined,
-					payPeriod:
-						this.extractStringValue(rawData, [
-							'pay_period',
-							'payment_period',
-						]) || undefined,
-					grossIncome:
-						this.extractNumericValue(rawData, [
-							'gross_income',
-							'gross_pay',
-							'total_earnings',
-						]) || 0,
-					netIncome:
-						this.extractNumericValue(rawData, [
-							'net_income',
-							'net_pay',
-							'take_home_pay',
-						]) || 0,
-					// Deductions might be complex, handle basic case or leave out
-					// deductions: rawData.deductions as Record<string, number> || undefined,
-					incomeFrequency: 'monthly', // Assuming monthly, might need parsing from doc
-				};
-			}
-
-			return { payslipData: formattedPayslipData, rawPayslipData: rawData };
-		} catch (error) {
-			console.error('Error getting payslip data:', error);
-			return { payslipData: undefined, rawPayslipData: null };
-		}
-	}
-
-	/**
 	 * Gets tenant income data from their profile and application
 	 */
 	async getTenantIncomeData(
@@ -416,31 +240,28 @@ class AffordabilityService {
 		applicationId?: string,
 	): Promise<TenantIncomeData | undefined> {
 		try {
-			// Get tenant profile information - Ensure this fetches the correct profile ID
+			// Get tenant profile information
 			const { data: profile, error: profileError } = await supabase
 				.from('tenant_profiles')
-				.select('id, monthly_income, employment_status') // Select id too
-				.eq('tenant_id', tenantId) // Query by the user's auth ID
-				.maybeSingle(); // Use maybeSingle to avoid error if profile doesn't exist yet
+				.select('id, monthly_income, employment_status')
+				.eq('tenant_id', tenantId)
+				.maybeSingle();
 
 			if (profileError) {
 				console.error('Error fetching tenant profile:', profileError);
-				// Don't throw, maybe income comes only from application
 			}
 
-			// Start with data potentially from the profile
 			const incomeData: Partial<TenantIncomeData> = {
 				statedMonthlyIncome: profile?.monthly_income ?? 0,
 				employmentStatus: profile?.employment_status || 'Unknown',
 			};
 
-			let tenantProfileId = profile?.id; // Get profile ID if it exists
+			let tenantProfileId = profile?.id;
 
-			// Try to get employer information from the specific application
 			if (applicationId) {
 				const { data: application, error: appError } = await supabase
 					.from('applications')
-					.select('employer, employment_duration, monthly_income, tenant_id') // Fetch income from application too, and tenant_id (which should be profile_id)
+					.select('employer, employment_duration, monthly_income, tenant_id')
 					.eq('id', applicationId)
 					.single();
 
@@ -449,7 +270,6 @@ class AffordabilityService {
 				} else if (application) {
 					incomeData.employer = application.employer;
 					incomeData.employmentDuration = application.employment_duration;
-					// Override profile income if application income is present and different
 					if (
 						application.monthly_income &&
 						application.monthly_income !== incomeData.statedMonthlyIncome
@@ -459,20 +279,18 @@ class AffordabilityService {
 						);
 						incomeData.statedMonthlyIncome = application.monthly_income;
 					}
-					// Use the tenant_id from the application if profile wasn't found
 					if (!tenantProfileId) {
 						tenantProfileId = application.tenant_id;
 					}
 				}
 			}
 
-			// If we still don't have a profile ID (e.g., only application ID provided), try to get profile again using tenant_id from application
 			if (!profile && tenantProfileId) {
 				const { data: profileFallback, error: profileFallbackError } =
 					await supabase
 						.from('tenant_profiles')
 						.select('monthly_income, employment_status')
-						.eq('id', tenantProfileId) // Query by the profile ID stored in application.tenant_id
+						.eq('id', tenantProfileId)
 						.maybeSingle();
 
 				if (profileFallbackError) {
@@ -481,7 +299,6 @@ class AffordabilityService {
 						profileFallbackError,
 					);
 				} else if (profileFallback) {
-					// Only update if profile income wasn't already set from application
 					if (
 						!incomeData.statedMonthlyIncome &&
 						profileFallback.monthly_income
@@ -497,20 +314,16 @@ class AffordabilityService {
 				}
 			}
 
-			// Ensure statedMonthlyIncome is a number
 			const finalIncome = Number(incomeData.statedMonthlyIncome) || 0;
 
-			// Return structured data only if income is positive
-			if (finalIncome > 0) {
-				return {
-					statedMonthlyIncome: finalIncome,
-					employmentStatus: incomeData.employmentStatus || 'Unknown',
-					employer: incomeData.employer,
-					employmentDuration: incomeData.employmentDuration,
-				};
-			}
-
-			return undefined; // Return undefined if no valid income found
+			return finalIncome > 0
+				? {
+						statedMonthlyIncome: finalIncome,
+						employmentStatus: incomeData.employmentStatus || 'Unknown',
+						employer: incomeData.employer,
+						employmentDuration: incomeData.employmentDuration,
+				  }
+				: undefined;
 		} catch (error) {
 			console.error('Error getting tenant income data:', error);
 			return undefined;
@@ -518,107 +331,10 @@ class AffordabilityService {
 	}
 
 	/**
-	 * Generates a mock credit report based on tenant information
-	 *
-	 * @param tenantId Tenant ID for generating the report
-	 * @returns Mock credit report data
-	 */
-	async generateCreditReport(tenantId: string): Promise<CreditReportData> {
-		try {
-			// This is where we would integrate with a real credit bureau API
-			// For now, we'll generate a mock report based on the template in verifyId-credit-resport-api-response.json
-
-			// Get tenant profile data for more realistic mock
-			const { data: profile } = await supabase
-				.from('tenant_profiles')
-				.select('*')
-				.eq('tenant_id', tenantId)
-				.single();
-
-			// Generate a credit score between 580-820
-			// Higher income = better score (simplistic but works for mock)
-			let baseScore = 650;
-			if (profile?.monthly_income) {
-				// Adjust score based on income (higher income, higher score)
-				const incomeScore = Math.min(
-					150,
-					Math.floor((profile.monthly_income / 20000) * 150),
-				);
-				baseScore += incomeScore;
-			}
-
-			// Keep score within reasonable bounds
-			const creditScore = Math.max(580, Math.min(820, baseScore));
-
-			// Get employment history from mock data template
-			const employmentHistory: Array<{
-				employerName: string;
-				startDate: string;
-				endDate?: string;
-			}> = [];
-
-			// Template for raw credit report data based on verifyId-credit-resport-api-response.json
-			const rawTemplate = {
-				Status: 'Success',
-				Results: {
-					CC_RESULTS: {
-						EnqCC_EMPLOYER: [
-							{
-								EMP_NAME: profile?.employment_status || 'CURRENT EMPLOYER',
-								EMP_DATE: new Date().toLocaleDateString('en-ZA'),
-								OCCUPATION: 'PROFESSIONAL',
-							},
-						],
-						EnqCC_CompuSCORE: [
-							{
-								RISK_TYPE:
-									creditScore > 700
-										? 'LOW RISK'
-										: creditScore > 650
-										? 'AVERAGE RISK'
-										: 'HIGH RISK',
-								SCORE: creditScore.toString(),
-								THIN_FILE_INDICATOR: 'N',
-								VERSION: '2',
-								SCORE_TYPE: 'CPA',
-							},
-						],
-					},
-					CREDITS: -1,
-				},
-			};
-
-			// Create the credit report data
-			return {
-				creditScore,
-				reportDate: new Date().toISOString().split('T')[0],
-				accountsSummary: {
-					totalAccounts: 3,
-					accountsInGoodStanding: 3,
-					negativeAccounts: 0,
-				},
-				employmentHistory,
-				raw: rawTemplate,
-			};
-		} catch (error) {
-			console.error('Error generating credit report:', error);
-			// If we fail, still return a basic credit report
-			return {
-				creditScore: 650, // Default middle-of-the-road score
-				reportDate: new Date().toISOString().split('T')[0],
-			};
-		}
-	}
-
-	/**
 	 * Gets the target rent for a property
-	 *
-	 * @param propertyId ID of the property
-	 * @returns Monthly rent amount
 	 */
 	async getTargetRent(propertyId: string): Promise<number> {
 		try {
-			// Fetch property details to get target rent
 			const { data: property, error } = await supabase
 				.from('properties')
 				.select('monthly_rent')
@@ -626,7 +342,6 @@ class AffordabilityService {
 				.single();
 
 			if (error) throw error;
-
 			return property ? property.monthly_rent : 0;
 		} catch (error) {
 			console.error('Error fetching target rent:', error);
@@ -635,129 +350,99 @@ class AffordabilityService {
 	}
 
 	/**
-	 * Saves analysis results to the screening report using an RPC function to bypass RLS.
-	 * NOTE: You need to create the `save_screening_report` function in your Supabase SQL editor.
-	 *
-	 * @param applicationId Application ID to link the report
-	 * @param analysis Analysis results from the API
-	 * @returns The saved screening report or null on error
+	 * Save analysis results to database using RPC
 	 */
 	async saveAnalysisResultsViaRpc(
 		applicationId: string,
 		analysis: AffordabilityResponse,
 	): Promise<Tables<'screening_reports'> | null> {
 		try {
-			// --- Get Target Rent ---
+			// Get values needed for calculations
 			const targetRent =
 				typeof analysis.metrics?.target_rent === 'number'
 					? analysis.metrics.target_rent
 					: null;
 
-			// --- Get Monthly Income ---
 			const monthlyIncome =
 				typeof analysis.metrics?.monthly_income === 'number'
 					? analysis.metrics.monthly_income
 					: null;
 
-			// --- Get Credit Score ---
 			const creditScore =
 				typeof analysis.metrics?.credit_score === 'number'
 					? analysis.metrics.credit_score
-					: // Add fallback logic if needed, e.g., from credit_report
-					  null;
+					: null;
 
-			// --- Calculate Rent-to-Income Ratio ---
-			let rentToIncomeRatio: number | null = null;
-			if (targetRent !== null && monthlyIncome !== null && monthlyIncome > 0) {
-				rentToIncomeRatio = targetRent / monthlyIncome;
-				console.log(
-					`Calculated rent-to-income ratio: ${rentToIncomeRatio} (${targetRent}/${monthlyIncome})`,
-				);
-				// Ensure it's stored in metrics if not already there or different
-				if (analysis.metrics.rent_to_income_ratio !== rentToIncomeRatio) {
-					analysis.metrics.rent_to_income_ratio = rentToIncomeRatio;
-				}
-			} else if (typeof analysis.metrics?.rent_to_income_ratio === 'number') {
-				// Use AI's rent_to_income_ratio if calculation isn't possible
-				rentToIncomeRatio = analysis.metrics.rent_to_income_ratio;
-				// Convert percentage to decimal if necessary (assuming AI might send 30 instead of 0.3)
-				if (rentToIncomeRatio > 1) {
-					rentToIncomeRatio = rentToIncomeRatio / 100;
-				}
-				console.log(
-					`Using AI provided rent-to-income ratio: ${rentToIncomeRatio}`,
-				);
-			} else {
-				// Fallback if no ratio can be determined
-				rentToIncomeRatio = 0.3; // Default fallback
-				console.log(
-					`Using fallback rent-to-income ratio: ${rentToIncomeRatio}`,
-				);
+			// Calculate rent-to-income ratio
+			const { ratio: rentToIncomeRatio, source: ratioSource } =
+				calculateRentToIncomeRatio(targetRent, monthlyIncome, analysis);
+			console.log(
+				`Using ${ratioSource} rent-to-income ratio: ${rentToIncomeRatio}`,
+			);
+
+			// Update metrics if needed
+			if (analysis.metrics.rent_to_income_ratio !== rentToIncomeRatio) {
+				analysis.metrics.rent_to_income_ratio = rentToIncomeRatio;
 			}
 
-			// Ensure target_rent and monthly_income are in the metrics object being saved
-			if (analysis.metrics.target_rent === undefined && targetRent !== null) {
+			// Ensure all required metrics are present
+			if (targetRent !== null && !analysis.metrics.target_rent) {
 				analysis.metrics.target_rent = targetRent;
 			}
-			if (
-				analysis.metrics.monthly_income === undefined &&
-				monthlyIncome !== null
-			) {
+			if (monthlyIncome !== null && !analysis.metrics.monthly_income) {
 				analysis.metrics.monthly_income = monthlyIncome;
 			}
 
-			// ... (rest of the existing code for affordabilityNotes, preApprovalStatus, recommendationText) ...
-			const affordabilityNotes =
-				(analysis.transaction_analysis?.summary as string) ||
-				(analysis.can_afford
-					? 'Tenant can likely afford this property based on income and expense patterns.'
-					: 'Tenant may have difficulty affording this property based on income and expense patterns.');
+			// Get the application to find the tenant ID
+			const { data: application, error: appError } = await supabase
+				.from('applications')
+				.select('tenant_id')
+				.eq('id', applicationId)
+				.single();
 
+			if (appError) {
+				console.error('Error fetching application:', appError);
+				throw appError;
+			}
+
+			// Get the most recent credit report for this tenant
+			const { data: creditReport, error: creditError } = await supabase
+				.from('credit_reports')
+				.select('id')
+				.eq('tenant_id', application.tenant_id)
+				.order('created_at', { ascending: false })
+				.limit(1)
+				.maybeSingle();
+
+			if (creditError) {
+				console.error('Error fetching credit report:', creditError);
+			}
+
+			// Generate affordability notes and recommendation
+			const affordabilityNotes = generateAffordabilityNotes(analysis);
 			const preApprovalStatus = analysis.can_afford ? 'approved' : 'rejected';
+			const recommendationText = generateRecommendationText(
+				analysis,
+				preApprovalStatus,
+			);
 
-			let recommendationText: string | null = null;
-			if (analysis.recommendations && analysis.recommendations.length > 0) {
-				const firstRec = analysis.recommendations[0];
-				recommendationText = String(firstRec).substring(0, 250);
-			} else {
-				recommendationText =
-					preApprovalStatus === 'approved'
-						? 'Review financial details for final decision.'
-						: 'Affordability concerns identified. Review income and expenses.';
-			}
-
-			if (recommendationText && recommendationText.length < 10) {
-				recommendationText =
-					preApprovalStatus === 'approved'
-						? 'Review details for approval.'
-						: 'Review details for rejection.';
-			}
-
-			console.log('Using text recommendation:', recommendationText);
-			console.log('Using pre-approval status:', preApprovalStatus);
-			console.log('Final rent-to-income ratio being saved:', rentToIncomeRatio);
-
-			// Prepare the data payload for the RPC function
+			// Prepare RPC payload
 			const reportPayload = {
 				p_application_id: applicationId,
-				p_affordability_score: rentToIncomeRatio, // Use the calculated/verified rent-to-income ratio
+				p_affordability_score: rentToIncomeRatio,
 				p_affordability_notes: affordabilityNotes,
 				p_income_verification:
 					analysis.income_verification?.is_verified ?? analysis.can_afford,
 				p_pre_approval_status: preApprovalStatus,
 				p_recommendation: recommendationText,
-				p_report_data: analysis, // Send the full analysis object (now with consistent metrics)
+				p_report_data: analysis,
 				p_background_check_status: 'passed',
 				p_credit_score: creditScore,
-				p_monthly_income: monthlyIncome, // Pass monthly income explicitly
+				p_monthly_income: monthlyIncome,
+				p_credit_report_id: creditReport?.id || null,
 			};
 
-			console.log(
-				'Calling RPC save_screening_report with payload:',
-				reportPayload,
-			);
-
-			// Call the RPC function
+			// Call RPC function
 			const { data, error } = await supabase.rpc(
 				'save_screening_report',
 				reportPayload,
@@ -769,7 +454,6 @@ class AffordabilityService {
 			}
 
 			console.log('RPC save_screening_report successful, returned:', data);
-
 			return data as Tables<'screening_reports'>;
 		} catch (error) {
 			console.error('Error saving analysis results via RPC:', error);
@@ -778,48 +462,139 @@ class AffordabilityService {
 	}
 
 	/**
-	 * Helper method to extract a numeric value from extracted data
+	 * Generate credit report from VerifyID API or database
 	 */
-	private extractNumericValue(
-		data: Record<string, unknown>,
-		possibleKeys: string[],
-	): number | null {
-		for (const key of possibleKeys) {
-			const value = data[key];
-			if (value !== undefined) {
-				// Handle different types of values
-				if (typeof value === 'number') {
-					return value;
-				} else if (typeof value === 'string') {
-					// Try to parse numeric value from string, removing currency symbols
-					const numStr = value.replace(/[^0-9.,-]/g, '').replace(',', '.');
-					const parsed = parseFloat(numStr);
-					if (!isNaN(parsed)) {
-						return parsed;
+	private async generateCreditReport(
+		tenantId: string,
+	): Promise<CreditReportData | undefined> {
+		try {
+			// First check if we have a recent credit report
+			const { data: existingReport, error: reportError } = await supabase
+				.from('credit_reports')
+				.select('*')
+				.eq('tenant_id', tenantId)
+				.order('created_at', { ascending: false })
+				.limit(1)
+				.maybeSingle();
+
+			if (reportError) {
+				console.error('Error fetching existing credit report:', reportError);
+			} else if (existingReport) {
+				const accounts = existingReport.accounts as CreditReportAccounts | null;
+				const employers = existingReport.employers as EmploymentRecord[] | null;
+				const publicRecords = existingReport.public_records as
+					| PublicRecord[]
+					| null;
+				const rawData = existingReport.raw_data as Record<
+					string,
+					unknown
+				> | null;
+
+				// Convert stored report to CreditReportData format
+				return {
+					creditScore: existingReport.credit_score || 0,
+					reportDate: existingReport.report_date,
+					accountsSummary: accounts
+						? {
+								totalAccounts: accounts.total || 0,
+								accountsInGoodStanding: accounts.good_standing || 0,
+								negativeAccounts: accounts.negative || 0,
+						  }
+						: undefined,
+					employmentHistory: employers || undefined,
+					publicRecords: publicRecords || undefined,
+					raw: rawData || undefined,
+				};
+			}
+
+			// Call VerifyID API endpoint to get fresh credit report
+			const response = await fetch('/api/verifyid', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ tenant_id: tenantId }),
+			});
+
+			if (!response.ok) {
+				throw new Error(`VerifyID API error: ${response.statusText}`);
+			}
+
+			const creditReport = await response.json();
+
+			// Store PDF file if it exists in the response
+			let pdfPath: string | undefined;
+			if (creditReport.pdf_file) {
+				try {
+					// Convert base64 PDF to Blob
+					const pdfBlob = await fetch(
+						`data:application/pdf;base64,${creditReport.pdf_file}`,
+					).then((res) => res.blob());
+
+					// Generate unique filename
+					const fileName = `${tenantId}/${Date.now()}_credit_report.pdf`;
+
+					// Upload to Supabase storage
+					const { data: fileData, error: uploadError } = await supabase.storage
+						.from('tenant_documents')
+						.upload(fileName, pdfBlob, {
+							contentType: 'application/pdf',
+							cacheControl: '3600',
+							upsert: false,
+						});
+
+					if (uploadError) {
+						console.error('Error uploading credit report PDF:', uploadError);
+					} else {
+						pdfPath = fileData?.path;
+						console.log('Credit report PDF stored at:', pdfPath);
 					}
+				} catch (uploadError) {
+					console.error('Error processing PDF file:', uploadError);
 				}
 			}
-		}
-		return null;
-	}
 
-	/**
-	 * Helper method to extract a string value from extracted data
-	 */
-	private extractStringValue(
-		data: Record<string, unknown>,
-		possibleKeys: string[],
-	): string | null {
-		for (const key of possibleKeys) {
-			const value = data[key];
-			if (
-				value !== undefined &&
-				(typeof value === 'string' || typeof value === 'number')
-			) {
-				return String(value);
+			// Save credit report data to database
+			const { data: savedReport, error: saveError } = await supabase
+				.from('credit_reports')
+				.insert({
+					tenant_id: tenantId,
+					credit_score: creditReport.credit_score,
+					risk_type: creditReport.risk_type,
+					status: creditReport.status,
+					accounts: creditReport.accounts,
+					employers: creditReport.employers,
+					public_records: creditReport.public_records,
+					payment_history: creditReport.payment_history,
+					raw_data: creditReport.raw_data,
+					pdf_path: pdfPath, // Store the path to the PDF
+					report_date: new Date().toISOString(),
+				})
+				.select()
+				.single();
+
+			if (saveError) {
+				console.error('Error saving credit report:', saveError);
+				throw saveError;
 			}
+
+			// Return formatted credit report data
+			return {
+				creditScore: savedReport.credit_score || 0,
+				reportDate: savedReport.report_date,
+				accountsSummary: savedReport.accounts
+					? {
+							totalAccounts: savedReport.accounts.total || 0,
+							accountsInGoodStanding: savedReport.accounts.good_standing || 0,
+							negativeAccounts: savedReport.accounts.negative || 0,
+					  }
+					: undefined,
+				employmentHistory: savedReport.employers || undefined,
+				publicRecords: savedReport.public_records || undefined,
+				raw: savedReport.raw_data || undefined,
+			};
+		} catch (error) {
+			console.error('Error generating credit report:', error);
+			return undefined;
 		}
-		return null;
 	}
 }
 

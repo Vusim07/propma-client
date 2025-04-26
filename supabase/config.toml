@@ -43,3 +43,10 @@ entrypoint = "./functions/calendar-create-event/index.ts"
 
 [functions.email-gmail-list-messages]
   verify_jwt = false
+
+[functions.verifyid-credit-report]
+enabled = true
+verify_jwt = true
+import_map = "./functions/verifyid-credit-report/deno.json"
+# Entrypoint for the function
+entrypoint = "./functions/verifyid-credit-report/index.ts"

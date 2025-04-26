@@ -27,6 +27,7 @@ import DocumentViewerSheet from '../../components/agent/DocumentViewerSheet';
 type ScreeningReportWithDetails = Tables<'screening_reports'> & {
 	tenant_profiles: Tables<'tenant_profiles'> | null;
 	documents: Tables<'documents'>[] | null;
+	credit_reports: Tables<'credit_reports'>[] | null;
 	// Add nested property details
 	applications: {
 		properties: {
@@ -88,7 +89,8 @@ const DetailedScreening: React.FC = () => {
 						*,
 						tenant_profiles:applications!inner(tenant_profiles(*)),
 						applications:applications!inner(property_id, properties!inner(monthly_rent)),
-						documents:applications!inner(documents(*))
+						documents:applications!inner(documents(*)),
+						credit_reports(*)
 					`,
 					)
 					.eq('application_id', id)
@@ -360,7 +362,7 @@ const DetailedScreening: React.FC = () => {
 					<CardHeader>
 						<h2 className='text-lg font-semibold flex items-center'>
 							<CreditCard className='h-5 w-5 text-blue-600 mr-2' />
-							Credit Report
+							Experian Credit Report
 						</h2>
 					</CardHeader>
 					<CardContent>
@@ -446,6 +448,26 @@ const DetailedScreening: React.FC = () => {
 									<p className='font-medium'>
 										{creditReportDetails.credit_utilization}
 									</p>
+								</div>
+								<div>
+									<p className='text-sm text-gray-500'>
+										Detailed Credit Report
+									</p>
+									<DocumentViewerSheet
+										document={{
+											id: screeningData.credit_reports?.[0]?.id ?? '',
+											file_name: 'Credit Report.pdf',
+											document_type: 'credit_report',
+											file_path:
+												screeningData.credit_reports?.[0]?.pdf_path ?? '',
+										}}
+										trigger={
+											<Button variant='outline' size='sm'>
+												<Eye size={16} className='mr-1.5' />
+												View Credit Report
+											</Button>
+										}
+									/>
 								</div>
 							</div>
 						) : (
