@@ -1,0 +1,2 @@
+id,tenant_id,status,risk_type,risk_color,credit_score,thin_file_indicator,score_version,score_type,decline_reasons,enquiry_counts,addresses,employers,accounts,public_records,payment_history,property_details,directors,nlr_summary,raw_data,pdf_file,report_date,created_at,updated_at,pdf_path
+1480ff00-d5fe-4b2b-a8bd-11d2afb6836f,1b957bb5-4c6e-4191-93a1-56cfd2de2942,success,,,,false,,,,,,,,,,,,,,,2025-04-27,2025-04-27 18:08:29.365063+00,2025-04-27 18:08:29.365063+00,

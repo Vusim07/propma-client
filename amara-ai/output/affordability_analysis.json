@@ -1,42 +1,37 @@
 {
   "can_afford": true,
-  "confidence": 0.9,
+  "confidence": 0.92,
   "risk_factors": [
-    "Current loan obligations exceed 30% of income",
-    "High discretionary spending",
-    "Limited emergency savings"
+    "Existing debt obligations are high, impacting overall disposable income",
+    "Irregular income patterns observed in bank statements"
   ],
   "recommendations": [
-    "Consider reducing discretionary expenses",
-    "Build an emergency fund equating to 3-6 months' rent",
-    "Maintain timely loan repayments to improve credit score"
+    "Maintain current income and reduce discretionary spending",
+    "Consider consolidating debts to improve financial stability",
+    "Regularly update financial records to ensure accurate assessments"
   ],
   "metrics": {
     "monthly_income": 27500,
     "target_rent": 8250,
-    "rent_to_income_ratio": 30,
-    "debt_to_income_ratio": 35,
-    "total_expenses": 3500,
-    "discretionary_expenses": 5100,
-    "savings": 2000
+    "rent_to_income_ratio": 0.30,
+    "total_debt": 10000,
+    "debt_to_income_ratio": 0.36
   },
   "transaction_analysis": {
     "income": {
-      "salary": 25000,
-      "other_income": 2500
+      "salary": 22000,
+      "additional_income": 5500,
+      "total_income": 27500
     },
-    "fixed_expenses": {
-      "rent": 8250,
-      "loans": 3500,
-      "insurance": 2500
+    "expenses": {
+      "housing": 8250,
+      "utilities": 1500,
+      "transport": 2000,
+      "groceries": 3000,
+      "debt_repayments": 2500,
+      "discretionary_spending": 2000,
+      "total_expenses": 19500
     },
-    "discretionary_expenses": {
-      "entertainment": 1500,
-      "groceries": 2500,
-      "transport": 500
-    },
-    "savings": {
-      "monthly_savings": 2000
-    }
+    "net_savings": 8000
   }
 }
