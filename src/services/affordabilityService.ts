@@ -118,7 +118,7 @@ class AffordabilityService {
 				`Creating affordability analysis for application ${applicationId}`,
 			);
 
-			 // Get the tenant profile ID first
+			// Get the tenant profile ID first
 			const { data: application, error: appError } = await supabase
 				.from('applications')
 				.select('tenant_id')
@@ -164,7 +164,9 @@ class AffordabilityService {
 			);
 
 			// 4. Generate credit report using the tenant profile ID
-			const creditReport = await this.generateCreditReport(application.tenant_id);
+			const creditReport = await this.generateCreditReport(
+				application.tenant_id,
+			);
 
 			// 5. Get target rent amount
 			const targetRent = await this.getTargetRent(propertyId);
@@ -483,7 +485,7 @@ class AffordabilityService {
 	 * Generate credit report from VerifyID API or database
 	 */
 	private async generateCreditReport(
-		 tenantProfileId: string, // Changed parameter to accept tenant profile ID
+		tenantProfileId: string, // Changed parameter to accept tenant profile ID
 	): Promise<CreditReportData | undefined> {
 		try {
 			// First check if we have a recent credit report
@@ -525,7 +527,7 @@ class AffordabilityService {
 				};
 			}
 
-			 // Get tenant profile data for VerifyID API
+			// Get tenant profile data for VerifyID API
 			const { data: tenantProfile, error: profileError } = await supabase
 				.from('tenant_profiles')
 				.select('id_number, first_name, last_name')
