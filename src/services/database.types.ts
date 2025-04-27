@@ -784,6 +784,8 @@ export interface Database {
 			save_screening_report: {
 				Args: {
 					p_application_id: string;
+					p_agent_id: string;
+					p_tenant_id: string; // <-- Added tenant profile ID as required
 					p_affordability_score: number;
 					p_affordability_notes: string;
 					p_income_verification: boolean;
@@ -793,8 +795,49 @@ export interface Database {
 					p_background_check_status: string;
 					p_credit_score: number | null;
 					p_monthly_income: number | null;
+					p_credit_report_id?: string | null;
 				};
 				Returns: Record<string, any>;
+			};
+
+			// Added custom RPCs for PropertyApplication.tsx
+			create_tenant_profile: {
+				Args: {
+					p_tenant_id: string;
+					p_first_name: string;
+					p_last_name: string;
+					p_email: string;
+					p_phone: string;
+					p_current_address: string;
+					p_id_number: string;
+					p_employment_status: string;
+					p_monthly_income: number;
+				};
+				Returns: string;
+			};
+
+			get_application_id_if_exists: {
+				Args: {
+					tenant_id_param: string;
+					property_id_param: string;
+				};
+				Returns: string | null;
+			};
+
+			check_application_exists: {
+				Args: {
+					tenant_id_param: string;
+					property_id_param: string;
+				};
+				Returns: boolean;
+			};
+
+			get_tenant_applications_for_property: {
+				Args: {
+					tenant_id_param: string;
+					property_id_param: string;
+				};
+				Returns: Array<any>; // You can refine this to Application[] if needed
 			};
 		};
 	};

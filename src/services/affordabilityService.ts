@@ -393,10 +393,10 @@ class AffordabilityService {
 				analysis.metrics.monthly_income = monthlyIncome;
 			}
 
-			// Get the application to find the tenant ID
+			// Get the application to find the tenant ID and agent ID
 			const { data: application, error: appError } = await supabase
 				.from('applications')
-				.select('tenant_id')
+				.select('tenant_id, agent_id')
 				.eq('id', applicationId)
 				.single();
 
@@ -426,9 +426,11 @@ class AffordabilityService {
 				preApprovalStatus,
 			);
 
-			// Prepare RPC payload
+			// Prepare RPC payload (now includes agent_id and tenant_id)
 			const reportPayload = {
 				p_application_id: applicationId,
+				p_agent_id: application.agent_id,
+				p_tenant_id: application.tenant_id, // <-- Pass tenant profile ID
 				p_affordability_score: rentToIncomeRatio,
 				p_affordability_notes: affordabilityNotes,
 				p_income_verification:

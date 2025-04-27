@@ -1,64 +1,52 @@
 {
   "can_afford": true,
-  "confidence": 0.87,
+  "confidence": 0.95,
   "risk_factors": [
-    "High discretionary spending",
-    "Potential irregular income patterns",
-    "Existing debt obligations impacting cash flow"
+    "High existing debt-to-income ratio",
+    "Irregular income fluctuations",
+    "Potential increase in expenses due to inflation"
   ],
   "recommendations": [
-    "Reduce discretionary spending to improve cash flow",
-    "Consider consolidating existing debts",
-    "Establish an emergency savings fund for unexpected expenses"
+    "Maintain consistent saving habits",
+    "Consider budgeting to manage discretionary spending",
+    "Regularly review income sources for sustainability"
   ],
   "metrics": {
-    "monthly_income": 22000.00,
-    "monthly_expenses": 15000.00,
-    "debt_to_income_ratio": 0.20,
-    "affordable_rent": 6600.00,
-    "actual_rent": 6500.00,
-    "rent_to_income_ratio": 0.30
+    "monthly_income": 27500,
+    "monthly_rent": 8250,
+    "rent_to_income_ratio": 0.30,
+    "existing_debt": 2000,
+    "debt_to_income_ratio": 0.07,
+    "average_monthly_expenses": 15000
   },
   "transaction_analysis": {
     "income": {
-      "total_income": 22000.00,
-      "sources": [
+      "total_income": 27500,
+      "source": [
         {
-          "source": "salary",
-          "amount": 20000.00
+          "type": "salary",
+          "amount": 25000,
+          "frequency": "monthly"
         },
         {
-          "source": "freelance",
-          "amount": 2000.00
+          "type": "freelance",
+          "amount": 2500,
+          "frequency": "monthly"
         }
       ]
     },
     "expenses": {
-      "total_expenses": 15000.00,
+      "total_expenses": 15000,
       "categories": {
-        "housing": 7000.00,
-        "groceries": 3000.00,
-        "transport": 2000.00,
-        "entertainment": 1500.00,
-        "savings": 2000.00,
-        "other": 1500.00
+        "fixed": 10000,
+        "variable": 3000,
+        "discretionary": 2000
       }
     },
     "debts": {
-      "total_debt": 4400.00,
-      "monthly_payment": 880.00,
-      "debt_sources": [
-        {
-          "type": "personal loan",
-          "amount": 2000.00,
-          "monthly_payment": 400.00
-        },
-        {
-          "type": "credit card",
-          "amount": 2400.00,
-          "monthly_payment": 480.00
-        }
-      ]
+      "total_debt": 2000,
+      "credit_cards": 1200,
+      "personal_loan": 800
     }
   }
 }
