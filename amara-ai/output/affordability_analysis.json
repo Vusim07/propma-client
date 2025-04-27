@@ -1,52 +1,42 @@
 {
   "can_afford": true,
-  "confidence": 0.95,
+  "confidence": 0.9,
   "risk_factors": [
-    "High existing debt-to-income ratio",
-    "Irregular income fluctuations",
-    "Potential increase in expenses due to inflation"
+    "Current loan obligations exceed 30% of income",
+    "High discretionary spending",
+    "Limited emergency savings"
   ],
   "recommendations": [
-    "Maintain consistent saving habits",
-    "Consider budgeting to manage discretionary spending",
-    "Regularly review income sources for sustainability"
+    "Consider reducing discretionary expenses",
+    "Build an emergency fund equating to 3-6 months' rent",
+    "Maintain timely loan repayments to improve credit score"
   ],
   "metrics": {
     "monthly_income": 27500,
-    "monthly_rent": 8250,
-    "rent_to_income_ratio": 0.30,
-    "existing_debt": 2000,
-    "debt_to_income_ratio": 0.07,
-    "average_monthly_expenses": 15000
+    "target_rent": 8250,
+    "rent_to_income_ratio": 30,
+    "debt_to_income_ratio": 35,
+    "total_expenses": 3500,
+    "discretionary_expenses": 5100,
+    "savings": 2000
   },
   "transaction_analysis": {
     "income": {
-      "total_income": 27500,
-      "source": [
-        {
-          "type": "salary",
-          "amount": 25000,
-          "frequency": "monthly"
-        },
-        {
-          "type": "freelance",
-          "amount": 2500,
-          "frequency": "monthly"
-        }
-      ]
+      "salary": 25000,
+      "other_income": 2500
     },
-    "expenses": {
-      "total_expenses": 15000,
-      "categories": {
-        "fixed": 10000,
-        "variable": 3000,
-        "discretionary": 2000
-      }
+    "fixed_expenses": {
+      "rent": 8250,
+      "loans": 3500,
+      "insurance": 2500
     },
-    "debts": {
-      "total_debt": 2000,
-      "credit_cards": 1200,
-      "personal_loan": 800
+    "discretionary_expenses": {
+      "entertainment": 1500,
+      "groceries": 2500,
+      "transport": 500
+    },
+    "savings": {
+      "monthly_savings": 2000
     }
   }
 }

@@ -118,6 +118,22 @@ class AffordabilityService {
 				`Creating affordability analysis for application ${applicationId}`,
 			);
 
+			 // Get the tenant profile ID first
+			const { data: application, error: appError } = await supabase
+				.from('applications')
+				.select('tenant_id')
+				.eq('id', applicationId)
+				.single();
+
+			if (appError) {
+				console.error('Error fetching application:', appError);
+				throw appError;
+			}
+
+			if (!application?.tenant_id) {
+				throw new Error('No tenant profile ID found for this application');
+			}
+
 			// 1. Get transactions AND raw bank statement data
 			const documents = await fetchDocuments(
 				tenantId,
@@ -147,8 +163,8 @@ class AffordabilityService {
 				applicationId,
 			);
 
-			// 4. Generate credit report
-			const creditReport = await this.generateCreditReport(tenantId);
+			// 4. Generate credit report using the tenant profile ID
+			const creditReport = await this.generateCreditReport(application.tenant_id);
 
 			// 5. Get target rent amount
 			const targetRent = await this.getTargetRent(propertyId);
@@ -467,14 +483,14 @@ class AffordabilityService {
 	 * Generate credit report from VerifyID API or database
 	 */
 	private async generateCreditReport(
-		tenantId: string,
+		 tenantProfileId: string, // Changed parameter to accept tenant profile ID
 	): Promise<CreditReportData | undefined> {
 		try {
 			// First check if we have a recent credit report
 			const { data: existingReport, error: reportError } = await supabase
 				.from('credit_reports')
 				.select('*')
-				.eq('tenant_id', tenantId)
+				.eq('tenant_id', tenantProfileId)
 				.order('created_at', { ascending: false })
 				.limit(1)
 				.maybeSingle();
@@ -509,12 +525,42 @@ class AffordabilityService {
 				};
 			}
 
-			// Call VerifyID API endpoint to get fresh credit report
-			const response = await fetch('/api/verifyid', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ tenant_id: tenantId }),
-			});
+			 // Get tenant profile data for VerifyID API
+			const { data: tenantProfile, error: profileError } = await supabase
+				.from('tenant_profiles')
+				.select('id_number, first_name, last_name')
+				.eq('id', tenantProfileId)
+				.single();
+
+			if (profileError || !tenantProfile) {
+				throw new Error('Unable to fetch tenant profile data');
+			}
+
+			// Get access token for secure Edge Function call
+			const { data: sessionData, error: sessionError } =
+				await supabase.auth.getSession();
+			if (sessionError || !sessionData.session?.access_token) {
+				throw new Error('Unable to retrieve user session for VerifyID call');
+			}
+			const accessToken = sessionData.session.access_token;
+
+			// Call VerifyID API endpoint with tenant profile data
+			const response = await fetch(
+				'https://ixltqflrvgsirvrzgqtq.supabase.co/functions/v1/verifyid-credit-report',
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${accessToken}`,
+					},
+					body: JSON.stringify({
+						tenant_id: tenantProfileId,
+						id_number: tenantProfile.id_number,
+						first_name: tenantProfile.first_name,
+						surname: tenantProfile.last_name,
+					}),
+				},
+			);
 
 			if (!response.ok) {
 				throw new Error(`VerifyID API error: ${response.statusText}`);
@@ -532,7 +578,7 @@ class AffordabilityService {
 					).then((res) => res.blob());
 
 					// Generate unique filename
-					const fileName = `${tenantId}/${Date.now()}_credit_report.pdf`;
+					const fileName = `${tenantProfileId}/${Date.now()}_credit_report.pdf`;
 
 					// Upload to Supabase storage
 					const { data: fileData, error: uploadError } = await supabase.storage
@@ -558,7 +604,7 @@ class AffordabilityService {
 			const { data: savedReport, error: saveError } = await supabase
 				.from('credit_reports')
 				.insert({
-					tenant_id: tenantId,
+					tenant_id: tenantProfileId,
 					credit_score: creditReport.credit_score,
 					risk_type: creditReport.risk_type,
 					status: creditReport.status,
