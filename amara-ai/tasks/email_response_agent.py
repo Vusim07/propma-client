@@ -4,6 +4,7 @@ from typing import Dict, List, Any, Optional
 import json
 import logging
 import re
+import rapidfuzz.fuzz as fuzz
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -148,41 +149,27 @@ Output must be a valid JSON object with a 'property' key containing the matched 
 
                 for prop in self.agent_properties:
                     # Convert all values to lowercase for case-insensitive matching
-                    web_ref = (
-                        prop.get("web_reference", "") or ""
-                    ).lower()  # FIXED: Handle None case
+                    web_ref = (prop.get("web_reference", "") or "").lower()
                     address = prop["address"].lower()
-                    street_name = " ".join(
-                        prop["address"].split()[1:]
-                    ).lower()  # Get street name without number
+                    street_name = " ".join(prop["address"].split()[1:]).lower()
 
                     logger.info(
                         f"Checking property - Web Reference: {web_ref}, Address: {address}, Street: {street_name}"
                     )
 
                     # Try matching different patterns against combined text
-                    # First try exact reference match
-                    if web_ref and (
-                        web_ref in combined_text
-                        or combined_text.replace(" ", "").find(web_ref) != -1
+                    if web_ref and re.search(
+                        rf"\b{re.escape(web_ref)}\b", combined_text
                     ):
                         logger.info(f"Matched by web reference: {web_ref}")
                         self.matched_property = prop
                         break
-                    # Then try with "property" prefix
-                    elif web_ref and (
-                        f"property{web_ref}" in combined_text.replace(" ", "")
-                        or f"property {web_ref}" in combined_text
-                    ):
-                        logger.info(f"Matched by 'property {web_ref}' pattern")
+                    elif fuzz.partial_ratio(address, combined_text) > 80:
+                        logger.info(f"Matched by fuzzy address: {address}")
                         self.matched_property = prop
                         break
-                    elif address in combined_text:
-                        logger.info(f"Matched by full address: {address}")
-                        self.matched_property = prop
-                        break
-                    elif street_name in combined_text:
-                        logger.info(f"Matched by street name: {street_name}")
+                    elif fuzz.partial_ratio(street_name, combined_text) > 80:
+                        logger.info(f"Matched by fuzzy street name: {street_name}")
                         self.matched_property = prop
                         break
 
