@@ -79,7 +79,8 @@ affordability_analysis:
         "rent_to_income_ratio": float,   // target_rent / monthly_income
         "debt_to_income_ratio": float,   // monthly_debt_payments / monthly_income
         "savings_rate": float,           // (monthly_savings / monthly_income) or 0
-        "target_rent": float             // The target rent provided as input
+        "target_rent": float,            // The target rent provided as input
+        "total_debt": float              // Total outstanding debt (from credit report or transactions)
       },
       "income_verification": {
         "payslip_net_income": float,     // Net income stated on the payslip
@@ -102,8 +103,18 @@ affordability_analysis:
           "savings_investments": [/* list amounts or summary */],
           "current_rent": [/* list amounts or summary */]
         }
+      },
+      "missing_fields_notes": {
+        // For any required field that is missing or set to 0/null, provide a key with the field name and a string reason why it is missing.
+        // Example: "metrics.savings_rate": "No savings transactions found in bank statement"
       }
     }
-    ```
+
+    - Always include the `missing_fields_notes` object, even if empty.
+    - For every required field that is missing or set to 0/null, add an entry in `missing_fields_notes` explaining why (e.g., "insufficient data", "not found in documents").
+    - If all required fields are present and valid, `missing_fields_notes` can be an empty object.
+    - Do not hallucinate or invent data. If a value cannot be determined, set it to 0/null and explain in `missing_fields_notes`.
+    - Ensure all currency values are in ZAR (R) format where appropriate (e.g., in recommendations), but use pure numbers for the JSON metric values.
+    - Adhere strictly to the provided data; do not infer or hallucinate information.
   agent: financial_analyst
   output_file: output/affordability_analysis.json

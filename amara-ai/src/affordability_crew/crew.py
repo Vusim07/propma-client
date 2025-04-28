@@ -158,6 +158,200 @@ class AffordabilityAnalysisCrew:
             callbacks=[self.process_results],
         )
 
+    def _map_agent_fields(
+        self, final_data: dict, input_target_rent: float = 0.0
+    ) -> dict:
+        """Map agent synonyms to required schema fields and enforce target_rent as input value."""
+        metrics = final_data.get("metrics", {})
+        # Always set target_rent to the input value (not agent-calculated)
+        metrics["target_rent"] = input_target_rent
+        # Map affordable_rent -> target_rent (but always overwrite with input value)
+        if "affordable_rent" in metrics:
+            metrics.pop("affordable_rent")
+        # Map monthly_expenses -> total_monthly_expenses
+        if "monthly_expenses" in metrics:
+            metrics["total_monthly_expenses"] = metrics.pop("monthly_expenses")
+        # Map gross_monthly_income or net_monthly_income -> monthly_income
+        if "gross_monthly_income" in metrics:
+            metrics["monthly_income"] = metrics["gross_monthly_income"]
+        elif "net_monthly_income" in metrics:
+            metrics["monthly_income"] = metrics["net_monthly_income"]
+        # Map total_debt_payments -> monthly_debt_payments
+        if "total_debt_payments" in metrics:
+            metrics["monthly_debt_payments"] = metrics["total_debt_payments"]
+        final_data["metrics"] = metrics
+        # Transaction analysis mapping (flattened to nested if needed)
+        ta = final_data.get("transaction_analysis", {})
+        # If agent used flat keys, map to nested structure
+        if "income" in ta and isinstance(ta["income"], dict):
+            ta.setdefault("incoming", {})
+            if "salary" in ta["income"]:
+                ta["incoming"]["salary_wages"] = [ta["income"]["salary"]]
+            if "additional_income" in ta["income"]:
+                ta["incoming"]["other_income"] = [ta["income"]["additional_income"]]
+        if "expenses" in ta and isinstance(ta["expenses"], dict):
+            ta.setdefault("outgoing", {})
+            if "rent" in ta["expenses"]:
+                ta["outgoing"]["current_rent"] = [ta["expenses"]["rent"]]
+            if "utilities" in ta["expenses"]:
+                ta["outgoing"]["essential_expenses"] = ta["outgoing"].get(
+                    "essential_expenses", []
+                ) + [ta["expenses"]["utilities"]]
+            if "groceries" in ta["expenses"]:
+                ta["outgoing"]["essential_expenses"] = ta["outgoing"].get(
+                    "essential_expenses", []
+                ) + [ta["expenses"]["groceries"]]
+            if "transport" in ta["expenses"]:
+                ta["outgoing"]["essential_expenses"] = ta["outgoing"].get(
+                    "essential_expenses", []
+                ) + [ta["expenses"]["transport"]]
+            if "debt_payments" in ta["expenses"]:
+                ta["outgoing"]["debt_payments"] = [ta["expenses"]["debt_payments"]]
+            if "discretionary" in ta["expenses"]:
+                ta["outgoing"]["non_essential_expenses"] = [
+                    ta["expenses"]["discretionary"]
+                ]
+        final_data["transaction_analysis"] = ta
+        return final_data
+
+    def _validate_and_complete_output(self, final_data: dict) -> dict:
+        """Validate output, enforce required fields, and handle missing_fields_notes. Robust to malformed agent output."""
+        # Get the input target_rent from context if available
+        input_target_rent = 0.0
+        try:
+            # Try to get from self.context_data (set during crew init)
+            input_target_rent = float(self.context_data.get("target_rent", 0.0))
+        except Exception:
+            input_target_rent = 0.0
+        # Map agent synonyms to required schema fields first, always enforce target_rent
+        final_data = self._map_agent_fields(final_data, input_target_rent)
+
+        # Define required fields and nested structure
+        required_fields = [
+            "can_afford",
+            "confidence",
+            "risk_factors",
+            "recommendations",
+            "metrics",
+            "income_verification",
+            "transaction_analysis",
+            "missing_fields_notes",
+        ]
+        required_metrics = [
+            "monthly_income",
+            "total_monthly_expenses",
+            "monthly_debt_payments",
+            "current_rent_payment",
+            "disposable_income",
+            "rent_to_income_ratio",
+            "debt_to_income_ratio",
+            "savings_rate",
+            "target_rent",
+            "total_debt",
+        ]
+        required_income_verification = [
+            "payslip_net_income",
+            "verified_average_deposit",
+            "is_verified",
+            "confidence",
+            "match_type",
+            "stated_vs_documented_ratio",
+            "notes",
+        ]
+        required_transaction_analysis = {
+            "incoming": ["salary_wages", "other_income"],
+            "outgoing": [
+                "essential_expenses",
+                "non_essential_expenses",
+                "debt_payments",
+                "savings_investments",
+                "current_rent",
+            ],
+        }
+
+        # Ensure missing_fields_notes exists and is a dict
+        if not isinstance(final_data.get("missing_fields_notes"), dict):
+            final_data["missing_fields_notes"] = {}
+        notes = final_data["missing_fields_notes"]
+
+        # Top-level fields: ensure correct type
+        for field in required_fields:
+            if field not in final_data or final_data[field] is None:
+                if field in [
+                    "metrics",
+                    "income_verification",
+                    "transaction_analysis",
+                    "missing_fields_notes",
+                ]:
+                    final_data[field] = {}
+                elif field in ["risk_factors", "recommendations"]:
+                    final_data[field] = []
+                else:
+                    final_data[field] = 0
+                notes[field] = "Missing from agent output. Filled with default value."
+
+        # Metrics: ensure dict, then fill required fields
+        metrics = final_data.get("metrics")
+        if not isinstance(metrics, dict):
+            metrics = {}
+        for m in required_metrics:
+            if m not in metrics or metrics[m] is None:
+                metrics[m] = 0
+                notes[f"metrics.{m}"] = "Missing or undetermined. Set to 0."
+        final_data["metrics"] = metrics
+
+        # Income verification: ensure dict, then fill required fields
+        income_ver = final_data.get("income_verification")
+        if not isinstance(income_ver, dict):
+            income_ver = {}
+        for f in required_income_verification:
+            if f not in income_ver or income_ver[f] is None:
+                if f in ["notes", "match_type"]:
+                    income_ver[f] = ""
+                elif f == "is_verified":
+                    income_ver[f] = False
+                elif f == "confidence":
+                    income_ver[f] = 0.0
+                else:
+                    income_ver[f] = 0
+                notes[f"income_verification.{f}"] = (
+                    "Missing or undetermined. Set to default."
+                )
+        final_data["income_verification"] = income_ver
+
+        # Transaction analysis: enforce nested structure
+        ta = final_data.get("transaction_analysis")
+        if not isinstance(ta, dict):
+            ta = {}
+        # Always use required nested keys
+        for group, fields in required_transaction_analysis.items():
+            if group not in ta or not isinstance(ta[group], dict):
+                ta[group] = {}
+            for f in fields:
+                if f not in ta[group] or ta[group][f] is None:
+                    ta[group][f] = []
+                    notes[f"transaction_analysis.{group}.{f}"] = (
+                        "Missing or undetermined. Set to empty list."
+                    )
+        final_data["transaction_analysis"] = ta
+
+        # Remove notes for fields that are now present and valid
+        to_remove = []
+        for k in notes:
+            parts = k.split(".")
+            val = final_data
+            try:
+                for p in parts:
+                    val = val[p] if isinstance(val, dict) else None
+                if val not in (None, 0, [], "", False):
+                    to_remove.append(k)
+            except Exception:
+                continue
+        for k in to_remove:
+            notes.pop(k)
+        final_data["missing_fields_notes"] = notes
+        return final_data
+
     def process_results(self, event_name, **kwargs):
         """Process results after crew kickoff, ensuring extraction from agent output."""
         logger.info(f"========== PROCESS RESULTS STARTED: {event_name} ==========")
@@ -358,6 +552,8 @@ class AffordabilityAnalysisCrew:
                     f"Validated {len(valid_recommendations)} recommendations for database constraints"
                 )
 
+            # Validate and complete output before returning
+            final_data = self._validate_and_complete_output(final_data)
             logger.info(f"Final Processed Data being returned: {final_data}")
             logger.info(f"========== PROCESS RESULTS COMPLETED ==========")
             return final_data

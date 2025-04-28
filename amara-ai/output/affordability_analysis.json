@@ -1,62 +1,41 @@
 {
   "can_afford": true,
-  "confidence": 0.87,
+  "confidence": 0.88,
   "risk_factors": [
     "High discretionary spending",
-    "Existing credit obligations"
+    "Variable income source",
+    "Existing debt obligations"
   ],
   "recommendations": [
-    "Reduce discretionary spending by 15% to improve financial health.",
-    "Establish an emergency fund to cover at least 3 months of expenses.",
-    "Regularly review and manage existing debt obligations."
+    "Reduce non-essential expenses",
+    "Create a budget for variable income months",
+    "Consider additional income sources for savings"
   ],
   "metrics": {
-    "monthly_income": 27500,
-    "monthly_expenses": 6425,
-    "target_rent": 8250,
+    "monthly_income": 27500.00,
+    "monthly_expenses": 6900.00,
+    "debt_to_income_ratio": 0.25,
     "rent_to_income_ratio": 0.30,
-    "debt_to_income_ratio": 0.15,
-    "savings_rate": 0.10
+    "target_rent": 8250.00
   },
   "transaction_analysis": {
-    "total_transactions": 120,
-    "income_transactions": [
-      {
-        "date": "2023-09-01",
-        "amount": 27500,
-        "type": "Salary"
-      }
-    ],
-    "expense_transactions": {
-      "necessary_expenses": [
-        {
-          "date": "2023-09-05",
-          "amount": 2000,
-          "type": "Groceries"
-        },
-        {
-          "date": "2023-09-10",
-          "amount": 1500,
-          "type": "Utilities"
-        },
-        {
-          "date": "2023-09-15",
-          "amount": 2000,
-          "type": "Transport"
-        }
-      ],
-      "discretionary_expenses": [
-        {
-          "date": "2023-09-20",
-          "amount": 1000,
-          "type": "Dining out"
-        },
-        {
-          "date": "2023-09-25",
-          "amount": 500,
-          "type": "Entertainment"
-        }
-      ]
+    "essential_expenses": {
+      "housing": 4500.00,
+      "utilities": 1200.00,
+      "groceries": 2500.00
+    },
+    "discretionary_expenses": {
+      "restaurants": 1500.00,
+      "entertainment": 1000.00,
+      "shopping": 800.00
+    },
+    "income_sources": {
+      "salary": 25000.00,
+      "freelance": 2500.00
+    },
+    "debt_obligations": {
+      "personal_loan": 2000.00,
+      "credit_card": 1600.00
     }
   }
 }
