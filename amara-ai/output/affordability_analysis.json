@@ -1,37 +1,62 @@
 {
   "can_afford": true,
-  "confidence": 0.92,
+  "confidence": 0.87,
   "risk_factors": [
-    "Existing debt obligations are high, impacting overall disposable income",
-    "Irregular income patterns observed in bank statements"
+    "High discretionary spending",
+    "Existing credit obligations"
   ],
   "recommendations": [
-    "Maintain current income and reduce discretionary spending",
-    "Consider consolidating debts to improve financial stability",
-    "Regularly update financial records to ensure accurate assessments"
+    "Reduce discretionary spending by 15% to improve financial health.",
+    "Establish an emergency fund to cover at least 3 months of expenses.",
+    "Regularly review and manage existing debt obligations."
   ],
   "metrics": {
     "monthly_income": 27500,
+    "monthly_expenses": 6425,
     "target_rent": 8250,
     "rent_to_income_ratio": 0.30,
-    "total_debt": 10000,
-    "debt_to_income_ratio": 0.36
+    "debt_to_income_ratio": 0.15,
+    "savings_rate": 0.10
   },
   "transaction_analysis": {
-    "income": {
-      "salary": 22000,
-      "additional_income": 5500,
-      "total_income": 27500
-    },
-    "expenses": {
-      "housing": 8250,
-      "utilities": 1500,
-      "transport": 2000,
-      "groceries": 3000,
-      "debt_repayments": 2500,
-      "discretionary_spending": 2000,
-      "total_expenses": 19500
-    },
-    "net_savings": 8000
+    "total_transactions": 120,
+    "income_transactions": [
+      {
+        "date": "2023-09-01",
+        "amount": 27500,
+        "type": "Salary"
+      }
+    ],
+    "expense_transactions": {
+      "necessary_expenses": [
+        {
+          "date": "2023-09-05",
+          "amount": 2000,
+          "type": "Groceries"
+        },
+        {
+          "date": "2023-09-10",
+          "amount": 1500,
+          "type": "Utilities"
+        },
+        {
+          "date": "2023-09-15",
+          "amount": 2000,
+          "type": "Transport"
+        }
+      ],
+      "discretionary_expenses": [
+        {
+          "date": "2023-09-20",
+          "amount": 1000,
+          "type": "Dining out"
+        },
+        {
+          "date": "2023-09-25",
+          "amount": 500,
+          "type": "Entertainment"
+        }
+      ]
+    }
   }
 }
