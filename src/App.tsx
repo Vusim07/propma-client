@@ -38,6 +38,7 @@ import PropertyForm from './pages/agent/PropertyForm';
 import SubscriptionPage from './pages/agent/SubscriptionPage';
 import CalendarSettings from './pages/agent/CalendarSettings';
 import Settings from './pages/agent/Settings';
+import Teams from './pages/agent/Teams'; // Add this import
 
 // Layout Components
 import TenantLayout from './components/layout/TenantLayout';
@@ -236,6 +237,7 @@ function App() {
 						<Route path='appointments' element={<ManageAppointments />} />
 						<Route path='calendar-settings' element={<CalendarSettings />} />
 						<Route path='workflows' element={<WorkflowManagement />} />
+						<Route path='teams' element={<Teams />} />
 						<Route path='subscription' element={<SubscriptionPage />} />
 						<Route path='settings' element={<Settings />} />
 					</Route>

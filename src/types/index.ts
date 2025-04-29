@@ -62,3 +62,18 @@ export type UpdateEmailWorkflow = UpdateTables<'email_workflows'>;
 export type WorkflowLog = Tables<'workflow_logs'>;
 export type InsertWorkflowLog = InsertTables<'workflow_logs'>;
 export type UpdateWorkflowLog = UpdateTables<'workflow_logs'>;
+
+// Team types
+export type Team = Tables<'teams'>;
+export type InsertTeam = InsertTables<'teams'>;
+export type UpdateTeam = UpdateTables<'teams'>;
+
+// Team member types
+export type TeamMember = Tables<'team_members'>;
+export type InsertTeamMember = InsertTables<'team_members'>;
+export type UpdateTeamMember = UpdateTables<'team_members'>;
+
+// Team invitation types
+export type TeamInvitation = Tables<'team_invitations'>;
+export type InsertTeamInvitation = InsertTables<'team_invitations'>;
+export type UpdateTeamInvitation = UpdateTables<'team_invitations'>;
