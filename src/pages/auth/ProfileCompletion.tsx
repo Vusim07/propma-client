@@ -27,6 +27,7 @@ import {
 import { Input } from '../../components/ui/Input';
 import Spinner from '../../components/ui/Spinner';
 import { TenantProfile } from '../../types';
+import { useTeamStore } from '../../stores/teamStore';
 
 // Schema for profile completion form
 const profileCompletionSchema = z
@@ -46,6 +47,12 @@ const profileCompletionSchema = z
 		employer: z.string().optional(),
 		employment_duration: z.coerce.number().optional(),
 		tenant_id: z.string().optional(),
+		// Team setup fields
+		isTeamSetup: z.boolean().optional(),
+		teamName: z.string().optional(),
+		teamPlanType: z
+			.enum(['starter', 'growth', 'scale', 'enterprise'])
+			.optional(),
 	})
 	.superRefine((data, ctx) => {
 		// If role is tenant, require and validate each tenant-specific field individually
@@ -106,12 +113,38 @@ const profileCompletionSchema = z
 				});
 			}
 		}
+
+		// Add team validation
+		if (
+			(data.role === 'agent' || data.role === 'landlord') &&
+			data.isTeamSetup &&
+			!data.teamName
+		) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: 'Team name is required when creating a team',
+				path: ['teamName'],
+			});
+		}
+
+		if (
+			(data.role === 'agent' || data.role === 'landlord') &&
+			data.isTeamSetup &&
+			!data.teamPlanType
+		) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: 'Please select a plan type',
+				path: ['teamPlanType'],
+			});
+		}
 	});
 
 type ProfileCompletionValues = z.infer<typeof profileCompletionSchema>;
 
 const ProfileCompletion: React.FC = () => {
 	const { checkAuth, updateProfile, isLoading, user } = useAuthStore();
+	const { createTeam } = useTeamStore();
 	const [session, setSession] = useState<any>(null);
 	const [initialLoading, setInitialLoading] = useState(true);
 	const [tenantProfile, setTenantProfile] = useState<TenantProfile | null>(
@@ -134,6 +167,9 @@ const ProfileCompletion: React.FC = () => {
 			employer: '',
 			employment_duration: undefined,
 			tenant_id: '',
+			isTeamSetup: false,
+			teamName: '',
+			teamPlanType: 'starter',
 		},
 	});
 
@@ -316,18 +352,42 @@ const ProfileCompletion: React.FC = () => {
 				return;
 			}
 
-			// 1. First update the basic user profile
+			// 1. First update the basic user profile with is_individual flag
 			const userData = {
 				first_name: values.firstName,
 				last_name: values.lastName,
 				role: values.role,
 				phone: values.phone || null,
 				company_name: values.companyName || null,
+				is_individual: !values.isTeamSetup, // Set based on team setup choice
 			};
 
 			await updateProfile(userData);
 
-			// 2. If user is a tenant, create or update tenant_profile
+			// 2. Create team if agent/landlord chose team setup
+			if (
+				(values.role === 'agent' || values.role === 'landlord') &&
+				values.isTeamSetup &&
+				values.teamName
+			) {
+				try {
+					const team = await createTeam(
+						values.teamName,
+						values.teamPlanType || 'starter',
+					);
+					if (!team) {
+						throw new Error('Failed to create team');
+					}
+					showToast.success('Team created successfully!');
+				} catch (teamError: any) {
+					console.error('Team creation error:', teamError);
+					showToast.error(
+						'Failed to create team. You can create one later in settings.',
+					);
+				}
+			}
+
+			// 3. If user is a tenant, create or update tenant_profile
 			let tenantProfileId: string | undefined;
 			if (values.role === 'tenant') {
 				const userEmail = session.user.email;
@@ -417,20 +477,27 @@ const ProfileCompletion: React.FC = () => {
 			}
 
 			// Default navigation based on role
-			if (values.role === 'tenant') {
-				// If tenant profile was just completed, redirect to document upload
-				console.log('Tenant profile completed, redirecting to document upload');
-
-				// If we have a tenantProfileId, we can pass it as a query parameter
-				if (tenantProfileId) {
-					navigate(`/tenant/documents?profileId=${tenantProfileId}`);
-				} else {
-					navigate('/tenant/documents');
-				}
-			} else if (['agent', 'landlord'].includes(values.role)) {
-				navigate('/agent');
-			} else {
-				navigate('/');
+			switch (values.role) {
+				case 'tenant':
+					if (tenantProfileId) {
+						console.log(
+							'Redirecting to tenant documents with profileId:',
+							tenantProfileId,
+						);
+						navigate(`/tenant/documents?profileId=${tenantProfileId}`);
+					} else {
+						console.log('Redirecting to tenant documents');
+						navigate('/tenant/documents');
+					}
+					break;
+				case 'agent':
+				case 'landlord':
+					console.log('Redirecting to agent dashboard');
+					navigate('/agent');
+					break;
+				default:
+					console.log('Redirecting to home');
+					navigate('/');
 			}
 		} catch (error: any) {
 			console.error('Profile completion error:', error);
@@ -708,6 +775,105 @@ const ProfileCompletion: React.FC = () => {
 									</FormItem>
 								)}
 							/>
+						</div>
+					)}
+
+					{/* Team setup section for agents/landlords */}
+					{(selectedRole === 'agent' || selectedRole === 'landlord') && (
+						<div className='space-y-4 border p-4 rounded-lg bg-blue-50'>
+							<h3 className='font-medium text-blue-800'>Organization Setup</h3>
+							<p className='text-sm text-gray-600'>
+								Choose how you want to manage properties
+							</p>
+
+							<FormField
+								control={form.control}
+								name='isTeamSetup'
+								render={({ field }) => (
+									<div className='space-y-3'>
+										<div className='flex items-center space-x-2'>
+											<input
+												type='radio'
+												id='individual'
+												checked={!field.value}
+												onChange={() => field.onChange(false)}
+												className='h-4 w-4 text-blue-600'
+											/>
+											<label
+												htmlFor='individual'
+												className='text-sm font-medium'
+											>
+												Individual Account
+											</label>
+										</div>
+										<div className='flex items-center space-x-2'>
+											<input
+												type='radio'
+												id='team'
+												checked={field.value}
+												onChange={() => field.onChange(true)}
+												className='h-4 w-4 text-blue-600'
+											/>
+											<label htmlFor='team' className='text-sm font-medium'>
+												Team Account
+											</label>
+										</div>
+									</div>
+								)}
+							/>
+
+							{form.watch('isTeamSetup') && (
+								<>
+									<FormField
+										control={form.control}
+										name='teamName'
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel>Team Name</FormLabel>
+												<FormControl>
+													<Input placeholder='Enter team name' {...field} />
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+
+									<FormField
+										control={form.control}
+										name='teamPlanType'
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel>Plan Type</FormLabel>
+												<Select
+													onValueChange={field.onChange}
+													defaultValue={field.value}
+												>
+													<FormControl>
+														<SelectTrigger>
+															<SelectValue placeholder='Select a plan' />
+														</SelectTrigger>
+													</FormControl>
+													<SelectContent>
+														<SelectItem value='starter'>
+															Starter (3 members)
+														</SelectItem>
+														<SelectItem value='growth'>
+															Growth (10 members)
+														</SelectItem>
+														<SelectItem value='scale'>
+															Scale (25 members)
+														</SelectItem>
+														<SelectItem value='enterprise'>
+															Enterprise (Custom)
+														</SelectItem>
+													</SelectContent>
+												</Select>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+								</>
+							)}
 						</div>
 					)}
 

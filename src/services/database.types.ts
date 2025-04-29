@@ -395,7 +395,9 @@ export interface Database {
 					id: string;
 					tenant_id: string;
 					id_number: string;
+					employer: string | null;
 					employment_status: string;
+					employment_duration: number;
 					monthly_income: number;
 					last_name: string;
 					phone: string | null;
@@ -410,7 +412,9 @@ export interface Database {
 					tenant_id?: string;
 					id_number: string;
 					last_name: string;
+					employer?: string;
 					employment_status?: string;
+					employment_duration?: number;
 					monthly_income?: number;
 					phone: string | null;
 					updated_at?: string;
@@ -423,7 +427,9 @@ export interface Database {
 					id?: string;
 					tenant_id?: string;
 					id_number?: string;
+					employer?: string;
 					employment_status?: string;
+					employment_duration?: number;
 					monthly_income?: number;
 					last_name?: string;
 					phone?: string | null;

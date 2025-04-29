@@ -41,6 +41,11 @@ USING (
     )
 );
 
+-- Add policy for team creation
+CREATE POLICY "users_can_create_teams" ON teams 
+FOR INSERT TO authenticated 
+WITH CHECK (true);
+
 -- Team admin policies (no recursion)
 CREATE OR REPLACE FUNCTION is_team_admin(p_team_id uuid, p_user_id uuid)
 RETURNS boolean AS $$

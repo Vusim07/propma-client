@@ -75,10 +75,15 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 	createTeam: async (name: string, planType: string) => {
 		set({ isLoading: true, error: null });
 		try {
+			const userId = (await supabase.auth.getUser()).data.user?.id;
+			if (!userId) throw new Error('No authenticated user');
+
+			// First create the team
 			const { data: team, error } = await supabase
 				.from('teams')
 				.insert({
 					name,
+					created_by: userId,
 					plan_type: planType,
 					max_members:
 						planType === 'starter' ? 3 : planType === 'growth' ? 10 : 25,
@@ -93,13 +98,29 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 				.from('team_members')
 				.insert({
 					team_id: team.id,
-					user_id: (await supabase.auth.getUser()).data.user?.id,
+					user_id: userId,
 					role: 'admin',
 				});
 
 			if (memberError) throw memberError;
 
-			set((state) => ({ teams: [...state.teams, team as Team] }));
+			// Set as active team for the user
+			const { error: activeTeamError } = await supabase
+				.from('users')
+				.update({ active_team_id: team.id })
+				.eq('id', userId);
+
+			if (activeTeamError) throw activeTeamError;
+
+			// Update store state
+			set((state) => ({
+				teams: [...state.teams, team as Team],
+				currentTeam: team as Team,
+			}));
+
+			// Refresh the session to update JWT claims
+			await supabase.auth.refreshSession();
+
 			showToast.success('Team created successfully');
 			return team as Team;
 		} catch (error) {
