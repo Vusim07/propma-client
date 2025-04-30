@@ -13,6 +13,7 @@ import CalendarSettings from './CalendarSettings';
 import SubscriptionPage from './SubscriptionPage';
 import AgentProfileForm from '../../components/agent/AgentProfileForm';
 import InboxIntegration from '../../components/agent/InboxIntegration';
+import Teams from './Teams';
 
 const Settings: React.FC = () => {
 	const { setPageTitle } = usePageTitle();
@@ -44,6 +45,10 @@ const Settings: React.FC = () => {
 					<TabsTrigger value='billing' className='flex items-center'>
 						<CreditCard className='h-4 w-4 mr-2' />
 						<span>Billing</span>
+					</TabsTrigger>
+					<TabsTrigger value='team' className='flex items-center'>
+						<CreditCard className='h-4 w-4 mr-2' />
+						<span>Team</span>
 					</TabsTrigger>
 					<TabsTrigger value='integrations' className='flex items-center'>
 						<Plug className='h-4 w-4 mr-2' />
@@ -77,6 +82,9 @@ const Settings: React.FC = () => {
 							{activeTab === 'billing' && <SubscriptionPage />}
 						</CardContent>
 					</Card>
+				</TabsContent>
+				<TabsContent value='team'>
+					<div className='space-y-4'>{activeTab === 'team' && <Teams />}</div>
 				</TabsContent>
 
 				<TabsContent value='integrations'>

@@ -121,7 +121,7 @@ FOR ALL USING (
 - Add UI toggle: "Join as an individual" vs "Create team"
 - Auto-create `team` record for team signups
 
-[ ] **Invite system**
+[x] **Invite system**
 
 - Email notifications for team invites
 - Accept/reject invite flow
@@ -162,7 +162,7 @@ if (count >= team.max_members) throw new Error('Team full');
 - Handle team context in subscription creation
 - Sync subscription status with team members
 
-[ ] **Proration logic**
+[x] **Proration logic**
 
 - Calculate upgrade costs via Paystack
 - Handle team plan migrations
@@ -217,7 +217,7 @@ FROM users
 WHERE properties.user_id = users.id;
 ```
 
-[ ] **Edge case tests**
+[x] **Edge case tests**
 
 - Individual user tries to invite member → block
 - Team admin downgrades plan → enforce member removal

@@ -982,6 +982,35 @@ export interface Database {
 					},
 				];
 			};
+			team_stats: {
+				Row: {
+					team_id: string;
+					member_count: number;
+					pending_invites: number;
+					last_updated: string;
+				};
+				Insert: {
+					team_id: string;
+					member_count?: number;
+					pending_invites?: number;
+					last_updated?: string;
+				};
+				Update: {
+					team_id?: string;
+					member_count?: number;
+					pending_invites?: number;
+					last_updated?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'team_stats_team_id_fkey';
+						columns: ['team_id'];
+						isOneToOne: true;
+						referencedRelation: 'teams';
+						referencedColumns: ['id'];
+					},
+				];
+			};
 		};
 		Functions: {
 			save_screening_report: {

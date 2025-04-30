@@ -70,7 +70,7 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 		try {
 			const { data: teams, error } = await supabase.from('teams').select(`
 					*,
-					subscription:subscriptions (
+					subscription:subscription_id (
 						id,
 						plan_name,
 						status
@@ -84,22 +84,20 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 
 			if (error) throw error;
 
-			const teamsWithStats = teams?.map((team) => {
-				const stats = team.stats?.[0] || {
+			// Build teamStats record for all teams
+			const teamStats: Record<string, TeamStats> = {};
+			const teamsWithStats = (teams || []).map((team) => {
+				const stats = team.stats || {
 					member_count: 0,
 					pending_invites: 0,
+					last_updated: '',
 				};
+				teamStats[team.id] = stats;
 				delete team.stats;
-				set((state) => ({
-					teamStats: {
-						...state.teamStats,
-						[team.id]: stats,
-					},
-				}));
 				return team;
 			});
 
-			set({ teams: teamsWithStats || [] });
+			set({ teams: teamsWithStats, teamStats });
 		} catch (error) {
 			const pgError = error as PostgrestError;
 			set({ error: pgError.message });
