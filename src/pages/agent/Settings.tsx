@@ -8,7 +8,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/Card';
-import { User, CreditCard, Plug } from 'lucide-react';
 import CalendarSettings from './CalendarSettings';
 import SubscriptionPage from './SubscriptionPage';
 import AgentProfileForm from '../../components/agent/AgentProfileForm';
@@ -25,34 +24,56 @@ const Settings: React.FC = () => {
 
 	return (
 		<div>
-			<div className='mb-6'>
-				<p className='text-gray-600 mt-1'>
-					Manage your account settings and preferences
-				</p>
-			</div>
-
 			<Tabs
 				defaultValue='profile'
 				value={activeTab}
 				onValueChange={setActiveTab}
 				className='w-full'
 			>
-				<TabsList className='grid w-full grid-cols-3 mb-8'>
-					<TabsTrigger value='profile' className='flex items-center'>
-						<User className='h-4 w-4 mr-2' />
-						<span>Profile</span>
+				<TabsList className='flex w-full bg-black rounded-lg p-0'>
+					<TabsTrigger
+						value='profile'
+						className={`flex-1 px-4 py-2 text-center text-base font-semibold transition-colors duration-150 rounded-lg
+							${
+								activeTab === 'profile'
+									? 'bg-white text-black shadow-none'
+									: 'bg-transparent text-gray-400'
+							}`}
+					>
+						Profile
 					</TabsTrigger>
-					<TabsTrigger value='billing' className='flex items-center'>
-						<CreditCard className='h-4 w-4 mr-2' />
-						<span>Billing</span>
+					<TabsTrigger
+						value='billing'
+						className={`flex-1 px-4 py-2 text-center text-base font-semibold transition-colors duration-150 rounded-lg
+							${
+								activeTab === 'billing'
+									? 'bg-white text-black shadow-none'
+									: 'bg-transparent text-gray-400'
+							}`}
+					>
+						Billing
 					</TabsTrigger>
-					<TabsTrigger value='team' className='flex items-center'>
-						<CreditCard className='h-4 w-4 mr-2' />
-						<span>Team</span>
+					<TabsTrigger
+						value='team'
+						className={`flex-1 px-4 py-2 text-center text-base font-semibold transition-colors duration-150 rounded-lg
+							${
+								activeTab === 'team'
+									? 'bg-white text-black shadow-none'
+									: 'bg-transparent text-gray-400'
+							}`}
+					>
+						Team
 					</TabsTrigger>
-					<TabsTrigger value='integrations' className='flex items-center'>
-						<Plug className='h-4 w-4 mr-2' />
-						<span>Integrations</span>
+					<TabsTrigger
+						value='integrations'
+						className={`flex-1 px-4 py-2 text-center text-base font-semibold transition-colors duration-150 rounded-lg
+							${
+								activeTab === 'integrations'
+									? 'bg-white text-black shadow-none'
+									: 'bg-transparent text-gray-400'
+							}`}
+					>
+						Integrations
 					</TabsTrigger>
 				</TabsList>
 
@@ -84,7 +105,15 @@ const Settings: React.FC = () => {
 					</Card>
 				</TabsContent>
 				<TabsContent value='team'>
-					<div className='space-y-4'>{activeTab === 'team' && <Teams />}</div>
+					<Card>
+						<CardHeader>
+							<CardTitle>Your Team</CardTitle>
+							<CardDescription>
+								Manage your team members and their roles
+							</CardDescription>
+						</CardHeader>
+						<CardContent>{activeTab === 'team' && <Teams />}</CardContent>
+					</Card>
 				</TabsContent>
 
 				<TabsContent value='integrations'>
