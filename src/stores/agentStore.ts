@@ -162,6 +162,9 @@ interface AgentState {
 		subject: string,
 		body: string,
 	) => Promise<boolean>;
+
+	// Subscription changes function
+	fetchSubscriptionChanges: (subscriptionId: string) => Promise<any[]>;
 }
 
 export const useAgentStore = create<AgentState>((set, get) => ({
@@ -923,6 +926,24 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 				isLoading: false,
 			});
 			return false;
+		}
+	},
+
+	// Add fetchSubscriptionChanges function
+	fetchSubscriptionChanges: async (subscriptionId) => {
+		try {
+			const { data, error } = await supabase
+				.from('subscription_changes')
+				.select('*')
+				.eq('subscription_id', subscriptionId)
+				.order('created_at', { ascending: false });
+
+			if (error) throw error;
+			return data;
+		} catch (error) {
+			console.error('Error fetching subscription changes:', error);
+			set({ error: 'Failed to load subscription changes' });
+			return [];
 		}
 	},
 }));

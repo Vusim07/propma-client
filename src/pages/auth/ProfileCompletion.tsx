@@ -143,13 +143,15 @@ const profileCompletionSchema = z
 type ProfileCompletionValues = z.infer<typeof profileCompletionSchema>;
 
 const ProfileCompletion: React.FC = () => {
-	const { checkAuth, updateProfile, isLoading, user } = useAuthStore();
+	const {
+		checkAuth,
+		updateProfile,
+		isLoading: authLoading,
+		user,
+	} = useAuthStore();
 	const { createTeam } = useTeamStore();
 	const [session, setSession] = useState<any>(null);
 	const [initialLoading, setInitialLoading] = useState(true);
-	const [tenantProfile, setTenantProfile] = useState<TenantProfile | null>(
-		null,
-	);
 	const navigate = useNavigate();
 
 	const form = useForm<ProfileCompletionValues>({
@@ -179,7 +181,6 @@ const ProfileCompletion: React.FC = () => {
 	// Fetch existing tenant profile if available
 	const fetchTenantProfile = async (email: string) => {
 		try {
-			// Changed from maybeSingle to just select, so we can handle multiple results
 			const { data, error } = await supabase
 				.from('tenant_profiles')
 				.select('*')
@@ -190,7 +191,6 @@ const ProfileCompletion: React.FC = () => {
 				return null;
 			}
 
-			// Check if we got any results and take the first one
 			if (data && data.length > 0) {
 				console.log(
 					`Found ${data.length} profile(s) for email: ${email}, using the first one`,
@@ -238,7 +238,6 @@ const ProfileCompletion: React.FC = () => {
 					const tenantData = await fetchTenantProfile(user.email);
 					if (tenantData) {
 						const typedTenantData = tenantData as unknown as TenantProfile;
-						setTenantProfile(typedTenantData);
 
 						// Pre-fill tenant-specific fields
 						form.setValue('id_number', typedTenantData.id_number || '');
@@ -292,7 +291,6 @@ const ProfileCompletion: React.FC = () => {
 						const tenantData = await fetchTenantProfile(authUser.email);
 						if (tenantData) {
 							const typedTenantData = tenantData as unknown as TenantProfile;
-							setTenantProfile(typedTenantData);
 							form.setValue('id_number', typedTenantData.id_number || '');
 							form.setValue(
 								'employment_status',
@@ -322,47 +320,31 @@ const ProfileCompletion: React.FC = () => {
 		checkSession();
 	}, [navigate, form, user]);
 
-	// Add effect to update tenant_id when role changes
-	useEffect(() => {
-		// Update tenant_id to the user ID if role is tenant
-		if (selectedRole === 'tenant' && session?.user?.id) {
-			form.setValue('tenant_id', session.user.id);
-		}
-	}, [selectedRole, session, form]);
-
 	const onSubmit = async (values: ProfileCompletionValues) => {
 		try {
-			// Debug logging to help troubleshoot validation issues
-			console.log('Form submission values:', values);
-			console.log('Form errors:', form.formState.errors);
-			console.log('Session user ID:', session?.user?.id);
-
+			// Debug logging
+			console.log('Starting profile completion with values:', values);
 			if (!session) {
 				showToast.error('No active session found');
 				navigate('/login');
 				return;
 			}
 
-			// Show loading feedback
 			showToast.info('Updating your profile...');
 
-			// Ensure role is valid
-			if (!['tenant', 'agent', 'landlord'].includes(values.role)) {
-				showToast.error('Invalid role selected');
-				return;
-			}
-
-			// 1. First update the basic user profile with is_individual flag
+			// 1. First update the user profile
 			const userData = {
 				first_name: values.firstName,
 				last_name: values.lastName,
 				role: values.role,
 				phone: values.phone || null,
 				company_name: values.companyName || null,
-				is_individual: !values.isTeamSetup, // Set based on team setup choice
+				is_individual: !values.isTeamSetup,
 			};
 
-			await updateProfile(userData);
+			console.log('Updating user profile with:', userData);
+			const updatedProfile = await updateProfile(userData);
+			console.log('Profile updated successfully:', updatedProfile);
 
 			// 2. Create team if agent/landlord chose team setup
 			if (
@@ -370,6 +352,7 @@ const ProfileCompletion: React.FC = () => {
 				values.isTeamSetup &&
 				values.teamName
 			) {
+				console.log('Creating team:', values.teamName);
 				try {
 					const team = await createTeam(
 						values.teamName,
@@ -378,7 +361,11 @@ const ProfileCompletion: React.FC = () => {
 					if (!team) {
 						throw new Error('Failed to create team');
 					}
+					console.log('Team created successfully:', team);
 					showToast.success('Team created successfully!');
+
+					// Wait a moment for team data to settle
+					await new Promise((resolve) => setTimeout(resolve, 500));
 				} catch (teamError: any) {
 					console.error('Team creation error:', teamError);
 					showToast.error(
@@ -390,115 +377,50 @@ const ProfileCompletion: React.FC = () => {
 			// 3. If user is a tenant, create or update tenant_profile
 			let tenantProfileId: string | undefined;
 			if (values.role === 'tenant') {
+				console.log('Processing tenant profile creation/update');
 				const userEmail = session.user.email;
 				if (!userEmail) {
 					showToast.error('User email not found');
 					return;
 				}
-
-				// Prepare tenant profile data
-				const tenantData = {
-					id: tenantProfile?.id, // Will be undefined for new profiles
-					tenant_id: session.user.id,
-					email: userEmail,
-					first_name: values.firstName,
-					last_name: values.lastName,
-					phone: values.phone || '',
-					id_number: values.id_number || '',
-					employment_status: values.employment_status || '',
-					monthly_income: values.monthly_income || 0,
-					current_address: values.current_address || '',
-					employer: values.employer || '',
-					employment_duration: values.employment_duration || 0,
-				};
-
-				// Check if tenant profile exists
-				if (tenantProfile?.id) {
-					// Update existing profile
-					const { error } = await supabase
-						.from('tenant_profiles')
-						.update({
-							first_name: tenantData.first_name,
-							last_name: tenantData.last_name,
-							phone: tenantData.phone,
-							id_number: tenantData.id_number,
-							employment_status: tenantData.employment_status,
-							monthly_income: tenantData.monthly_income,
-							current_address: tenantData.current_address,
-							employer: tenantData.employer,
-							employment_duration: tenantData.employment_duration,
-						})
-						.eq('id', tenantProfile.id);
-
-					if (error) {
-						console.error('Error updating tenant profile:', error);
-						showToast.error('Failed to update tenant profile');
-						return;
-					}
-
-					tenantProfileId = tenantProfile.id;
-				} else {
-					// Create new tenant profile
-					const { data, error } = await supabase
-						.from('tenant_profiles')
-						.insert(tenantData)
-						.select('id')
-						.single();
-
-					if (error) {
-						console.error('Error creating tenant profile:', error);
-						showToast.error('Failed to create tenant profile');
-						return;
-					}
-
-					tenantProfileId = data?.id;
-				}
 			}
 
-			// Refresh auth state
+			// 4. Wait for auth state to fully refresh
+			console.log('Refreshing auth state...');
 			await checkAuth();
 
-			showToast.success('Profile updated successfully!');
+			// 5. Double-check session and role are updated
+			const { data: sessionData } = await supabase.auth.getSession();
+			if (!sessionData.session) {
+				throw new Error('Session lost during profile completion');
+			}
 
-			// Check if there's a post-profile completion redirect path
+			// 6. Handle redirection
+			console.log('Handling redirection...');
 			const redirectPath = sessionStorage.getItem('post_profile_redirect');
-			console.log('Redirect path from session storage:', redirectPath);
 
 			if (redirectPath) {
-				// Clear the redirect path from session storage
+				console.log('Found stored redirect path:', redirectPath);
 				sessionStorage.removeItem('post_profile_redirect');
-
-				// Make sure the flag is set to trigger reload of application state in PropertyApplication
 				sessionStorage.setItem('returning_from_profile_completion', 'true');
 
-				console.log('Redirecting back to application:', redirectPath);
-				navigate(redirectPath);
+				// Use window.location for a full page reload to ensure fresh state
+				window.location.href = redirectPath;
 				return;
 			}
 
-			// Default navigation based on role
-			switch (values.role) {
-				case 'tenant':
-					if (tenantProfileId) {
-						console.log(
-							'Redirecting to tenant documents with profileId:',
-							tenantProfileId,
-						);
-						navigate(`/tenant/documents?profileId=${tenantProfileId}`);
-					} else {
-						console.log('Redirecting to tenant documents');
-						navigate('/tenant/documents');
-					}
-					break;
-				case 'agent':
-				case 'landlord':
-					console.log('Redirecting to agent dashboard');
-					navigate('/agent');
-					break;
-				default:
-					console.log('Redirecting to home');
-					navigate('/');
-			}
+			// Default navigation based on role with a full page reload
+			const destination =
+				values.role === 'tenant'
+					? tenantProfileId
+						? `/tenant/documents?profileId=${tenantProfileId}`
+						: '/tenant/documents'
+					: values.role === 'agent' || values.role === 'landlord'
+					? '/agent'
+					: '/';
+
+			console.log('Redirecting to default destination:', destination);
+			window.location.href = destination;
 		} catch (error: any) {
 			console.error('Profile completion error:', error);
 			showToast.error(error.message || 'Failed to complete your profile');
@@ -877,7 +799,7 @@ const ProfileCompletion: React.FC = () => {
 						</div>
 					)}
 
-					<Button type='submit' className='w-full mt-6' isLoading={isLoading}>
+					<Button type='submit' className='w-full mt-6' isLoading={authLoading}>
 						Complete Profile
 					</Button>
 				</form>

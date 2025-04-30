@@ -4,6 +4,12 @@ import { supabase } from '../services/supabase';
 import { Team, TeamMember, TeamInvitation } from '../types';
 import { showToast } from '../utils/toast';
 
+interface TeamStats {
+	member_count: number;
+	pending_invites: number;
+	last_updated: string;
+}
+
 interface TeamState {
 	currentTeam: Team | null;
 	teams: Team[];
@@ -11,6 +17,7 @@ interface TeamState {
 	invitations: TeamInvitation[];
 	isLoading: boolean;
 	error: string | null;
+	teamStats: Record<string, TeamStats>;
 }
 
 interface TeamActions {
@@ -41,6 +48,10 @@ interface TeamActions {
 	fetchInvitations: (teamId: string) => Promise<void>;
 	acceptInvitation: (token: string) => Promise<void>;
 	cancelInvitation: (invitationId: string) => Promise<void>;
+
+	// Member count management
+	refreshMemberCounts: (teamId: string) => Promise<void>;
+	fetchTeamStats: (teamId: string) => Promise<void>;
 }
 
 type TeamStore = TeamState & TeamActions;
@@ -52,17 +63,43 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 	invitations: [],
 	isLoading: false,
 	error: null,
+	teamStats: {},
 
 	fetchTeams: async () => {
 		set({ isLoading: true, error: null });
 		try {
-			const { data: teams, error } = await supabase
-				.from('teams')
-				.select('*')
-				.order('name');
+			const { data: teams, error } = await supabase.from('teams').select(`
+					*,
+					subscription:subscriptions (
+						id,
+						plan_name,
+						status
+					),
+					stats:team_stats (
+						member_count,
+						pending_invites,
+						last_updated
+					)
+				`);
 
 			if (error) throw error;
-			set({ teams: (teams as Team[]) || [] });
+
+			const teamsWithStats = teams?.map((team) => {
+				const stats = team.stats?.[0] || {
+					member_count: 0,
+					pending_invites: 0,
+				};
+				delete team.stats;
+				set((state) => ({
+					teamStats: {
+						...state.teamStats,
+						[team.id]: stats,
+					},
+				}));
+				return team;
+			});
+
+			set({ teams: teamsWithStats || [] });
 		} catch (error) {
 			const pgError = error as PostgrestError;
 			set({ error: pgError.message });
@@ -211,36 +248,56 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 	) => {
 		set({ isLoading: true, error: null });
 		try {
-			// First check if team has reached member limit
 			const team = get().teams.find((t) => t.id === teamId);
+			const stats = get().teamStats[teamId];
+
 			if (!team) throw new Error('Team not found');
-
-			const { count } = await supabase
-				.from('team_members')
-				.select('*', { count: 'exact' })
-				.eq('team_id', teamId);
-
-			if (count && count >= team.max_members) {
-				throw new Error('Team member limit reached');
+			if (team.subscription?.status !== 'active') {
+				throw new Error('Team does not have an active subscription');
 			}
 
-			const { error } = await supabase.from('team_invitations').insert({
-				team_id: teamId,
-				email,
-				role,
-				token: crypto.randomUUID(),
-				expires_at: new Date(
-					Date.now() + 7 * 24 * 60 * 60 * 1000,
-				).toISOString(), // 7 days
-				created_by: (await supabase.auth.getUser()).data.user?.id,
-			});
+			const totalMembers =
+				(stats?.member_count || 0) + (stats?.pending_invites || 0);
+			if (totalMembers >= team.max_members) {
+				throw new Error(
+					`Team member limit reached (${team.max_members} members). Upgrade your plan to add more members.`,
+				);
+			}
 
-			if (error) throw error;
+			const response = await fetch(
+				`${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/team-invitations/send`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${
+							(
+								await supabase.auth.getSession()
+							).data.session?.access_token
+						}`,
+					},
+					body: JSON.stringify({
+						teamId,
+						email,
+						role,
+					}),
+				},
+			);
+
+			if (!response.ok) {
+				const error = await response.json();
+				throw new Error(error.error || 'Failed to send invitation');
+			}
+
+			// Refresh team stats after successful invitation
+			await get().fetchTeamStats(teamId);
+
 			showToast.success('Invitation sent successfully');
 		} catch (error) {
-			const pgError = error as PostgrestError;
-			set({ error: pgError.message });
-			showToast.error(pgError.message || 'Failed to send invitation');
+			const message =
+				error instanceof Error ? error.message : 'An unknown error occurred';
+			set({ error: message });
+			showToast.error(message || 'Operation failed');
 		} finally {
 			set({ isLoading: false });
 		}
@@ -263,11 +320,15 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 				),
 			}));
 
+			// Refresh team stats after removal
+			await get().fetchTeamStats(teamId);
+
 			showToast.success('Team member removed successfully');
 		} catch (error) {
-			const pgError = error as PostgrestError;
-			set({ error: pgError.message });
-			showToast.error('Failed to remove team member');
+			const message =
+				error instanceof Error ? error.message : 'An unknown error occurred';
+			set({ error: message });
+			showToast.error(message || 'Operation failed');
 		} finally {
 			set({ isLoading: false });
 		}
@@ -298,9 +359,10 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 
 			showToast.success('Member role updated successfully');
 		} catch (error) {
-			const pgError = error as PostgrestError;
-			set({ error: pgError.message });
-			showToast.error('Failed to update member role');
+			const message =
+				error instanceof Error ? error.message : 'An unknown error occurred';
+			set({ error: message });
+			showToast.error(message || 'Operation failed');
 		} finally {
 			set({ isLoading: false });
 		}
@@ -331,9 +393,10 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 					: 'Switched to individual mode',
 			);
 		} catch (error) {
-			const pgError = error as PostgrestError;
-			set({ error: pgError.message });
-			showToast.error('Failed to switch team');
+			const message =
+				error instanceof Error ? error.message : 'An unknown error occurred';
+			set({ error: message });
+			showToast.error(message || 'Operation failed');
 		} finally {
 			set({ isLoading: false });
 		}
@@ -404,9 +467,10 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 
 			showToast.success('Successfully joined team');
 		} catch (error) {
-			const pgError = error as PostgrestError;
-			set({ error: pgError.message });
-			showToast.error(pgError.message || 'Failed to accept invitation');
+			const message =
+				error instanceof Error ? error.message : 'An unknown error occurred';
+			set({ error: message });
+			showToast.error(message || 'Operation failed');
 		} finally {
 			set({ isLoading: false });
 		}
@@ -422,17 +486,76 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 
 			if (error) throw error;
 
+			const invitation = get().invitations.find(
+				(inv) => inv.id === invitationId,
+			);
+			if (invitation?.team_id) {
+				await get().fetchTeamStats(invitation.team_id);
+			}
+
 			set((state) => ({
 				invitations: state.invitations.filter((inv) => inv.id !== invitationId),
 			}));
 
 			showToast.success('Invitation cancelled successfully');
 		} catch (error) {
-			const pgError = error as PostgrestError;
-			set({ error: pgError.message });
-			showToast.error('Failed to cancel invitation');
+			const message =
+				error instanceof Error ? error.message : 'An unknown error occurred';
+			set({ error: message });
+			showToast.error(message || 'Operation failed');
 		} finally {
 			set({ isLoading: false });
+		}
+	},
+
+	refreshMemberCounts: async (teamId: string) => {
+		try {
+			const [membersResult, invitationsResult] = await Promise.all([
+				supabase
+					.from('team_members')
+					.select('*', { count: 'exact' })
+					.eq('team_id', teamId),
+				supabase
+					.from('team_invitations')
+					.select('*', { count: 'exact' })
+					.eq('team_id', teamId)
+					.eq('status', 'pending'),
+			]);
+
+			set((state) => ({
+				teamStats: {
+					...state.teamStats,
+					[teamId]: {
+						...state.teamStats[teamId],
+						member_count: membersResult.count || 0,
+						pending_invites: invitationsResult.count || 0,
+						last_updated: new Date().toISOString(),
+					},
+				},
+			}));
+		} catch (error) {
+			console.error('Error refreshing member counts:', error);
+		}
+	},
+
+	fetchTeamStats: async (teamId: string) => {
+		try {
+			const { data: stats, error } = await supabase
+				.from('team_stats')
+				.select('*')
+				.eq('team_id', teamId)
+				.single();
+
+			if (error) throw error;
+
+			set((state) => ({
+				teamStats: {
+					...state.teamStats,
+					[teamId]: stats,
+				},
+			}));
+		} catch (error) {
+			console.error('Error fetching team stats:', error);
 		}
 	},
 }));

@@ -74,7 +74,7 @@ const Settings: React.FC = () => {
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<SubscriptionPage />
+							{activeTab === 'billing' && <SubscriptionPage />}
 						</CardContent>
 					</Card>
 				</TabsContent>

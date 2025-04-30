@@ -1,15 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect } from 'react';
-import { useTeamStore } from '../../stores/teamStore';
-import { useAuthStore } from '../../stores/authStore';
-import Button from '../../components/ui/Button';
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from '../../components/ui/Card';
+import { useTeamStore } from '@/stores/teamStore';
+import { useAuthStore } from '@/stores/authStore';
+import Button from '@/components/ui/Button';
+import { Card, CardContent } from '@/components/ui/Card';
 import {
 	Dialog,
 	DialogContent,
@@ -18,15 +12,15 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
-} from '../../components/ui/dialog';
-import { Input } from '../../components/ui/Input';
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/Input';
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '../../components/ui/Select';
+} from '@/components/ui/Select';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -37,8 +31,10 @@ import {
 	FormLabel,
 	FormControl,
 	FormMessage,
-} from '../../components/ui/form';
-import Spinner from '../../components/ui/Spinner';
+} from '@/components/ui/form';
+import Spinner from '@/components/ui/Spinner';
+import { AlertCircle } from 'lucide-react';
+import { TeamStatsCard } from '@/components/teams/TeamStatsCard';
 
 const createTeamSchema = z.object({
 	name: z.string().min(1, 'Team name is required'),
@@ -60,6 +56,7 @@ const Teams: React.FC = () => {
 		members,
 		invitations,
 		isLoading,
+		teamStats,
 		fetchTeams,
 		createTeam,
 		fetchTeamMembers,
@@ -69,6 +66,7 @@ const Teams: React.FC = () => {
 		updateMemberRole,
 		switchTeam,
 		cancelInvitation,
+		fetchTeamStats,
 	} = useTeamStore();
 
 	const { user } = useAuthStore();
@@ -99,10 +97,11 @@ const Teams: React.FC = () => {
 		if (currentTeam?.id) {
 			fetchTeamMembers(currentTeam.id);
 			fetchInvitations(currentTeam.id);
+			fetchTeamStats(currentTeam.id);
 		}
-	}, [currentTeam?.id, fetchTeamMembers, fetchInvitations]);
+	}, [currentTeam?.id, fetchTeamMembers, fetchInvitations, fetchTeamStats]);
 
-	const onCreateTeam = async (values: CreateTeamValues) => {
+	const handleCreateTeam = async (values: CreateTeamValues) => {
 		const team = await createTeam(values.name, values.planType);
 		if (team) {
 			setIsCreateOpen(false);
@@ -110,13 +109,12 @@ const Teams: React.FC = () => {
 		}
 	};
 
-	const onInviteMember = async (values: InviteMemberValues) => {
+	const handleInviteMember = async (values: InviteMemberValues) => {
 		if (currentTeam?.id) {
 			await inviteMember(currentTeam.id, values.email, values.role);
 			setIsInviteOpen(false);
 			inviteMemberForm.reset();
-			// Refresh invitations list
-			fetchInvitations(currentTeam.id);
+			await fetchInvitations(currentTeam.id);
 		}
 	};
 
@@ -146,7 +144,7 @@ const Teams: React.FC = () => {
 						</DialogHeader>
 						<Form {...createTeamForm}>
 							<form
-								onSubmit={createTeamForm.handleSubmit(onCreateTeam)}
+								onSubmit={createTeamForm.handleSubmit(handleCreateTeam)}
 								className='space-y-4'
 							>
 								<FormField
@@ -207,40 +205,44 @@ const Teams: React.FC = () => {
 				</Dialog>
 			</div>
 
-			<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+			<div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
 				{teams.map((team) => (
-					<Card
-						key={team.id}
-						className={currentTeam?.id === team.id ? 'border-primary' : ''}
-					>
-						<CardHeader>
-							<CardTitle>{team.name}</CardTitle>
-							<CardDescription>
-								{team.plan_type.charAt(0).toUpperCase() +
-									team.plan_type.slice(1)}{' '}
-								Plan
-							</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<div className='space-y-4'>
-								<div className='flex justify-between items-center'>
-									<span>
-										{members.length} / {team.max_members} members
-									</span>
+					<div key={team.id} className='space-y-4'>
+						<TeamStatsCard
+							team={team}
+							memberCount={teamStats[team.id]?.member_count || 0}
+							pendingInvites={teamStats[team.id]?.pending_invites || 0}
+						/>
+						<div className='flex justify-end gap-2'>
+							<Button
+								variant={currentTeam?.id === team.id ? 'outline' : 'primary'}
+								onClick={() =>
+									switchTeam(currentTeam?.id === team.id ? null : team.id)
+								}
+							>
+								{currentTeam?.id === team.id ? 'Active' : 'Switch'}
+							</Button>
+							{!team.subscription?.status && (
+								<Button
+									variant='primary'
+									className='bg-green-600 hover:bg-green-700'
+								>
+									Activate Plan
+								</Button>
+							)}
+							{team.subscription?.status === 'active' &&
+								teamStats[team.id]?.member_count +
+									teamStats[team.id]?.pending_invites >=
+									team.max_members && (
 									<Button
-										variant={
-											currentTeam?.id === team.id ? 'outline' : 'primary'
-										}
-										onClick={() =>
-											switchTeam(currentTeam?.id === team.id ? null : team.id)
-										}
+										variant='outline'
+										className='text-blue-600 border-blue-600 hover:bg-blue-50'
 									>
-										{currentTeam?.id === team.id ? 'Active' : 'Switch'}
+										Upgrade Plan
 									</Button>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
+								)}
+						</div>
+					</div>
 				))}
 			</div>
 
@@ -250,18 +252,34 @@ const Teams: React.FC = () => {
 						<h2 className='text-xl font-semibold'>Team Members</h2>
 						<Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
 							<DialogTrigger asChild>
-								<Button>Invite Member</Button>
+								<Button
+									disabled={
+										members.length + invitations.length >=
+										(currentTeam.max_members || 0)
+									}
+								>
+									Invite Member
+								</Button>
 							</DialogTrigger>
 							<DialogContent>
 								<DialogHeader>
 									<DialogTitle>Invite Team Member</DialogTitle>
 									<DialogDescription>
-										Invite a new member to join your team.
+										{members.length + invitations.length >=
+										(currentTeam.max_members || 0) ? (
+											<div className='text-yellow-600 flex items-center gap-2 mt-2'>
+												<AlertCircle className='h-5 w-5' />
+												Your team has reached its member limit. Upgrade your
+												plan to add more members.
+											</div>
+										) : (
+											<>Invite a new member to join your team.</>
+										)}
 									</DialogDescription>
 								</DialogHeader>
 								<Form {...inviteMemberForm}>
 									<form
-										onSubmit={inviteMemberForm.handleSubmit(onInviteMember)}
+										onSubmit={inviteMemberForm.handleSubmit(handleInviteMember)}
 										className='space-y-4'
 									>
 										<FormField

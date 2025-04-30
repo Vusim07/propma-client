@@ -1,0 +1,3 @@
+[functions.cleanup-invitations]
+verify_jwt = false
+schedule = "@daily" # Runs once every day at midnight UTC

@@ -183,6 +183,9 @@ class PaystackService {
 				usage_limit: params.usageLimit,
 				current_usage: 0,
 				status: 'inactive',
+				is_team: false, // Add missing required field
+				team_id: null, // Add null for non-team subscriptions
+				plan_type: params.isOneTime ? 'one-time' : 'recurring', // Set plan type based on subscription type
 				paystack_subscription_id: response.data.reference,
 				start_date: startDate.toISOString(),
 				end_date: params.isOneTime ? undefined : endDate.toISOString(),
@@ -477,6 +480,51 @@ class PaystackService {
 			subscription.current_usage < subscription.usage_limit &&
 			subscription.status === 'active'
 		);
+	}
+
+	async upgradeSubscription(params: {
+		subscriptionId: string;
+		newPlanId: string;
+		userId: string;
+		teamId?: string;
+	}): Promise<{ authorizationUrl: string; proratedAmount: number }> {
+		try {
+			const response = await fetch(
+				`${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/subscription-change`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${
+							(
+								await supabase.auth.getSession()
+							).data.session?.access_token
+						}`,
+					},
+					body: JSON.stringify(params),
+				},
+			);
+
+			if (!response.ok) {
+				throw new Error('Failed to calculate upgrade cost');
+			}
+
+			const data = await response.json();
+			if (!data.success) {
+				throw new Error(data.error || 'Unknown error occurred');
+			}
+
+			// Store the upgrade reference for later use
+			sessionStorage.setItem('paystack_upgrade_reference', data.reference);
+
+			return {
+				authorizationUrl: data.authorizationUrl,
+				proratedAmount: data.proratedAmount,
+			};
+		} catch (error) {
+			console.error('Error in upgradeSubscription:', error);
+			throw error;
+		}
 	}
 }
 

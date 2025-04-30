@@ -1,4 +1,3 @@
-````markdown
 # Multi-Tenancy Implementation Roadmap
 
 **Goal**: Add team support while retaining solo agent functionality.
@@ -117,28 +116,16 @@ FOR ALL USING (
 
 ## Authentication & Team Workflows
 
-[] **Onboarding flow**
-
-```// src/pages/auth/
-   // src/components/layout
-   // src/stores
-
-```
+[x] **Onboarding flow**
 
 - Add UI toggle: "Join as an individual" vs "Create team"
 - Auto-create `team` record for team signups
 
 [ ] **Invite system**
 
-```typescript
-// Example edge function for invites:
-const { data, error } = await supabase.from('team_invitations').insert({
-	team_id: teamId,
-	email: 'user@example.com',
-	token: crypto.randomUUID(),
-	expires_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
-});
-```
+- Email notifications for team invites
+- Accept/reject invite flow
+- Handle expired invites cleanup
 
 [x] **Team switching**
 
@@ -169,10 +156,17 @@ const { count } = await supabase
 if (count >= team.max_members) throw new Error('Team full');
 ```
 
+[x] **Team plan selection**
+
+- Prevent individual users from selecting team plans
+- Handle team context in subscription creation
+- Sync subscription status with team members
+
 [ ] **Proration logic**
 
-- Use Paystack API to calculate upgrade costs
-- Migrate individual user data to team on plan change
+- Calculate upgrade costs via Paystack
+- Handle team plan migrations
+- Manage credit distribution
 
 ---
 
@@ -184,7 +178,7 @@ if (count >= team.max_members) throw new Error('Team full');
 - "Invite" button with email input
 - Team usage stats (screenings/appointments)
 
-[] **Resource ownership UI**
+[x] **Resource ownership UI**
 
 ```tsx
 // Show team/personal toggle:
@@ -370,4 +364,3 @@ FOR INSERT WITH CHECK (
 
 [ ] **Update API docs** with `/invite` and `/join-team` endpoints.  
 [ ] **Write user guide** for admins: "How to invite team members."
-````
