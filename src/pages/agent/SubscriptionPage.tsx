@@ -288,34 +288,40 @@ const SubscriptionPage: React.FC = () => {
 				'Complete your subscription to finish setting up your account',
 			);
 			sessionStorage.setItem('onboarding_notification_shown', 'true');
+		}
 
-			// Check for team context from localStorage in onboarding flow
-			const isTeamPlan = localStorage.getItem('isTeamPlan') === 'true';
-			setShowTeamPlans(isTeamPlan);
+		// Check for team context from localStorage in onboarding flow
+		const isTeamPlanOnboarding = localStorage.getItem('isTeamPlan') === 'true';
+		setShowTeamPlans(!user.is_individual || isTeamPlanOnboarding); // Set initial view based on user type or onboarding context
 
-			// For onboarding with teams, ensure team data is loaded
-			if (isTeamPlan && !currentTeam) {
-				// Fetch teams to ensure latest context
-				const fetchTeamData = async () => {
-					try {
-						await useTeamStore.getState().fetchTeams();
-						console.log('Team data refreshed for onboarding');
-					} catch (teamError) {
-						console.error('Error fetching teams for onboarding:', teamError);
-					}
-				};
-				fetchTeamData();
-			}
-		} else if (onboarding) {
-			// Still set proper plan view for onboarding without showing notification again
-			const isTeamPlan = localStorage.getItem('isTeamPlan') === 'true';
-			setShowTeamPlans(isTeamPlan);
-		} else {
-			// Normal flow - set based on user and team context
+		// For onboarding with teams, ensure team data is loaded or user active_team_id is set
+		if (
+			(isTeamPlanOnboarding || !user.is_individual) &&
+			!currentTeam &&
+			user.active_team_id
+		) {
+			console.log(
+				`Fetching team data for user's active team: ${user.active_team_id}`,
+			);
+			const fetchTeamData = async () => {
+				try {
+					// Fetch all teams and let fetchTeams set currentTeam based on active_team_id
+					await useTeamStore.getState().fetchTeams();
+					console.log(
+						'Team data refreshed and currentTeam set from user profile',
+					);
+				} catch (teamError) {
+					console.error(
+						'Error fetching teams during initialization:',
+						teamError,
+					);
+					// Handle error - maybe redirect or show an error message
+				}
+			};
+			fetchTeamData();
+		} else if (!onboarding) {
+			// Normal flow - set based on user and team context if not onboarding
 			setShowTeamPlans(!user.is_individual && currentTeam !== null);
-
-			// Clear onboarding notification flag if not in onboarding flow
-			sessionStorage.removeItem('onboarding_notification_shown');
 		}
 
 		// Look for payment references
