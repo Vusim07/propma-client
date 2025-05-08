@@ -137,6 +137,7 @@ class PaystackService {
 			interface TransactionData {
 				email: string;
 				amount: number;
+				callback_url: string;
 				metadata: {
 					userId: string;
 					planName: string;
@@ -151,6 +152,7 @@ class PaystackService {
 			const transactionData: TransactionData = {
 				email: params.email,
 				amount: params.planPrice * 100, // Payment amount in kobo (ZAR cents)
+				callback_url: `${window.location.origin}/payment/callback`,
 				metadata: {
 					userId: params.userId,
 					planName: params.planName,
@@ -517,7 +519,10 @@ class PaystackService {
 							).data.session?.access_token
 						}`,
 					},
-					body: JSON.stringify(params),
+					body: JSON.stringify({
+						...params,
+						callback_url: `${window.location.origin}/payment/callback`,
+					}),
 				},
 			);
 

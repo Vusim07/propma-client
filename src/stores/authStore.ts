@@ -31,7 +31,7 @@ interface AuthState {
 		updates: Partial<Tables<'users'>>,
 	) => Promise<Tables<'users'>>; // Fixed return type
 	getProfile: () => Promise<void>;
-	checkAuth: () => Promise<void>;
+	checkAuth: () => Promise<void>; // Restored for backward compatibility
 	initialize: () => Promise<boolean>;
 }
 
@@ -355,17 +355,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 		}
 	},
 
-	checkAuth: async () => {
-		try {
-			set({ loading: true, isLoading: true, error: null });
-			await get().getProfile();
-		} catch (error: any) {
-			set({ error: error.message });
-		} finally {
-			set({ loading: false, isLoading: false });
-		}
-	},
-
 	register: async (email, password, role) => {
 		try {
 			set({ loading: true, isLoading: true, error: null });
@@ -556,6 +545,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 				activeTeam: null,
 			});
 			return false;
+		} finally {
+			set({ loading: false, isLoading: false });
+		}
+	},
+
+	checkAuth: async () => {
+		// Implementation of checkAuth method
+		try {
+			set({ loading: true, isLoading: true, error: null });
+			await get().getProfile();
+		} catch (error: any) {
+			set({ error: error.message });
 		} finally {
 			set({ loading: false, isLoading: false });
 		}

@@ -247,6 +247,13 @@ const SubscriptionPage: React.FC = () => {
 					}
 				}
 
+				// Refresh the user's auth session to ensure JWT claims are updated
+				console.log('Refreshing auth session after payment');
+				await supabase.auth.refreshSession();
+
+				// Explicitly refresh the user profile in the auth store to ensure state is current
+				await useAuthStore.getState().getProfile();
+
 				if (isUpgrade) {
 					showToast.success('Plan upgraded successfully');
 				}
@@ -509,7 +516,23 @@ const SubscriptionPage: React.FC = () => {
 
 			// Show success message and redirect to dashboard
 			showToast.success('Account setup complete! Welcome to Amara.');
-			navigate('/agent');
+
+			// Force a state refresh before navigating to ensure auth state is current
+			const refreshAndNavigate = async () => {
+				try {
+					// Refresh auth session to ensure JWT is current
+					await supabase.auth.refreshSession();
+					// Update auth store state
+					await useAuthStore.getState().getProfile();
+					console.log('Auth state refreshed before dashboard navigation');
+					// Use window.location for a full reload to ensure fresh state
+					window.location.href = '/agent';
+				} catch (err) {
+					console.error('Error refreshing state before navigation:', err);
+					navigate('/agent');
+				}
+			};
+			refreshAndNavigate();
 		}
 	}, [subscription, navigate, isProcessing]);
 
