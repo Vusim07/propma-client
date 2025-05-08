@@ -16,6 +16,7 @@ interface InitializeSubscriptionParams {
 	email: string;
 	usageLimit: number;
 	isOneTime?: boolean; // Flag to indicate if this is a one-time payment
+	teamId?: string | null; // Add team ID for team subscriptions
 }
 
 interface VerifyTransactionResult {
@@ -176,6 +177,21 @@ class PaystackService {
 			const startDate = new Date();
 			const endDate = new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000);
 
+			// Extract plan type from plan name to ensure it matches the constraint
+			// Extract "starter", "growth", "scale", or "enterprise" from plan name
+			let planType = 'starter'; // Default to starter
+			const planNameLower = params.planName.toLowerCase();
+
+			if (planNameLower.includes('growth')) {
+				planType = 'growth';
+			} else if (planNameLower.includes('scale')) {
+				planType = 'scale';
+			} else if (planNameLower.includes('enterprise')) {
+				planType = 'enterprise';
+			} else if (planNameLower.includes('starter')) {
+				planType = 'starter';
+			}
+
 			const subscriptionData: InsertSubscription = {
 				user_id: params.userId,
 				plan_name: params.planName,
@@ -183,9 +199,9 @@ class PaystackService {
 				usage_limit: params.usageLimit,
 				current_usage: 0,
 				status: 'inactive',
-				is_team: false, // Add missing required field
-				team_id: null, // Add null for non-team subscriptions
-				plan_type: params.isOneTime ? 'one-time' : 'recurring', // Set plan type based on subscription type
+				is_team: params.teamId ? true : false, // Set based on teamId parameter
+				team_id: params.teamId || null, // Use the teamId parameter
+				plan_type: planType, // Use extracted plan type that matches constraint
 				paystack_subscription_id: response.data.reference,
 				start_date: startDate.toISOString(),
 				end_date: params.isOneTime ? undefined : endDate.toISOString(),

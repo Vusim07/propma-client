@@ -364,8 +364,40 @@ const ProfileCompletion: React.FC = () => {
 					console.log('Team created successfully:', team);
 					showToast.success('Team created successfully!');
 
+					// Explicitly verify the team was created and user has active_team_id
+					const { data: userData, error: userError } = await supabase
+						.from('users')
+						.select('active_team_id')
+						.eq('id', session.user.id)
+						.single();
+
+					if (userError) {
+						console.error(
+							'Error fetching user data after team creation:',
+							userError,
+						);
+					} else if (!userData?.active_team_id) {
+						console.error('Active team ID not set after team creation');
+
+						// Try to explicitly set active_team_id if missing
+						if (team.id) {
+							await supabase
+								.from('users')
+								.update({ active_team_id: team.id })
+								.eq('id', session.user.id);
+
+							// Refresh session to update JWT claims
+							await supabase.auth.refreshSession();
+						}
+					} else {
+						console.log(
+							'Team ID successfully set in user profile:',
+							userData.active_team_id,
+						);
+					}
+
 					// Wait a moment for team data to settle
-					await new Promise((resolve) => setTimeout(resolve, 500));
+					await new Promise((resolve) => setTimeout(resolve, 800));
 				} catch (teamError: any) {
 					console.error('Team creation error:', teamError);
 					showToast.error(
@@ -395,7 +427,24 @@ const ProfileCompletion: React.FC = () => {
 				throw new Error('Session lost during profile completion');
 			}
 
-			// 6. Handle redirection
+			// Store selected plan information for subscription page if agent/landlord
+			if (values.role === 'agent' || values.role === 'landlord') {
+				// Save plan selection to localStorage
+				if (values.isTeamSetup && values.teamPlanType) {
+					localStorage.setItem('selectedPlanType', values.teamPlanType);
+					localStorage.setItem('isTeamPlan', 'true');
+				} else {
+					// For individual accounts, default to starter individual plan
+					localStorage.setItem('selectedPlanType', 'starter');
+					localStorage.setItem('isTeamPlan', 'false');
+				}
+
+				// Redirect to subscription page to complete setup
+				navigate('/agent/subscription?onboarding=true');
+				return;
+			}
+
+			// 6. Handle redirection for other roles (mainly tenants)
 			console.log('Handling redirection...');
 			const redirectPath = sessionStorage.getItem('post_profile_redirect');
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePageTitle } from '../../context/PageTitleContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -13,12 +13,25 @@ import SubscriptionPage from './SubscriptionPage';
 import AgentProfileForm from '../../components/agent/AgentProfileForm';
 import InboxIntegration from '../../components/agent/InboxIntegration';
 import Teams from './Teams';
+import { useLocation } from 'react-router-dom';
 
 const Settings: React.FC = () => {
 	const { setPageTitle } = usePageTitle();
+	const location = useLocation();
 	const [activeTab, setActiveTab] = useState('profile');
 
-	React.useEffect(() => {
+	// Handle tab from navigation state
+	useEffect(() => {
+		// Check if we have a tab specified in the location state
+		const stateTab = location.state?.activeTab;
+		if (stateTab) {
+			setActiveTab(stateTab);
+			// Clear the state to avoid persisting across navigation
+			window.history.replaceState({}, document.title);
+		}
+	}, [location.state]);
+
+	useEffect(() => {
 		setPageTitle('Settings');
 	}, [setPageTitle]);
 

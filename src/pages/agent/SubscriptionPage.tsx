@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useAgentStore } from '../../stores/agentStore';
 import { useTeamStore } from '../../stores/teamStore';
+import { useNavigate, useLocation } from 'react-router-dom';
 import paystackService from '../../services/paystackService';
 import { Subscription } from '../../types';
 import {
@@ -14,6 +15,7 @@ import {
 import Button from '../../components/ui/Button';
 import SubscriptionHistory from '../../components/agent/SubscriptionHistory';
 import { showToast } from '../../utils/toast';
+import { supabase } from '../../services/supabase';
 
 interface PlanOption {
 	id: string;
@@ -154,6 +156,8 @@ const progressBarClass = (percentage: number) =>
 const SubscriptionPage: React.FC = () => {
 	const { user } = useAuthStore();
 	const { currentTeam } = useTeamStore();
+	const navigate = useNavigate();
+	const location = useLocation();
 	const {
 		fetchSubscriptions,
 		isLoading: storeLoading,
@@ -167,6 +171,7 @@ const SubscriptionPage: React.FC = () => {
 		'monthly',
 	);
 	const [showTeamPlans, setShowTeamPlans] = useState(false);
+	const [isOnboarding, setIsOnboarding] = useState(false);
 
 	// Consolidate subscription fetching logic into a single function
 	const fetchCurrentSubscription = useCallback(async () => {
@@ -177,7 +182,26 @@ const SubscriptionPage: React.FC = () => {
 			setSubscription(subscriptionData);
 
 			if (!subscriptionData && !selectedPlanId) {
-				setSelectedPlanId('starter-individual');
+				// Check for stored plan selection in localStorage
+				const storedPlanType = localStorage.getItem('selectedPlanType');
+				const isTeamPlan = localStorage.getItem('isTeamPlan') === 'true';
+
+				// Only use stored plan if we're in the onboarding flow
+				if (isOnboarding && storedPlanType) {
+					// Set showTeamPlans based on stored plan type
+					setShowTeamPlans(isTeamPlan);
+
+					// Construct plan ID based on stored values
+					const planPrefix = storedPlanType || 'starter';
+					const planSuffix = isTeamPlan ? 'team' : 'individual';
+					const planId = `${planPrefix}-${planSuffix}`;
+
+					setSelectedPlanId(planId);
+					console.log(`Pre-selected plan: ${planId} from onboarding flow`);
+				} else {
+					// Default selection if not in onboarding flow
+					setSelectedPlanId('starter-individual');
+				}
 			}
 
 			if (storeError) {
@@ -187,7 +211,7 @@ const SubscriptionPage: React.FC = () => {
 			console.error('Error fetching subscription:', err);
 			setError('Failed to load subscription information');
 		}
-	}, [user, fetchSubscriptions, selectedPlanId, storeError]);
+	}, [user, fetchSubscriptions, selectedPlanId, storeError, isOnboarding]);
 
 	// Handle payment callback verification
 	const handlePaymentCallback = useCallback(
@@ -222,9 +246,51 @@ const SubscriptionPage: React.FC = () => {
 	useEffect(() => {
 		if (!user) return;
 
-		setShowTeamPlans(!user.is_individual && currentTeam !== null);
+		// Check if this is part of the onboarding flow
+		const searchParams = new URLSearchParams(location.search);
+		const onboarding = searchParams.get('onboarding') === 'true';
+		setIsOnboarding(onboarding);
 
-		const searchParams = new URLSearchParams(window.location.search);
+		// Only show onboarding message if this is part of that flow and not already shown
+		if (
+			onboarding &&
+			!sessionStorage.getItem('onboarding_notification_shown')
+		) {
+			showToast.info(
+				'Complete your subscription to finish setting up your account',
+			);
+			sessionStorage.setItem('onboarding_notification_shown', 'true');
+
+			// Check for team context from localStorage in onboarding flow
+			const isTeamPlan = localStorage.getItem('isTeamPlan') === 'true';
+			setShowTeamPlans(isTeamPlan);
+
+			// For onboarding with teams, we need to ensure team data is loaded
+			if (isTeamPlan && !currentTeam) {
+				// Fetch teams to make sure we have the latest context
+				const fetchTeamData = async () => {
+					try {
+						await useTeamStore.getState().fetchTeams();
+						console.log('Team data refreshed for onboarding');
+					} catch (teamError) {
+						console.error('Error fetching teams for onboarding:', teamError);
+					}
+				};
+
+				fetchTeamData();
+			}
+		} else if (onboarding) {
+			// Still set the proper plan view for onboarding without showing notification again
+			const isTeamPlan = localStorage.getItem('isTeamPlan') === 'true';
+			setShowTeamPlans(isTeamPlan);
+		} else {
+			// Normal flow - set based on user and team context
+			setShowTeamPlans(!user.is_individual && currentTeam !== null);
+
+			// Clear onboarding notification flag if not in onboarding flow
+			sessionStorage.removeItem('onboarding_notification_shown');
+		}
+
 		const reference =
 			searchParams.get('reference') || searchParams.get('trxref');
 
@@ -248,7 +314,21 @@ const SubscriptionPage: React.FC = () => {
 				fetchCurrentSubscription();
 			}
 		}
-	}, [user, currentTeam, handlePaymentCallback, fetchCurrentSubscription]);
+
+		// Clean up localStorage after loading the plan
+		if (onboarding) {
+			return () => {
+				localStorage.removeItem('selectedPlanType');
+				localStorage.removeItem('isTeamPlan');
+			};
+		}
+	}, [
+		user,
+		currentTeam,
+		handlePaymentCallback,
+		fetchCurrentSubscription,
+		location.search,
+	]);
 
 	// Set default plan only if no subscription and no selectedPlanId
 	useEffect(() => {
@@ -261,7 +341,21 @@ const SubscriptionPage: React.FC = () => {
 		if (!user) return;
 
 		const selectedPlan = planOptions.find((plan) => plan.id === planId);
-		if (selectedPlan?.isTeamPlan && user.is_individual) {
+		if (!selectedPlan) return;
+
+		// Skip validation for onboarding users if they selected plan type matches current selection
+		if (isOnboarding) {
+			const isTeamPlan = localStorage.getItem('isTeamPlan') === 'true';
+			// Allow selection if the plan type matches what was selected during profile completion
+			if (selectedPlan.isTeamPlan === isTeamPlan) {
+				setSelectedPlanId(planId);
+				setError(null);
+				return;
+			}
+		}
+
+		// Standard validation for non-onboarding users
+		if (selectedPlan.isTeamPlan && user.is_individual) {
 			showToast.error(
 				'You need to create a team before selecting a team plan. Go to Teams to create one.',
 			);
@@ -278,17 +372,72 @@ const SubscriptionPage: React.FC = () => {
 		const selectedPlan = planOptions.find((plan) => plan.id === selectedPlanId);
 		if (!selectedPlan) return;
 
-		if (selectedPlan.isTeamPlan && !currentTeam) {
-			showToast.error(
-				'Please create or join a team before purchasing a team plan',
-			);
-			return;
+		// For team plans during onboarding, handle the special case where team context hasn't loaded
+		if (selectedPlan.isTeamPlan) {
+			// During onboarding, if they selected a team plan previously, we should allow them to proceed
+			// even if the team context hasn't fully loaded yet
+			const isTeamOnboarding =
+				isOnboarding && localStorage.getItem('isTeamPlan') === 'true';
+
+			if (!currentTeam && !isTeamOnboarding) {
+				showToast.error(
+					'Please create or join a team before purchasing a team plan',
+				);
+				return;
+			}
 		}
 
 		setIsProcessing(true);
 		setError(null);
 
 		try {
+			// For team plans during onboarding, handle the special case where team context hasn't loaded
+			let effectiveTeamId = null;
+
+			if (selectedPlan.isTeamPlan) {
+				const isTeamOnboarding =
+					isOnboarding && localStorage.getItem('isTeamPlan') === 'true';
+
+				if (currentTeam) {
+					// Use current team if available
+					effectiveTeamId = currentTeam.id;
+					console.log(`Using current team ID: ${effectiveTeamId}`);
+				} else if (isTeamOnboarding) {
+					// For onboarding, we need to get the user's active_team_id directly
+					console.log('Team context not loaded yet, fetching active team ID');
+					try {
+						const { data: userData, error: userError } = await supabase
+							.from('users')
+							.select('active_team_id')
+							.eq('id', user.id)
+							.single();
+
+						if (userError) throw userError;
+
+						if (userData?.active_team_id) {
+							effectiveTeamId = userData.active_team_id;
+							console.log(`Retrieved active team ID: ${effectiveTeamId}`);
+						} else {
+							console.error(
+								'No active team ID found for user during onboarding',
+							);
+							showToast.error(
+								'Unable to find team information. Please try again.',
+							);
+							setIsProcessing(false);
+							return;
+						}
+					} catch (teamError) {
+						console.error('Error fetching team ID:', teamError);
+						showToast.error(
+							'Failed to retrieve team information. Please try again.',
+						);
+						setIsProcessing(false);
+						return;
+					}
+				}
+			}
+
 			const { authorizationUrl } = await paystackService.createSubscription({
 				userId: user.id,
 				planName: selectedPlan.name,
@@ -296,14 +445,38 @@ const SubscriptionPage: React.FC = () => {
 				email: user.email,
 				usageLimit: selectedPlan.usageLimit,
 				isOneTime: subscriptionType === 'paygo',
+				teamId: effectiveTeamId,
 			});
 
+			// Store information that this subscription is part of onboarding
+			if (isOnboarding) {
+				sessionStorage.setItem('completing_onboarding', 'true');
+			}
+
 			window.location.href = authorizationUrl;
-		} catch {
+		} catch (err) {
+			console.error('Subscription creation error:', err);
 			showToast.error('Failed to create subscription. Please try again.');
 			setIsProcessing(false);
 		}
 	};
+
+	// Add function to handle successful subscription during onboarding
+	useEffect(() => {
+		// Check if we're returning from a successful payment during onboarding
+		const completingOnboarding =
+			sessionStorage.getItem('completing_onboarding') === 'true';
+		const hasSubscription = subscription !== null;
+
+		if (completingOnboarding && hasSubscription) {
+			// Clear flag
+			sessionStorage.removeItem('completing_onboarding');
+
+			// Show success message and redirect to dashboard
+			showToast.success('Account setup complete! Welcome to Amara.');
+			navigate('/agent');
+		}
+	}, [subscription, navigate]);
 
 	const handleCancelSubscription = async () => {
 		if (!subscription) return;
@@ -375,6 +548,19 @@ const SubscriptionPage: React.FC = () => {
 
 	return (
 		<div className='max-w-5xl mx-auto'>
+			{isOnboarding && (
+				<div className='bg-blue-50 text-blue-800 rounded-lg p-4 mb-4 flex items-start'>
+					<AlertCircle className='h-5 w-5 mr-2 flex-shrink-0 mt-0.5' />
+					<div>
+						<p className='font-medium'>Complete your account setup</p>
+						<p>
+							Choose a subscription plan to continue using Amara for property
+							management.
+						</p>
+					</div>
+				</div>
+			)}
+
 			{!subscription && (
 				<div className='bg-white rounded-lg shadow-sm p-6 mb-4'>
 					<div className='flex justify-between items-center'>
@@ -643,6 +829,8 @@ const SubscriptionPage: React.FC = () => {
 							)}
 							{subscription
 								? 'Upgrade Subscription'
+								: isOnboarding
+								? 'Complete Account Setup'
 								: subscriptionType === 'monthly'
 								? 'Subscribe Now'
 								: 'Purchase Credits'}
@@ -650,6 +838,17 @@ const SubscriptionPage: React.FC = () => {
 					</div>
 				)}
 			</div>
+
+			{isOnboarding && (
+				<div className='mt-4 text-center'>
+					<button
+						onClick={() => navigate('/agent')}
+						className='text-gray-500 hover:text-gray-700 text-sm'
+					>
+						Skip for now (You can subscribe later)
+					</button>
+				</div>
+			)}
 		</div>
 	);
 };

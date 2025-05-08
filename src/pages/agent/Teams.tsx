@@ -35,6 +35,7 @@ import {
 import Spinner from '@/components/ui/Spinner';
 import { AlertCircle } from 'lucide-react';
 import { TeamStatsCard } from '@/components/teams/TeamStatsCard';
+import { useNavigate } from 'react-router-dom';
 
 const createTeamSchema = z.object({
 	name: z.string().min(1, 'Team name is required'),
@@ -70,6 +71,7 @@ const Teams: React.FC = () => {
 	} = useTeamStore();
 
 	const { user } = useAuthStore();
+	const navigate = useNavigate();
 	const [isCreateOpen, setIsCreateOpen] = React.useState(false);
 	const [isInviteOpen, setIsInviteOpen] = React.useState(false);
 
@@ -116,6 +118,14 @@ const Teams: React.FC = () => {
 			inviteMemberForm.reset();
 			await fetchInvitations(currentTeam.id);
 		}
+	};
+
+	// Handler for activating a team plan
+	const handleActivatePlan = async (teamId: string) => {
+		// Switch to the selected team first
+		await switchTeam(teamId);
+		// Navigate to the subscription page
+		navigate('/agent/settings', { state: { activeTab: 'billing' } });
 	};
 
 	if (isLoading && teams.length === 0) {
@@ -226,6 +236,7 @@ const Teams: React.FC = () => {
 								<Button
 									variant='primary'
 									className='bg-green-600 hover:bg-green-700'
+									onClick={() => handleActivatePlan(team.id)}
 								>
 									Activate Plan
 								</Button>
@@ -237,6 +248,7 @@ const Teams: React.FC = () => {
 									<Button
 										variant='outline'
 										className='text-blue-600 border-blue-600 hover:bg-blue-50'
+										onClick={() => handleActivatePlan(team.id)}
 									>
 										Upgrade Plan
 									</Button>

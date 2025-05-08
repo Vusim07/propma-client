@@ -971,6 +971,11 @@ const PropertyApplication: React.FC = () => {
 									<span className='font-medium'>View Screening Results</span> -
 									After submission, you'll see your screening results
 								</li>
+								<li>
+									<span className='font-medium'>Schedule Appointment</span> - If
+									you are pre-approved, you can go ahead and schedule a viewing
+									appointment.
+								</li>
 							</ol>
 						</div>
 

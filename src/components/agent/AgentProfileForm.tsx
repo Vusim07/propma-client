@@ -67,8 +67,16 @@ const AgentProfileForm: React.FC = () => {
 		}
 		try {
 			await createTeam(teamForm.name, teamForm.planType);
+
+			// Store plan selection for subscription page
+			localStorage.setItem('selectedPlanType', teamForm.planType);
+			localStorage.setItem('isTeamPlan', 'true');
+
 			// Hide team setup after successful creation
 			setShowTeamSetup(false);
+
+			// Redirect to subscription page
+			window.location.href = '/agent/subscription?onboarding=true';
 		} catch (err: any) {
 			setTeamError(err.message || 'Failed to create team');
 		}

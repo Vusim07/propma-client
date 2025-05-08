@@ -68,19 +68,21 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 	fetchTeams: async () => {
 		set({ isLoading: true, error: null });
 		try {
+			console.log('Fetching teams...');
+
 			const { data: teams, error } = await supabase.from('teams').select(`
-					*,
-					subscription:subscription_id (
-						id,
-						plan_name,
-						status
-					),
-					stats:team_stats (
-						member_count,
-						pending_invites,
-						last_updated
-					)
-				`);
+				*,
+				subscription:subscription_id (
+					id,
+					plan_name,
+					status
+				),
+				stats:team_stats (
+					member_count,
+					pending_invites,
+					last_updated
+				)
+			`);
 
 			if (error) throw error;
 
@@ -96,6 +98,31 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 				delete team.stats;
 				return team;
 			});
+
+			console.log(`Found ${teamsWithStats.length} teams`);
+
+			// Also fetch the active team ID from the user record for onboarding
+			const userId = (await supabase.auth.getUser()).data.user?.id;
+			if (userId) {
+				const { data: userData } = await supabase
+					.from('users')
+					.select('active_team_id')
+					.eq('id', userId)
+					.single();
+
+				if (userData?.active_team_id) {
+					console.log(`User has active team ID: ${userData.active_team_id}`);
+					const activeTeam = teamsWithStats.find(
+						(team) => team.id === userData.active_team_id,
+					);
+					if (activeTeam) {
+						set({ currentTeam: activeTeam });
+						console.log(`Set current team to: ${activeTeam.name}`);
+					} else {
+						console.warn('Active team ID exists but team not found in results');
+					}
+				}
+			}
 
 			set({ teams: teamsWithStats, teamStats });
 		} catch (error) {
