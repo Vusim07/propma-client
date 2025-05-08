@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { AlertCircle, BadgeCheck } from 'lucide-react';
 import { Team } from '@/types';
@@ -16,10 +16,30 @@ export const TeamStatsCard: React.FC<TeamStatsCardProps> = ({
 	pendingInvites,
 	className = '',
 }) => {
+	// Add debugging useEffect to help diagnose subscription status rendering
+	useEffect(() => {
+		console.log(`TeamStatsCard for ${team.name}:`, {
+			id: team.id,
+			subscription_id: team.subscription_id,
+			subscription: team.subscription,
+			plan_type: team.plan_type,
+		});
+	}, [team]);
+
 	const totalMembers = memberCount + pendingInvites;
 	const usagePercentage = (totalMembers / team.max_members) * 100;
 	const isNearLimit = usagePercentage >= 80;
 	const isAtLimit = totalMembers >= team.max_members;
+
+	const progressBarWidth = `${Math.min(usagePercentage, 100)}%`;
+
+	const hasActiveSubscription =
+		team.subscription?.status === 'active' ||
+		(!!team.subscription_id &&
+			team.subscription?.status !== 'inactive' &&
+			team.subscription?.status !== 'cancelled');
+
+	const planName = team.subscription?.plan_name || team.plan_type || 'No';
 
 	return (
 		<Card className={`${className} overflow-hidden`}>
@@ -29,22 +49,17 @@ export const TeamStatsCard: React.FC<TeamStatsCardProps> = ({
 						<div>
 							<h3 className='font-semibold text-xl'>{team.name}</h3>
 							<div className='flex items-center gap-2 mt-1'>
-								{team.subscription?.status === 'active' ? (
+								{hasActiveSubscription ? (
 									<BadgeCheck className='h-4 w-4 text-green-500' />
 								) : (
 									<AlertCircle className='h-4 w-4 text-yellow-500' />
 								)}
 								<span
 									className={`text-sm ${
-										team.subscription?.status === 'active'
-											? 'text-green-600'
-											: 'text-yellow-600'
+										hasActiveSubscription ? 'text-green-600' : 'text-yellow-600'
 									}`}
 								>
-									{team.subscription?.plan_name || 'No'} Plan •{' '}
-									{team.subscription?.status === 'active'
-										? 'Active'
-										: 'Inactive'}
+									{planName} Plan
 								</span>
 							</div>
 						</div>
@@ -71,11 +86,8 @@ export const TeamStatsCard: React.FC<TeamStatsCardProps> = ({
 										: isNearLimit
 										? 'bg-yellow-500'
 										: 'bg-blue-500'
-								} ${
-									usagePercentage > 0
-										? `w-[${Math.min(usagePercentage, 100)}%]`
-										: 'w-0'
 								}`}
+								style={{ width: progressBarWidth }}
 							/>
 						</div>
 

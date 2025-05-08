@@ -228,6 +228,18 @@ const SubscriptionPage: React.FC = () => {
 		isProcessing,
 	]);
 
+	// Add a function to navigate back to the teams tab with refresh state
+	const navigateToTeams = useCallback(() => {
+		navigate('/agent/settings', {
+			state: {
+				activeTab: 'team',
+				fromBilling: true,
+			},
+			replace: true,
+		});
+	}, [navigate]);
+
+	// Update handlePaymentCallback to navigate to teams tab after completion if it was a team subscription
 	const handlePaymentCallback = useCallback(
 		async (reference: string, isUpgrade = false) => {
 			setIsProcessing(true);
@@ -708,6 +720,14 @@ const SubscriptionPage: React.FC = () => {
 						</div>
 
 						<SubscriptionHistory subscriptionId={subscription.id} />
+
+						{subscription && subscription.team_id && (
+							<div className='mt-6 flex justify-center'>
+								<Button variant='outline' onClick={navigateToTeams}>
+									Back to Team Management
+								</Button>
+							</div>
+						)}
 					</div>
 				) : (
 					<div className='bg-yellow-50 text-yellow-800 rounded-md p-4 flex items-start mb-6'>

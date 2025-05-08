@@ -35,7 +35,7 @@ import {
 import Spinner from '@/components/ui/Spinner';
 import { AlertCircle } from 'lucide-react';
 import { TeamStatsCard } from '@/components/teams/TeamStatsCard';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const createTeamSchema = z.object({
 	name: z.string().min(1, 'Team name is required'),
@@ -72,15 +72,33 @@ const Teams: React.FC = () => {
 
 	const { user } = useAuthStore();
 	const navigate = useNavigate();
+	const location = useLocation();
 	const [isCreateOpen, setIsCreateOpen] = React.useState(false);
 	const [isInviteOpen, setIsInviteOpen] = React.useState(false);
+	const [isRefreshing, setIsRefreshing] = React.useState(false);
 
 	// Initial data fetch - this is the ONLY data fetch that happens automatically
 	useEffect(() => {
-		fetchTeams();
+		const fetchInitialData = async () => {
+			await fetchTeams();
+			// If we have a current team after fetching teams, refresh its data
+			if (currentTeam?.id) {
+				await refreshTeamsData();
+			}
+		};
+
+		fetchInitialData();
 	}, [fetchTeams]);
 
-	// Fetch team members and invitations when we have a current team
+	// Check if we just came from the billing tab
+	useEffect(() => {
+		const fromBilling = location.state?.fromBilling === true;
+		if (fromBilling && currentTeam?.id) {
+			window.history.replaceState({}, document.title);
+			refreshTeamsData();
+		}
+	}, [location.state, currentTeam]);
+
 	useEffect(() => {
 		if (currentTeam?.id) {
 			fetchTeamMembers(currentTeam.id);
@@ -91,21 +109,55 @@ const Teams: React.FC = () => {
 	// Function to manually refresh team data
 	const refreshTeamsData = React.useCallback(async () => {
 		// Use a local loading state to prevent multiple refreshes
-		if (isLoading) return;
+		if (isLoading || isRefreshing) return;
 
 		try {
-			await fetchTeams();
+			setIsRefreshing(true);
+			console.log('Starting team data refresh...');
 
+			// Fetch all teams first
+			await fetchTeams();
+			console.log('Teams fetched:', teams.length, 'teams');
+
+			// If we have a current team, refresh its data and also members/invitations
 			if (currentTeam?.id) {
-				// Run these operations in parallel rather than sequentially
-				await Promise.all([
-					refreshTeamData(currentTeam.id),
-					fetchTeamMembers(currentTeam.id),
-					fetchInvitations(currentTeam.id),
-				]);
+				console.log(`Refreshing current team ${currentTeam.id} data...`);
+				try {
+					// Run these operations in parallel
+					await Promise.all([
+						refreshTeamData(currentTeam.id),
+						fetchTeamMembers(currentTeam.id),
+						fetchInvitations(currentTeam.id),
+					]);
+					console.log(`Current team ${currentTeam.id} refresh completed`);
+				} catch (err) {
+					console.error(
+						`Error refreshing current team ${currentTeam.id}:`,
+						err,
+					);
+				}
 			}
+
+			if (teams.length > 0) {
+				console.log(`Refreshing all ${teams.length} teams data...`);
+
+				// Process teams one at a time to avoid overwhelming the server
+				for (const team of teams) {
+					try {
+						console.log(`Refreshing team ${team.id} (${team.name}) data...`);
+						await refreshTeamData(team.id);
+					} catch (err) {
+						console.error(`Error refreshing team ${team.id}:`, err);
+					}
+				}
+				console.log('All teams refresh completed');
+			}
+
+			console.log('Team data refresh completed successfully');
 		} catch (error) {
-			console.error('Error refreshing team data:', error);
+			console.error('Error in main refresh process:', error);
+		} finally {
+			setIsRefreshing(false);
 		}
 	}, [
 		fetchTeams,
@@ -113,7 +165,9 @@ const Teams: React.FC = () => {
 		fetchInvitations,
 		refreshTeamData,
 		currentTeam,
+		teams,
 		isLoading,
+		isRefreshing,
 	]);
 
 	const handleCreateTeam = async (values: CreateTeamValues) => {
@@ -136,9 +190,7 @@ const Teams: React.FC = () => {
 
 	// Handler for activating a team plan
 	const handleActivatePlan = async (teamId: string) => {
-		// Switch to the selected team first
 		await switchTeam(teamId);
-		// Navigate to the subscription page
 		navigate('/agent/settings', { state: { activeTab: 'billing' } });
 	};
 
@@ -169,7 +221,6 @@ const Teams: React.FC = () => {
 	return (
 		<div className='container mx-auto py-6 space-y-6'>
 			<div className='flex justify-between items-center'>
-				{/* <h1 className='text-2xl font-bold'>Teams</h1> */}
 				<Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
 					<DialogTrigger asChild>
 						<Button>Create Team</Button>
@@ -243,15 +294,6 @@ const Teams: React.FC = () => {
 						</Form>
 					</DialogContent>
 				</Dialog>
-
-				{/* Add manual refresh button */}
-				<Button
-					variant='outline'
-					onClick={refreshTeamsData}
-					disabled={isLoading}
-				>
-					Refresh Data
-				</Button>
 			</div>
 
 			<div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>

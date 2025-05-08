@@ -580,6 +580,8 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 	refreshTeamData: async (teamId: string) => {
 		set({ isLoading: true, error: null });
 		try {
+			console.log(`Refreshing team data for team ${teamId}`);
+
 			// Fetch the specific team with its subscription data
 			const { data: team, error } = await supabase
 				.from('teams')
@@ -596,25 +598,46 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 				.eq('id', teamId)
 				.single();
 
-			if (error) throw error;
+			if (error) {
+				console.error(`Error fetching team ${teamId}:`, error);
+				throw error;
+			}
+
+			console.log(`Team ${teamId} data:`, {
+				name: team.name,
+				subscription_id: team.subscription_id,
+				subscription: team.subscription,
+			});
 
 			// Also refresh team stats
 			await get().fetchTeamStats(teamId);
 
-			// Update the team in the state
-			set((state) => ({
-				teams: state.teams.map((t) =>
-					t.id === teamId ? { ...t, ...team } : t,
-				),
-				currentTeam:
+			// Ensure we're properly updating the state - create a deep copy of the team
+			const updatedTeam = { ...team };
+
+			// Update the team in the state with proper subscription data
+			set((state) => {
+				// Create a new teams array with the updated team
+				const updatedTeams = state.teams.map((t) =>
+					t.id === teamId ? { ...t, ...updatedTeam } : t,
+				);
+
+				// Also update currentTeam if this is the active team
+				const updatedCurrentTeam =
 					state.currentTeam?.id === teamId
-						? { ...state.currentTeam, ...team }
-						: state.currentTeam,
-			}));
+						? { ...state.currentTeam, ...updatedTeam }
+						: state.currentTeam;
+
+				return {
+					teams: updatedTeams,
+					currentTeam: updatedCurrentTeam,
+				};
+			});
 
 			return team as Team;
 		} catch (error) {
 			const pgError = error as PostgrestError;
+			console.error(`Error refreshing team ${teamId}:`, pgError);
 			set({ error: pgError.message });
 			return null;
 		} finally {

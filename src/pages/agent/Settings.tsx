@@ -19,6 +19,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 const MemoizedSubscriptionPage = memo(() => <SubscriptionPage />);
 const MemoizedTeams = memo(() => <Teams />);
 
+// Define type for navigation state
+interface NavigationState {
+	activeTab: string;
+	fromBilling?: boolean;
+}
+
 const Settings: React.FC = () => {
 	const { setPageTitle } = usePageTitle();
 	const location = useLocation();
@@ -47,9 +53,17 @@ const Settings: React.FC = () => {
 			if (value !== activeTab) {
 				setActiveTab(value);
 
+				// Create navigation state based on tab transition
+				const navigationState: NavigationState = { activeTab: value };
+
+				// If switching from billing to team tab, pass additional state
+				if (activeTab === 'billing' && value === 'team') {
+					navigationState.fromBilling = true;
+				}
+
 				// Update the URL with the tab value without page reload
 				navigate('/agent/settings', {
-					state: { activeTab: value },
+					state: navigationState,
 					replace: true,
 				});
 			}
@@ -140,6 +154,7 @@ const Settings: React.FC = () => {
 						</CardContent>
 					</Card>
 				</TabsContent>
+
 				<TabsContent value='team'>
 					<Card>
 						<CardHeader>
