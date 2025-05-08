@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { usePageTitle } from '../../context/PageTitleContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -14,6 +14,10 @@ import AgentProfileForm from '../../components/agent/AgentProfileForm';
 import InboxIntegration from '../../components/agent/InboxIntegration';
 import Teams from './Teams';
 import { useLocation, useNavigate } from 'react-router-dom';
+
+// Add a memoized wrapper component for each tab content to prevent re-renders
+const MemoizedSubscriptionPage = memo(() => <SubscriptionPage />);
+const MemoizedTeams = memo(() => <Teams />);
 
 const Settings: React.FC = () => {
 	const { setPageTitle } = usePageTitle();
@@ -131,7 +135,8 @@ const Settings: React.FC = () => {
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							{activeTab === 'billing' && <SubscriptionPage />}
+							{/* Use memo to prevent unnecessary re-renders */}
+							{activeTab === 'billing' && <MemoizedSubscriptionPage />}
 						</CardContent>
 					</Card>
 				</TabsContent>
@@ -143,7 +148,10 @@ const Settings: React.FC = () => {
 								Manage your team members and their roles
 							</CardDescription>
 						</CardHeader>
-						<CardContent>{activeTab === 'team' && <Teams />}</CardContent>
+						<CardContent>
+							{/* Use memo to prevent unnecessary re-renders */}
+							{activeTab === 'team' && <MemoizedTeams />}
+						</CardContent>
 					</Card>
 				</TabsContent>
 

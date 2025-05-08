@@ -90,12 +90,22 @@ const Teams: React.FC = () => {
 
 	// Function to manually refresh team data
 	const refreshTeamsData = React.useCallback(async () => {
-		await fetchTeams();
+		// Use a local loading state to prevent multiple refreshes
+		if (isLoading) return;
 
-		if (currentTeam?.id) {
-			await refreshTeamData(currentTeam.id);
-			await fetchTeamMembers(currentTeam.id);
-			await fetchInvitations(currentTeam.id);
+		try {
+			await fetchTeams();
+
+			if (currentTeam?.id) {
+				// Run these operations in parallel rather than sequentially
+				await Promise.all([
+					refreshTeamData(currentTeam.id),
+					fetchTeamMembers(currentTeam.id),
+					fetchInvitations(currentTeam.id),
+				]);
+			}
+		} catch (error) {
+			console.error('Error refreshing team data:', error);
 		}
 	}, [
 		fetchTeams,
@@ -103,6 +113,7 @@ const Teams: React.FC = () => {
 		fetchInvitations,
 		refreshTeamData,
 		currentTeam,
+		isLoading,
 	]);
 
 	const handleCreateTeam = async (values: CreateTeamValues) => {

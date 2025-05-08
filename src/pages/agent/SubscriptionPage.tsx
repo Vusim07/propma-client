@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useAgentStore } from '../../stores/agentStore';
 import { useTeamStore } from '../../stores/teamStore';
@@ -154,8 +154,9 @@ const progressBarClass = (percentage: number) =>
 	`bg-blue-600 h-full w-[${Math.min(100, percentage)}%]`;
 
 const SubscriptionPage: React.FC = () => {
+	const hasInitialized = useRef(false);
 	const { user } = useAuthStore();
-	const { currentTeam, fetchTeams, refreshTeamData } = useTeamStore();
+	const { currentTeam, refreshTeamData } = useTeamStore();
 	const navigate = useNavigate();
 	const location = useLocation();
 	const {
@@ -173,25 +174,33 @@ const SubscriptionPage: React.FC = () => {
 	const [showTeamPlans, setShowTeamPlans] = useState(false);
 	const [isOnboarding, setIsOnboarding] = useState(false);
 
-	// Consolidate subscription fetching logic into a single function
+	// Effect to handle team data refresh when subscription changes
+	useEffect(() => {
+		// Only refresh team data when the subscription.id changes and we're not in a processing state
+		if (subscription?.team_id && !isProcessing) {
+			const teamId = subscription.team_id;
+			console.log(
+				`Refreshing team data for subscription id: ${subscription.id}`,
+			);
+			refreshTeamData(teamId);
+		}
+	}, [subscription?.id, refreshTeamData, isProcessing]);
+
 	const fetchCurrentSubscription = useCallback(async () => {
-		if (!user) return;
+		if (!user || isProcessing) return;
 
 		try {
+			console.log('Fetching subscription data');
 			const subscriptionData = await fetchSubscriptions(user.id);
 			setSubscription(subscriptionData);
 
 			if (!subscriptionData && !selectedPlanId) {
-				// Check for stored plan selection in localStorage
 				const storedPlanType = localStorage.getItem('selectedPlanType');
 				const isTeamPlan = localStorage.getItem('isTeamPlan') === 'true';
 
-				// Only use stored plan if we're in the onboarding flow
 				if (isOnboarding && storedPlanType) {
-					// Set showTeamPlans based on stored plan type
 					setShowTeamPlans(isTeamPlan);
 
-					// Construct plan ID based on stored values
 					const planPrefix = storedPlanType || 'starter';
 					const planSuffix = isTeamPlan ? 'team' : 'individual';
 					const planId = `${planPrefix}-${planSuffix}`;
@@ -199,7 +208,6 @@ const SubscriptionPage: React.FC = () => {
 					setSelectedPlanId(planId);
 					console.log(`Pre-selected plan: ${planId} from onboarding flow`);
 				} else {
-					// Default selection if not in onboarding flow
 					setSelectedPlanId('starter-individual');
 				}
 			}
@@ -211,23 +219,28 @@ const SubscriptionPage: React.FC = () => {
 			console.error('Error fetching subscription:', err);
 			setError('Failed to load subscription information');
 		}
-	}, [user, fetchSubscriptions, selectedPlanId, storeError, isOnboarding]);
+	}, [
+		user,
+		fetchSubscriptions,
+		selectedPlanId,
+		storeError,
+		isOnboarding,
+		isProcessing,
+	]);
 
-	// Modify the handlePaymentCallback function to use refreshTeamData for more targeted updates
 	const handlePaymentCallback = useCallback(
 		async (reference: string, isUpgrade = false) => {
 			setIsProcessing(true);
 			try {
+				console.log(`Processing payment callback for reference: ${reference}`);
 				const updatedSubscription = await paystackService.handlePaymentCallback(
 					reference,
 				);
 				setSubscription(updatedSubscription);
 
-				// If this is a team subscription, refresh team data specifically for that team
 				if (updatedSubscription.team_id) {
 					console.log('Refreshing team data after subscription update');
 					try {
-						// Use the more targeted refreshTeamData function for the specific team
 						await refreshTeamData(updatedSubscription.team_id);
 					} catch (teamError) {
 						console.error('Error refreshing team data:', teamError);
@@ -254,16 +267,19 @@ const SubscriptionPage: React.FC = () => {
 		[fetchCurrentSubscription, refreshTeamData],
 	);
 
-	// Initial setup and subscription fetch
 	useEffect(() => {
-		if (!user) return;
+		// Skip if we've already initialized or we don't have a user
+		if (hasInitialized.current || !user) return;
+
+		console.log('Initializing subscription component');
+		hasInitialized.current = true;
 
 		// Check if this is part of the onboarding flow
 		const searchParams = new URLSearchParams(location.search);
 		const onboarding = searchParams.get('onboarding') === 'true';
 		setIsOnboarding(onboarding);
 
-		// Only show onboarding message if this is part of that flow and not already shown
+		// Onboarding-specific logic
 		if (
 			onboarding &&
 			!sessionStorage.getItem('onboarding_notification_shown')
@@ -277,9 +293,9 @@ const SubscriptionPage: React.FC = () => {
 			const isTeamPlan = localStorage.getItem('isTeamPlan') === 'true';
 			setShowTeamPlans(isTeamPlan);
 
-			// For onboarding with teams, we need to ensure team data is loaded
+			// For onboarding with teams, ensure team data is loaded
 			if (isTeamPlan && !currentTeam) {
-				// Fetch teams to make sure we have the latest context
+				// Fetch teams to ensure latest context
 				const fetchTeamData = async () => {
 					try {
 						await useTeamStore.getState().fetchTeams();
@@ -288,11 +304,10 @@ const SubscriptionPage: React.FC = () => {
 						console.error('Error fetching teams for onboarding:', teamError);
 					}
 				};
-
 				fetchTeamData();
 			}
 		} else if (onboarding) {
-			// Still set the proper plan view for onboarding without showing notification again
+			// Still set proper plan view for onboarding without showing notification again
 			const isTeamPlan = localStorage.getItem('isTeamPlan') === 'true';
 			setShowTeamPlans(isTeamPlan);
 		} else {
@@ -303,6 +318,7 @@ const SubscriptionPage: React.FC = () => {
 			sessionStorage.removeItem('onboarding_notification_shown');
 		}
 
+		// Look for payment references
 		const reference =
 			searchParams.get('reference') || searchParams.get('trxref');
 
@@ -315,31 +331,32 @@ const SubscriptionPage: React.FC = () => {
 			if (storedReference) {
 				sessionStorage.removeItem('paystack_reference');
 				handlePaymentCallback(storedReference);
-			}
-
-			const upgradeRef = sessionStorage.getItem('paystack_upgrade_reference');
-			if (upgradeRef) {
-				sessionStorage.removeItem('paystack_upgrade_reference');
-				handlePaymentCallback(upgradeRef, true);
 			} else {
-				// Only fetch subscription if there's no payment verification in progress
-				fetchCurrentSubscription();
+				const upgradeRef = sessionStorage.getItem('paystack_upgrade_reference');
+				if (upgradeRef) {
+					sessionStorage.removeItem('paystack_upgrade_reference');
+					handlePaymentCallback(upgradeRef, true);
+				} else {
+					// Only fetch subscription if there's no payment verification in progress
+					fetchCurrentSubscription();
+				}
 			}
 		}
 
-		// Clean up localStorage after loading the plan
-		if (onboarding) {
-			return () => {
+		// Return cleanup function
+		return () => {
+			// Clean up onboarding references if needed
+			if (onboarding) {
 				localStorage.removeItem('selectedPlanType');
 				localStorage.removeItem('isTeamPlan');
-			};
-		}
+			}
+		};
 	}, [
 		user,
 		currentTeam,
+		location.search,
 		handlePaymentCallback,
 		fetchCurrentSubscription,
-		location.search,
 	]);
 
 	// Set default plan only if no subscription and no selectedPlanId
@@ -480,7 +497,7 @@ const SubscriptionPage: React.FC = () => {
 			sessionStorage.getItem('completing_onboarding') === 'true';
 		const hasSubscription = subscription !== null;
 
-		if (completingOnboarding && hasSubscription) {
+		if (completingOnboarding && hasSubscription && !isProcessing) {
 			// Clear flag
 			sessionStorage.removeItem('completing_onboarding');
 
@@ -488,7 +505,7 @@ const SubscriptionPage: React.FC = () => {
 			showToast.success('Account setup complete! Welcome to Amara.');
 			navigate('/agent');
 		}
-	}, [subscription, navigate]);
+	}, [subscription, navigate, isProcessing]);
 
 	const handleCancelSubscription = async () => {
 		if (!subscription) return;
@@ -549,14 +566,6 @@ const SubscriptionPage: React.FC = () => {
 	const availablePlans = planOptions.filter(
 		(plan) => plan.isTeamPlan === showTeamPlans,
 	);
-
-	// Update useEffect to use refreshTeamData for more targeted updates
-	useEffect(() => {
-		if (subscription && subscription.team_id) {
-			// If we have a successful team subscription, refresh that specific team's data
-			refreshTeamData(subscription.team_id);
-		}
-	}, [subscription, fetchTeams]);
 
 	if (storeLoading) {
 		return (
