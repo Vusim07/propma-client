@@ -426,6 +426,9 @@ const ProfileCompletion: React.FC = () => {
 			if (!sessionData.session) {
 				throw new Error('Session lost during profile completion');
 			}
+			// Re-fetch the user from auth store to get the latest state including active_team_id
+			const latestUser = useAuthStore.getState().user;
+			console.log('Latest user state after checkAuth:', latestUser);
 
 			// Store selected plan information for subscription page if agent/landlord
 			if (values.role === 'agent' || values.role === 'landlord') {
@@ -439,13 +442,16 @@ const ProfileCompletion: React.FC = () => {
 					localStorage.setItem('isTeamPlan', 'false');
 				}
 
-				// Redirect to subscription page to complete setup
-				navigate('/agent/subscription?onboarding=true');
-				return;
+				// Redirect to subscription page to complete setup - USE window.location.href
+				console.log(
+					'Redirecting agent/landlord to subscription page with full reload',
+				);
+				window.location.href = '/agent/subscription?onboarding=true';
+				return; // Stop further execution
 			}
 
 			// 6. Handle redirection for other roles (mainly tenants)
-			console.log('Handling redirection...');
+			console.log('Handling redirection for tenant role...');
 			const redirectPath = sessionStorage.getItem('post_profile_redirect');
 
 			if (redirectPath) {
