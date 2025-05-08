@@ -26,6 +26,7 @@ interface TeamActions {
 	createTeam: (name: string, planType: string) => Promise<Team | null>;
 	updateTeam: (id: string, updates: Partial<Team>) => Promise<void>;
 	deleteTeam: (id: string) => Promise<void>;
+	refreshTeamData: (teamId: string) => Promise<Team | null>;
 
 	// Team member management
 	fetchTeamMembers: (teamId: string) => Promise<void>;
@@ -68,8 +69,6 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 	fetchTeams: async () => {
 		set({ isLoading: true, error: null });
 		try {
-			console.log('Fetching teams...');
-
 			const { data: teams, error } = await supabase.from('teams').select(`
 				*,
 				subscription:subscription_id (
@@ -99,8 +98,6 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 				return team;
 			});
 
-			console.log(`Found ${teamsWithStats.length} teams`);
-
 			// Also fetch the active team ID from the user record for onboarding
 			const userId = (await supabase.auth.getUser()).data.user?.id;
 			if (userId) {
@@ -111,15 +108,11 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 					.single();
 
 				if (userData?.active_team_id) {
-					console.log(`User has active team ID: ${userData.active_team_id}`);
 					const activeTeam = teamsWithStats.find(
 						(team) => team.id === userData.active_team_id,
 					);
 					if (activeTeam) {
 						set({ currentTeam: activeTeam });
-						console.log(`Set current team to: ${activeTeam.name}`);
-					} else {
-						console.warn('Active team ID exists but team not found in results');
 					}
 				}
 			}
@@ -581,6 +574,51 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 			}));
 		} catch (error) {
 			console.error('Error fetching team stats:', error);
+		}
+	},
+
+	refreshTeamData: async (teamId: string) => {
+		set({ isLoading: true, error: null });
+		try {
+			// Fetch the specific team with its subscription data
+			const { data: team, error } = await supabase
+				.from('teams')
+				.select(
+					`
+					*,
+					subscription:subscription_id (
+						id,
+						plan_name,
+						status
+					)
+				`,
+				)
+				.eq('id', teamId)
+				.single();
+
+			if (error) throw error;
+
+			// Also refresh team stats
+			await get().fetchTeamStats(teamId);
+
+			// Update the team in the state
+			set((state) => ({
+				teams: state.teams.map((t) =>
+					t.id === teamId ? { ...t, ...team } : t,
+				),
+				currentTeam:
+					state.currentTeam?.id === teamId
+						? { ...state.currentTeam, ...team }
+						: state.currentTeam,
+			}));
+
+			return team as Team;
+		} catch (error) {
+			const pgError = error as PostgrestError;
+			set({ error: pgError.message });
+			return null;
+		} finally {
+			set({ isLoading: false });
 		}
 	},
 }));

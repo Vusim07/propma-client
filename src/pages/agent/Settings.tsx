@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { usePageTitle } from '../../context/PageTitleContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -13,14 +13,15 @@ import SubscriptionPage from './SubscriptionPage';
 import AgentProfileForm from '../../components/agent/AgentProfileForm';
 import InboxIntegration from '../../components/agent/InboxIntegration';
 import Teams from './Teams';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const Settings: React.FC = () => {
 	const { setPageTitle } = usePageTitle();
 	const location = useLocation();
+	const navigate = useNavigate();
 	const [activeTab, setActiveTab] = useState('profile');
 
-	// Handle tab from navigation state
+	// Handle tab from navigation state - only runs once on component mount
 	useEffect(() => {
 		// Check if we have a tab specified in the location state
 		const stateTab = location.state?.activeTab;
@@ -29,18 +30,35 @@ const Settings: React.FC = () => {
 			// Clear the state to avoid persisting across navigation
 			window.history.replaceState({}, document.title);
 		}
-	}, [location.state]);
+	}, [location.state?.activeTab]); // Only depend on the tab value, not the entire state object
 
 	useEffect(() => {
 		setPageTitle('Settings');
 	}, [setPageTitle]);
+
+	// Handle tab change with navigation state
+	const handleTabChange = useCallback(
+		(value: string) => {
+			// Only update if the tab is actually changing
+			if (value !== activeTab) {
+				setActiveTab(value);
+
+				// Update the URL with the tab value without page reload
+				navigate('/agent/settings', {
+					state: { activeTab: value },
+					replace: true,
+				});
+			}
+		},
+		[activeTab, navigate],
+	);
 
 	return (
 		<div>
 			<Tabs
 				defaultValue='profile'
 				value={activeTab}
-				onValueChange={setActiveTab}
+				onValueChange={handleTabChange}
 				className='w-full'
 			>
 				<TabsList className='flex w-full bg-black rounded-lg p-0'>

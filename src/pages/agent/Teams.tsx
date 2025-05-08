@@ -67,7 +67,7 @@ const Teams: React.FC = () => {
 		updateMemberRole,
 		switchTeam,
 		cancelInvitation,
-		fetchTeamStats,
+		refreshTeamData,
 	} = useTeamStore();
 
 	const { user } = useAuthStore();
@@ -75,39 +75,42 @@ const Teams: React.FC = () => {
 	const [isCreateOpen, setIsCreateOpen] = React.useState(false);
 	const [isInviteOpen, setIsInviteOpen] = React.useState(false);
 
-	const createTeamForm = useForm<CreateTeamValues>({
-		resolver: zodResolver(createTeamSchema),
-		defaultValues: {
-			name: '',
-			planType: 'starter',
-		},
-	});
-
-	const inviteMemberForm = useForm<InviteMemberValues>({
-		resolver: zodResolver(inviteMemberSchema),
-		defaultValues: {
-			email: '',
-			role: 'member',
-		},
-	});
-
+	// Initial data fetch - this is the ONLY data fetch that happens automatically
 	useEffect(() => {
 		fetchTeams();
 	}, [fetchTeams]);
 
+	// Fetch team members and invitations when we have a current team
 	useEffect(() => {
 		if (currentTeam?.id) {
 			fetchTeamMembers(currentTeam.id);
 			fetchInvitations(currentTeam.id);
-			fetchTeamStats(currentTeam.id);
 		}
-	}, [currentTeam?.id, fetchTeamMembers, fetchInvitations, fetchTeamStats]);
+	}, [currentTeam?.id, fetchTeamMembers, fetchInvitations]);
+
+	// Function to manually refresh team data
+	const refreshTeamsData = React.useCallback(async () => {
+		await fetchTeams();
+
+		if (currentTeam?.id) {
+			await refreshTeamData(currentTeam.id);
+			await fetchTeamMembers(currentTeam.id);
+			await fetchInvitations(currentTeam.id);
+		}
+	}, [
+		fetchTeams,
+		fetchTeamMembers,
+		fetchInvitations,
+		refreshTeamData,
+		currentTeam,
+	]);
 
 	const handleCreateTeam = async (values: CreateTeamValues) => {
 		const team = await createTeam(values.name, values.planType);
 		if (team) {
 			setIsCreateOpen(false);
 			createTeamForm.reset();
+			refreshTeamsData();
 		}
 	};
 
@@ -127,6 +130,22 @@ const Teams: React.FC = () => {
 		// Navigate to the subscription page
 		navigate('/agent/settings', { state: { activeTab: 'billing' } });
 	};
+
+	const createTeamForm = useForm<CreateTeamValues>({
+		resolver: zodResolver(createTeamSchema),
+		defaultValues: {
+			name: '',
+			planType: 'starter',
+		},
+	});
+
+	const inviteMemberForm = useForm<InviteMemberValues>({
+		resolver: zodResolver(inviteMemberSchema),
+		defaultValues: {
+			email: '',
+			role: 'member',
+		},
+	});
 
 	if (isLoading && teams.length === 0) {
 		return (
@@ -213,6 +232,15 @@ const Teams: React.FC = () => {
 						</Form>
 					</DialogContent>
 				</Dialog>
+
+				{/* Add manual refresh button */}
+				<Button
+					variant='outline'
+					onClick={refreshTeamsData}
+					disabled={isLoading}
+				>
+					Refresh Data
+				</Button>
 			</div>
 
 			<div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>

@@ -155,7 +155,7 @@ const progressBarClass = (percentage: number) =>
 
 const SubscriptionPage: React.FC = () => {
 	const { user } = useAuthStore();
-	const { currentTeam } = useTeamStore();
+	const { currentTeam, fetchTeams, refreshTeamData } = useTeamStore();
 	const navigate = useNavigate();
 	const location = useLocation();
 	const {
@@ -213,7 +213,7 @@ const SubscriptionPage: React.FC = () => {
 		}
 	}, [user, fetchSubscriptions, selectedPlanId, storeError, isOnboarding]);
 
-	// Handle payment callback verification
+	// Modify the handlePaymentCallback function to use refreshTeamData for more targeted updates
 	const handlePaymentCallback = useCallback(
 		async (reference: string, isUpgrade = false) => {
 			setIsProcessing(true);
@@ -222,6 +222,18 @@ const SubscriptionPage: React.FC = () => {
 					reference,
 				);
 				setSubscription(updatedSubscription);
+
+				// If this is a team subscription, refresh team data specifically for that team
+				if (updatedSubscription.team_id) {
+					console.log('Refreshing team data after subscription update');
+					try {
+						// Use the more targeted refreshTeamData function for the specific team
+						await refreshTeamData(updatedSubscription.team_id);
+					} catch (teamError) {
+						console.error('Error refreshing team data:', teamError);
+					}
+				}
+
 				if (isUpgrade) {
 					showToast.success('Plan upgraded successfully');
 				}
@@ -239,7 +251,7 @@ const SubscriptionPage: React.FC = () => {
 				await fetchCurrentSubscription();
 			}
 		},
-		[fetchCurrentSubscription],
+		[fetchCurrentSubscription, refreshTeamData],
 	);
 
 	// Initial setup and subscription fetch
@@ -537,6 +549,14 @@ const SubscriptionPage: React.FC = () => {
 	const availablePlans = planOptions.filter(
 		(plan) => plan.isTeamPlan === showTeamPlans,
 	);
+
+	// Update useEffect to use refreshTeamData for more targeted updates
+	useEffect(() => {
+		if (subscription && subscription.team_id) {
+			// If we have a successful team subscription, refresh that specific team's data
+			refreshTeamData(subscription.team_id);
+		}
+	}, [subscription, fetchTeams]);
 
 	if (storeLoading) {
 		return (
