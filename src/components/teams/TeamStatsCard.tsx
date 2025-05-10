@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
-import { AlertCircle, BadgeCheck } from 'lucide-react';
+import { AlertCircle, BadgeCheck, Users, CreditCard } from 'lucide-react';
 import { Team } from '@/types';
 
 interface TeamStatsCardProps {
@@ -26,13 +26,13 @@ export const TeamStatsCard: React.FC<TeamStatsCardProps> = ({
 		});
 	}, [team]);
 
+	// Member counts and limits
 	const totalMembers = memberCount + pendingInvites;
-	const usagePercentage = (totalMembers / team.max_members) * 100;
-	const isNearLimit = usagePercentage >= 80;
-	const isAtLimit = totalMembers >= team.max_members;
+	const memberPercentage = (totalMembers / team.max_members) * 100;
+	const isNearMemberLimit = memberPercentage >= 80;
+	const isAtMemberLimit = totalMembers >= team.max_members;
 
-	const progressBarWidth = `${Math.min(usagePercentage, 100)}%`;
-
+	// Subscription and usage stats
 	const hasActiveSubscription =
 		team.subscription?.status === 'active' ||
 		(!!team.subscription_id &&
@@ -40,6 +40,18 @@ export const TeamStatsCard: React.FC<TeamStatsCardProps> = ({
 			team.subscription?.status !== 'cancelled');
 
 	const planName = team.subscription?.plan_name || team.plan_type || 'No';
+
+	// Usage stats - these come from the subscription if it exists
+	const usageLimit = team.subscription?.usage_limit || 0;
+	const currentUsage = team.subscription?.current_usage || 0;
+	const usagePercentage =
+		usageLimit > 0 ? (currentUsage / usageLimit) * 100 : 0;
+	const isNearUsageLimit = usagePercentage >= 80;
+	const isAtUsageLimit = currentUsage >= usageLimit;
+
+	// Calculate progress bar widths
+	const memberProgressWidth = `${Math.min(memberPercentage, 100)}%`;
+	const usageProgressWidth = `${Math.min(usagePercentage, 100)}%`;
 
 	return (
 		<Card className={`${className} overflow-hidden`}>
@@ -65,7 +77,13 @@ export const TeamStatsCard: React.FC<TeamStatsCardProps> = ({
 						</div>
 					</div>
 
+					{/* Team members section */}
 					<div className='space-y-2'>
+						<div className='flex items-center gap-2 text-sm font-medium text-gray-700'>
+							<Users className='h-4 w-4' />
+							<h4>Team Members</h4>
+						</div>
+
 						<div className='flex justify-between text-sm text-gray-600'>
 							<span>
 								{memberCount} active member{memberCount !== 1 ? 's' : ''}
@@ -81,13 +99,13 @@ export const TeamStatsCard: React.FC<TeamStatsCardProps> = ({
 						<div className='h-2 bg-gray-100 rounded-full overflow-hidden'>
 							<div
 								className={`h-full transition-all duration-300 ${
-									isAtLimit
+									isAtMemberLimit
 										? 'bg-red-500'
-										: isNearLimit
+										: isNearMemberLimit
 										? 'bg-yellow-500'
 										: 'bg-blue-500'
 								}`}
-								style={{ width: progressBarWidth }}
+								style={{ width: memberProgressWidth }}
 							/>
 						</div>
 
@@ -95,13 +113,13 @@ export const TeamStatsCard: React.FC<TeamStatsCardProps> = ({
 							<span className='text-gray-600'>
 								{totalMembers} / {team.max_members} members
 							</span>
-							{isAtLimit && (
+							{isAtMemberLimit && (
 								<span className='text-red-600 flex items-center gap-1'>
 									<AlertCircle className='h-4 w-4' />
 									At capacity
 								</span>
 							)}
-							{!isAtLimit && isNearLimit && (
+							{!isAtMemberLimit && isNearMemberLimit && (
 								<span className='text-yellow-600 flex items-center gap-1'>
 									<AlertCircle className='h-4 w-4' />
 									Near capacity
@@ -109,6 +127,47 @@ export const TeamStatsCard: React.FC<TeamStatsCardProps> = ({
 							)}
 						</div>
 					</div>
+
+					{/* Screening credits section - only show if there's an active subscription */}
+					{hasActiveSubscription && usageLimit > 0 && (
+						<div className='space-y-2 pt-2 border-t border-gray-100'>
+							<div className='flex items-center gap-2 text-sm font-medium text-gray-700'>
+								<CreditCard className='h-4 w-4' />
+								<h4>Screening Credits</h4>
+							</div>
+
+							<div className='h-2 bg-gray-100 rounded-full overflow-hidden'>
+								<div
+									className={`h-full transition-all duration-300 ${
+										isAtUsageLimit
+											? 'bg-red-500'
+											: isNearUsageLimit
+											? 'bg-yellow-500'
+											: 'bg-green-500'
+									}`}
+									style={{ width: usageProgressWidth }}
+								/>
+							</div>
+
+							<div className='flex justify-between items-center text-sm'>
+								<span className='text-gray-600'>
+									{currentUsage} / {usageLimit} credits used
+								</span>
+								{isAtUsageLimit && (
+									<span className='text-red-600 flex items-center gap-1'>
+										<AlertCircle className='h-4 w-4' />
+										Limit reached
+									</span>
+								)}
+								{!isAtUsageLimit && isNearUsageLimit && (
+									<span className='text-yellow-600 flex items-center gap-1'>
+										<AlertCircle className='h-4 w-4' />
+										Running low
+									</span>
+								)}
+							</div>
+						</div>
+					)}
 				</div>
 			</CardContent>
 		</Card>

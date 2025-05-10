@@ -117,11 +117,10 @@ class AffordabilityService {
 			console.log(
 				`Creating affordability analysis for application ${applicationId}`,
 			);
-
-			// Get the tenant profile ID first
+			// Modified: Retrieve both tenant_id and agent_id from the application record
 			const { data: application, error: appError } = await supabase
 				.from('applications')
-				.select('tenant_id')
+				.select('tenant_id, agent_id')
 				.eq('id', applicationId)
 				.single();
 
@@ -129,9 +128,20 @@ class AffordabilityService {
 				console.error('Error fetching application:', appError);
 				throw appError;
 			}
+			const agentId = application.agent_id;
 
-			if (!application?.tenant_id) {
-				throw new Error('No tenant profile ID found for this application');
+			// New Subscription Check: Ensure agent has an active subscription and usage is within limit
+			const { data: subscription, error: subError } = await supabase
+				.from('subscriptions')
+				.select('*')
+				.eq('user_id', agentId)
+				.eq('status', 'active')
+				.single();
+			if (subError || !subscription) {
+				throw new Error('No active subscription found for screening.');
+			}
+			if (subscription.current_usage >= subscription.usage_limit) {
+				throw new Error('Subscription usage limit exceeded.');
 			}
 
 			// 1. Get transactions AND raw bank statement data
@@ -197,6 +207,9 @@ class AffordabilityService {
 				applicationId,
 				affordabilityResponse,
 			);
+
+			// New: Increment subscription usage after a successful screening
+			await supabase.rpc('increment_screening_usage', { agent_id: agentId });
 
 			return affordabilityResponse;
 		} catch (error) {
@@ -423,6 +436,16 @@ class AffordabilityService {
 				throw appError;
 			}
 
+			// NEW: Get tenant profile ID (which may differ from user ID)
+			const { data: tenantProfile, error: tenantProfileError } = await supabase
+				.from('tenant_profiles')
+				.select('*')
+				.eq('id', application.tenant_id)
+				.maybeSingle();
+			if (tenantProfileError || !tenantProfile) {
+				throw new Error('No tenant profile found for this user');
+			}
+
 			// Get the most recent credit report for this tenant
 			const { data: creditReport, error: creditError } = await supabase
 				.from('credit_reports')
@@ -444,11 +467,10 @@ class AffordabilityService {
 				preApprovalStatus,
 			);
 
-			// Prepare RPC payload (now includes agent_id and tenant_id)
 			const reportPayload = {
 				p_application_id: applicationId,
-				p_agent_id: application.agent_id,
-				p_tenant_id: application.tenant_id, // <-- Pass tenant profile ID
+				p_agent_id_val: application.agent_id, // renamed key
+				p_tenant_id_val: tenantProfile.id, // renamed key
 				p_affordability_score: rentToIncomeRatio,
 				p_affordability_notes: affordabilityNotes,
 				p_income_verification:
@@ -462,14 +484,28 @@ class AffordabilityService {
 				p_credit_report_id: creditReport?.id || null,
 			};
 
-			// Call RPC function
+			// Add detailed logging
+			console.log('RPC Payload:', {
+				applicationId,
+				agentId: application.agent_id,
+				tenantId: tenantProfile.id,
+				// ... other fields
+			});
+
 			const { data, error } = await supabase.rpc(
 				'save_screening_report',
 				reportPayload,
 			);
 
 			if (error) {
-				console.error('Error calling save_screening_report RPC:', error);
+				// Enhanced error logging
+				console.error('RPC Error Details:', {
+					code: error.code,
+					message: error.message,
+					details: error.details,
+					hint: error.hint,
+					payload: reportPayload, // Log the exact payload that caused the error
+				});
 				throw error;
 			}
 

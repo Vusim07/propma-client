@@ -150,8 +150,7 @@ const creditBundles = [
 	},
 ];
 
-const progressBarClass = (percentage: number) =>
-	`bg-blue-600 h-full w-[${Math.min(100, percentage)}%]`;
+const progressBarClass = `bg-blue-600 h-full`;
 
 const SubscriptionPage: React.FC = () => {
 	const hasInitialized = useRef(false);
@@ -698,10 +697,14 @@ const SubscriptionPage: React.FC = () => {
 							<h4 className='font-medium mb-2'>Usage</h4>
 							<div className='bg-gray-100 rounded-full h-4 w-full overflow-hidden'>
 								<div
-									className={progressBarClass(
-										(subscription.current_usage / subscription.usage_limit) *
+									className={progressBarClass}
+									style={{
+										width: `${Math.min(
+											(subscription.current_usage / subscription.usage_limit) *
+												100,
 											100,
-									)}
+										)}%`,
+									}}
 								></div>
 							</div>
 							<p className='text-sm mt-2 text-gray-600'>

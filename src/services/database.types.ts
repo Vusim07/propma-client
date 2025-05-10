@@ -1016,8 +1016,8 @@ export interface Database {
 			save_screening_report: {
 				Args: {
 					p_application_id: string;
-					p_agent_id: string;
-					p_tenant_id: string; // <-- Added tenant profile ID as required
+					p_agent_id_val: string; // renamed parameter to match SQL function
+					p_tenant_id_val: string; // renamed parameter to match SQL function
 					p_affordability_score: number;
 					p_affordability_notes: string;
 					p_income_verification: boolean;
@@ -1070,6 +1070,40 @@ export interface Database {
 					property_id_param: string;
 				};
 				Returns: Array<any>; // You can refine this to Application[] if needed
+			};
+			// Subscription usage tracking function
+			increment_screening_usage: {
+				Args: {
+					agent_id: string;
+				};
+				Returns: {
+					success: boolean;
+					message: string;
+					current_usage?: number;
+					usage_limit?: number;
+					remaining?: number;
+					is_team?: boolean;
+				};
+			};
+			// Added new RPC function to insert an application
+			insert_application: {
+				Args: {
+					p_property_id: string;
+					p_agent_id: string;
+					p_tenant_id: string;
+					p_employer: string;
+					p_employment_duration: number;
+					p_monthly_income: number;
+					p_notes: string | null;
+				};
+				Returns: string;
+			};
+			// Added new RPC function to get property by token
+			get_property_by_token: {
+				Args: {
+					token_param: string;
+				};
+				Returns: Database['public']['Tables']['properties']['Row'][];
 			};
 		};
 	};

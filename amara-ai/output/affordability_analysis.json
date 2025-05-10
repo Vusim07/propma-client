@@ -1,41 +1,67 @@
 {
   "can_afford": true,
-  "confidence": 0.88,
+  "confidence": 0.92,
   "risk_factors": [
-    "High discretionary spending",
-    "Variable income source",
-    "Existing debt obligations"
+    "High variable expenses in the last three months",
+    "Existing credit obligations may affect disposable income"
   ],
   "recommendations": [
-    "Reduce non-essential expenses",
-    "Create a budget for variable income months",
-    "Consider additional income sources for savings"
+    "Improve budgeting to manage variable expenses",
+    "Consider refinancing existing debt for lower interest rates",
+    "Set aside a buffer for unexpected expenses"
   ],
   "metrics": {
-    "monthly_income": 27500.00,
-    "monthly_expenses": 6900.00,
-    "debt_to_income_ratio": 0.25,
-    "rent_to_income_ratio": 0.30,
-    "target_rent": 8250.00
+    "monthly_income": 27500,
+    "monthly_rent": 8250,
+    "rent_to_income_ratio": 0.3,
+    "debt_to_income_ratio": 0.2,
+    "total_monthly_expenses": 16500,
+    "net_disposable_income": 11000
   },
   "transaction_analysis": {
-    "essential_expenses": {
-      "housing": 4500.00,
-      "utilities": 1200.00,
-      "groceries": 2500.00
-    },
-    "discretionary_expenses": {
-      "restaurants": 1500.00,
-      "entertainment": 1000.00,
-      "shopping": 800.00
-    },
-    "income_sources": {
-      "salary": 25000.00,
-      "freelance": 2500.00
-    },
-    "debt_obligations": {
-      "personal_loan": 2000.00,
-      "credit_card": 1600.00
-    }
+    "income": [
+      {
+        "source": "Salary",
+        "amount": 25000,
+        "date": "2023-10-01"
+      },
+      {
+        "source": "Bonus",
+        "amount": 2500,
+        "date": "2023-09-15"
+      }
+    ],
+    "expenses": [
+      {
+        "category": "Housing",
+        "amount": 6500,
+        "date": "2023-10-05"
+      },
+      {
+        "category": "Utilities",
+        "amount": 800,
+        "date": "2023-10-10"
+      },
+      {
+        "category": "Groceries",
+        "amount": 2500,
+        "date": "2023-10-15"
+      },
+      {
+        "category": "Transport",
+        "amount": 1500,
+        "date": "2023-10-20"
+      },
+      {
+        "category": "Entertainment",
+        "amount": 1200,
+        "date": "2023-10-25"
+      },
+      {
+        "category": "Debt Repayment",
+        "amount": 3000,
+        "date": "2023-10-30"
+      }
+    ]
   }
 }

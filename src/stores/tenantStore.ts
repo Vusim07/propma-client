@@ -11,8 +11,9 @@ import {
 	UpdateTenantProfile,
 	Property,
 	Application,
+	Tables,
 } from '../types';
-import { TablesInsert } from '../services/database.types'; // Corrected path
+import { InsertTables } from '../services/database.types'; // Corrected path
 
 interface TenantState {
 	profile: TenantProfile | null;
@@ -34,7 +35,7 @@ interface TenantState {
 	fetchScreeningReport: (id: string) => Promise<void>;
 	fetchAppointments: (tenantId: string) => Promise<void>;
 	scheduleAppointment: (
-		appointment: Omit<TablesInsert<'appointments'>, 'id' | 'created_at'>,
+		appointment: Omit<InsertTables<'appointments'>, 'id' | 'created_at'>,
 	) => Promise<void>;
 	fetchPropertyByToken: (token: string) => Promise<Property | null>;
 	submitApplication: (application: {
@@ -90,7 +91,7 @@ export const useTenantStore = create<TenantState>((set) => ({
 
 			// If no tenant profile exists yet, create a default one
 			if (!tenantData) {
-				const defaultProfile: TenantProfile = {
+				const defaultProfile: Tables<'tenant_profiles'> = {
 					...userData,
 					current_address: '',
 					id_number: '',
@@ -103,10 +104,7 @@ export const useTenantStore = create<TenantState>((set) => ({
 			}
 
 			// Merge existing user data with tenant profile data
-			const profileData: TenantProfile = {
-				...userData,
-				...tenantData,
-			};
+			const profileData = tenantData as Tables<'tenant_profiles'>;
 
 			set({ profile: profileData, isLoading: false });
 			console.log('Tenant profile:', profileData);
@@ -302,8 +300,6 @@ export const useTenantStore = create<TenantState>((set) => ({
 				}
 			}
 
-			// At this point, we're likely dealing with an auth user ID
-			// First, get the tenant profile ID that corresponds to this auth user ID
 			const { data: profileData, error: profileError } = await supabase
 				.from('tenant_profiles')
 				.select('id')
@@ -451,13 +447,13 @@ export const useTenantStore = create<TenantState>((set) => ({
 	},
 
 	scheduleAppointment: async (
-		appointment: Omit<TablesInsert<'appointments'>, 'id' | 'created_at'>,
+		appointment: Omit<InsertTables<'appointments'>, 'id' | 'created_at'>,
 	): Promise<void> => {
 		set({ isLoading: true, error: null });
 		try {
 			console.log('Scheduling appointment with payload:', appointment);
 			// Ensure the payload matches the expected type for insertion
-			const appointmentPayload: TablesInsert<'appointments'> = {
+			const appointmentPayload: InsertTables<'appointments'> = {
 				...appointment,
 				status: appointment.status || 'scheduled', // Default status
 			};

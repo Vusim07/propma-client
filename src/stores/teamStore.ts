@@ -74,7 +74,9 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 				subscription:subscription_id (
 					id,
 					plan_name,
-					status
+					status,
+					usage_limit,
+					current_usage
 				),
 				stats:team_stats (
 					member_count,
@@ -591,7 +593,9 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 					subscription:subscription_id (
 						id,
 						plan_name,
-						status
+						status,
+						usage_limit,
+						current_usage
 					)
 				`,
 				)

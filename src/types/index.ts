@@ -83,6 +83,8 @@ export type Team = Tables<'teams'> & {
 		id: string;
 		plan_name: string;
 		status: 'active' | 'inactive' | 'cancelled';
+		usage_limit: number;
+		current_usage: number;
 		created_at: string;
 		updated_at: string;
 	};
@@ -94,6 +96,8 @@ export interface TeamSubscription {
 	id: string;
 	plan_name: string;
 	status: 'active' | 'inactive' | 'cancelled';
+	usage_limit: number;
+	current_usage: number;
 	created_at: string;
 	updated_at: string;
 }

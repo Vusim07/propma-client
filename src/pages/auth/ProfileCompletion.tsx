@@ -338,7 +338,8 @@ const ProfileCompletion: React.FC = () => {
 				last_name: values.lastName,
 				role: values.role,
 				phone: values.phone || null,
-				company_name: values.companyName || null,
+				// Changed: pass companyName directly (empty string if not provided)
+				company_name: values.companyName,
 				is_individual: !values.isTeamSetup,
 			};
 
@@ -414,6 +415,37 @@ const ProfileCompletion: React.FC = () => {
 				if (!userEmail) {
 					showToast.error('User email not found');
 					return;
+				}
+				// Try to fetch existing tenant profile
+				const { data: tenantProfileData } = await supabase
+					.from('tenant_profiles')
+					.select('id')
+					.eq('tenant_id', session.user.id)
+					.maybeSingle();
+				tenantProfileId = tenantProfileData?.id;
+				if (!tenantProfileId) {
+					// Create a default tenant profile if none exists
+					const { data: newProfile, error: createError } = await supabase
+						.from('tenant_profiles')
+						.insert({
+							tenant_id: session.user.id,
+							first_name: values.firstName,
+							last_name: values.lastName,
+							email: userEmail,
+							phone: values.phone,
+							employer: values.companyName,
+							current_address: values.current_address,
+							id_number: values.id_number,
+							employment_status: values.employment_status,
+							monthly_income: values.monthly_income ?? 0,
+						})
+						.select('id')
+						.single();
+					if (createError) {
+						showToast.error(createError.message);
+						return;
+					}
+					tenantProfileId = newProfile.id;
 				}
 			}
 

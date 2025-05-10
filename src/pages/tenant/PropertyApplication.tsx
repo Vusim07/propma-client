@@ -31,6 +31,7 @@ export const AuthFlowContext = createContext<{ isPropertyFlow: boolean }>({
 });
 
 // Provide a hook to use the context safely
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuthFlowContext = () => {
 	const context = useContext(AuthFlowContext);
 	// If context is used outside the provider, it will return the default value
