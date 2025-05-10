@@ -41,6 +41,15 @@ interface QueuedFile {
 // Required document types for a complete application
 const REQUIRED_DOCUMENT_TYPES = ['id_document', 'bank_statement', 'payslip'];
 
+// Helper to determine if a document is valid (uploaded in the last 30 days)
+const isDocumentValid = (docDate: string): boolean => {
+	const createdAt = new Date(docDate);
+	const now = new Date();
+	const diff = now.getTime() - createdAt.getTime();
+	const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+	return diff <= THIRTY_DAYS;
+};
+
 const DocumentUpload: React.FC = () => {
 	const { user } = useAuthStore();
 	const { setPageTitle } = usePageTitle();
@@ -220,7 +229,7 @@ const DocumentUpload: React.FC = () => {
 			});
 
 			// Upload document to database
-			await uploadDocument(documentData);
+			await uploadDocument(documentData as any);
 
 			// Update queue item as processed
 			setFileQueue((prev) =>
@@ -293,35 +302,17 @@ const DocumentUpload: React.FC = () => {
 
 	// Check which required documents are missing
 	const checkRequiredDocuments = () => {
-		// Get all document types, normalize to lowercase
-		const uploadedTypes = documents
-			.filter((doc) => doc.application_id === applicationId) // Filter by current application
-			.map((doc) => normalizeDocType(doc.document_type));
-
-		console.log(
-			'Normalized uploaded types for this application:',
-			uploadedTypes,
+		// Only consider documents that are valid (within 30 days)
+		const validDocs = documents.filter((doc) =>
+			isDocumentValid(doc.created_at),
 		);
-
-		// Normalize required types
-		const normalizedRequiredTypes = REQUIRED_DOCUMENT_TYPES.map((type) =>
-			normalizeDocType(type),
+		const uploadedTypes = validDocs.map((doc) =>
+			doc.document_type.toLowerCase().replace(/[_\s-]/g, ''),
 		);
-		console.log('Normalized required types:', normalizedRequiredTypes);
-
-		// Check which required types are missing
-		return REQUIRED_DOCUMENT_TYPES.filter(
-			(requiredType) =>
-				!uploadedTypes.some(
-					(uploadedType) =>
-						normalizeDocType(uploadedType).includes(
-							normalizeDocType(requiredType),
-						) ||
-						normalizeDocType(requiredType).includes(
-							normalizeDocType(uploadedType),
-						),
-				),
-		);
+		return REQUIRED_DOCUMENT_TYPES.filter((requiredType) => {
+			const normRequired = requiredType.toLowerCase().replace(/[_\s-]/g, '');
+			return !uploadedTypes.includes(normRequired);
+		});
 	};
 
 	// Complete the application process
@@ -689,24 +680,25 @@ const DocumentUpload: React.FC = () => {
 					<CardContent>
 						<div className='space-y-4'>
 							{REQUIRED_DOCUMENT_TYPES.map((type) => {
-								const isUploaded = documents.some(
+								const validUploaded = documents.some(
 									(doc) =>
-										doc.application_id === applicationId &&
-										normalizeDocType(doc.document_type).includes(
-											normalizeDocType(type),
-										),
+										isDocumentValid(doc.created_at) &&
+										doc.document_type
+											.toLowerCase()
+											.replace(/[_\s-]/g, '')
+											.includes(type.toLowerCase().replace(/[_\s-]/g, '')),
 								);
 								return (
 									<div
 										key={type}
 										className={`p-4 rounded-lg border ${
-											isUploaded
+											validUploaded
 												? 'border-green-200 bg-green-50'
 												: 'border-gray-200 bg-gray-50'
 										}`}
 									>
 										<div className='flex items-center'>
-											{isUploaded ? (
+											{validUploaded ? (
 												<CheckCircle className='h-5 w-5 text-green-500 mr-3 flex-shrink-0' />
 											) : (
 												<Plus className='h-5 w-5 text-gray-400 mr-3 flex-shrink-0' />
@@ -716,7 +708,7 @@ const DocumentUpload: React.FC = () => {
 													{getDocumentTypeLabel(type)}
 												</p>
 												<p className='text-sm text-gray-600'>
-													{isUploaded ? 'Uploaded' : 'Required'}
+													{validUploaded ? 'Uploaded (Valid)' : 'Required'}
 												</p>
 											</div>
 										</div>
@@ -755,65 +747,65 @@ const DocumentUpload: React.FC = () => {
 						)}
 					</CardContent>
 				</Card>
-			</div>
 
-			{/* Uploaded Documents */}
-			<Card className='mt-6'>
-				<CardHeader>
-					<h2 className='text-lg font-semibold'>Uploaded Documents</h2>
-				</CardHeader>
-				<CardContent>
-					{isLoading ? (
-						<div className='flex justify-center py-8'>
-							<Spinner />
-						</div>
-					) : documents.length > 0 ? (
-						<div className='divide-y divide-gray-200'>
-							{documents.map((doc) => (
-								<div key={doc.id} className='py-4 first:pt-0 last:pb-0'>
-									<div className='flex items-start justify-between'>
-										<div className='flex items-center'>
-											<FileText className='h-5 w-5 text-blue-500 mr-3' />
-											<div>
-												<p className='font-medium text-gray-900'>
-													{doc.file_name}
-												</p>
-												<div className='flex items-center mt-1'>
-													<span className='text-sm text-gray-500 mr-3'>
-														{new Date(doc.created_at).toLocaleDateString()}
-													</span>
-													<span className='text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full'>
-														{getDocumentTypeLabel(doc.document_type)}
-													</span>
+				{/* Uploaded Documents */}
+				<Card className='mt-6'>
+					<CardHeader>
+						<h2 className='text-lg font-semibold'>Uploaded Documents</h2>
+					</CardHeader>
+					<CardContent>
+						{isLoading ? (
+							<div className='flex justify-center py-8'>
+								<Spinner />
+							</div>
+						) : documents.length > 0 ? (
+							<div className='divide-y divide-gray-200'>
+								{documents.map((doc) => (
+									<div key={doc.id} className='py-4 first:pt-0 last:pb-0'>
+										<div className='flex items-start justify-between'>
+											<div className='flex items-center'>
+												<FileText className='h-5 w-5 text-blue-500 mr-3' />
+												<div>
+													<p className='font-medium text-gray-900'>
+														{doc.file_name}
+													</p>
+													<div className='flex items-center mt-1'>
+														<span className='text-sm text-gray-500 mr-3'>
+															{new Date(doc.created_at).toLocaleDateString()}
+														</span>
+														<span className='text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full'>
+															{getDocumentTypeLabel(doc.document_type)}
+														</span>
+													</div>
 												</div>
 											</div>
-										</div>
-										<div className='flex items-center'>
-											{doc.verification_status === 'pending' && (
-												<span className='text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full mr-3'>
-													Pending Verification
-												</span>
-											)}
-											{doc.verification_status === 'verified' && (
-												<span className='text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full mr-3'>
-													Verified
-												</span>
-											)}
-											<Button variant='outline' size='sm'>
-												View
-											</Button>
+											<div className='flex items-center'>
+												{doc.verification_status === 'pending' && (
+													<span className='text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full mr-3'>
+														Pending Verification
+													</span>
+												)}
+												{doc.verification_status === 'verified' && (
+													<span className='text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full mr-3'>
+														Verified
+													</span>
+												)}
+												<Button variant='outline' size='sm'>
+													View
+												</Button>
+											</div>
 										</div>
 									</div>
-								</div>
-							))}
-						</div>
-					) : (
-						<div className='text-center py-8'>
-							<p className='text-gray-500'>No documents uploaded yet</p>
-						</div>
-					)}
-				</CardContent>
-			</Card>
+								))}
+							</div>
+						) : (
+							<div className='text-center py-8'>
+								<p className='text-gray-500'>No documents uploaded yet</p>
+							</div>
+						)}
+					</CardContent>
+				</Card>
+			</div>
 		</div>
 	);
 };

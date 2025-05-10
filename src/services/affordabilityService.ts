@@ -209,7 +209,7 @@ class AffordabilityService {
 			);
 
 			// New: Increment subscription usage after a successful screening
-			await supabase.rpc('increment_screening_usage', { agent_id: agentId });
+			await supabase.rpc('increment_screening_usage', { p_agent_id: agentId });
 
 			return affordabilityResponse;
 		} catch (error) {
