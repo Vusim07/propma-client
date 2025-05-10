@@ -1,0 +1,2 @@
+id,property_id,tenant_id,agent_id,status,monthly_income,employer,employment_duration,notes,created_at,updated_at,team_id,decision_at
+a07c2f02-e939-454c-892e-ed0a934666a9,c0c9c538-ca5b-458f-bb73-506d3748b274,cf1f8e20-b814-4e13-91e9-b3d6d8a81649,77dff4d2-f083-493b-9060-ab1220d8763a,pending,32000.00,Arda Analytics,18,I'm interested in this space,2025-05-10 17:21:03.751666+00,2025-05-10 17:21:03.751666+00,,2025-05-10 19:19:36.866027+00

@@ -1,1 +1,43 @@
-{"can_afford":true,"confidence":0.88,"risk_factors":["High discretionary spending on entertainment","Existing credit obligations"],"recommendations":["Monitor discretionary spending to improve savings","Consider reducing existing debts for better financial health"],"metrics":{"gross_income":22000,"net_income":17600,"monthly_expenses":4000,"target_rent":6500,"rent_to_income_ratio":29.55,"debt_to_income_ratio":18.18},"transaction_analysis":{"essential_expenses":[{"description":"groceries","amount":2000},{"description":"utilities","amount":1000},{"description":"transport","amount":1000}],"discretionary_expenses":[{"description":"dining out","amount":1500},{"description":"entertainment","amount":800}],"income_sources":[{"description":"salary","amount":22000}]}}
+{
+  "can_afford": true,
+  "confidence": 0.88,
+  "risk_factors": [
+    "Employment stability is low with recent job changes",
+    "High discretionary spending observed in transactions"
+  ],
+  "recommendations": [
+    "Reduce discretionary spending to improve savings rate",
+    "Maintain employment consistency for better financial security",
+    "Consider a financial advisor for budgeting assistance"
+  ],
+  "metrics": {
+    "monthly_income": 22000,
+    "monthly_expenses": 6000,
+    "debt_to_income_ratio": 0.25,
+    "rent_to_income_ratio": 0.30,
+    "total_savings": 30000
+  },
+  "transaction_analysis": {
+    "income": {
+      "salary": 20000,
+      "freelance": 2000,
+      "other": 0
+    },
+    "expenses": {
+      "rent": 6500,
+      "utilities": 1200,
+      "groceries": 2500,
+      "transport": 1500,
+      "entertainment": 2000,
+      "savings": 5000
+    },
+    "savings": {
+      "monthly_savings": 2000,
+      "total_savings": 30000
+    },
+    "debts": {
+      "credit_card": 8000,
+      "personal_loan": 10000
+    }
+  }
+}
