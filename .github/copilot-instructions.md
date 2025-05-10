@@ -100,6 +100,8 @@ Maintain consistency in components/functions creation (e.g if there are already 
 
 Test your code.
 
+More instructions on how to write your code can be found in the `/github/react-instructions` and `/github/typescript-instructions` .
+
 
 
 
