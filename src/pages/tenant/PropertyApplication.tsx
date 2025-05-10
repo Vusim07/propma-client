@@ -9,7 +9,7 @@ import Spinner from '../../components/ui/Spinner';
 import Alert from '../../components/ui/Alert';
 import { Property, Application, TenantProfile } from '../../types';
 import { showToast } from '../../utils/toast';
-import { Input } from '../../components/ui/Input';
+import { Input } from '../../components/ui/input';
 import {
 	Calendar,
 	Home,

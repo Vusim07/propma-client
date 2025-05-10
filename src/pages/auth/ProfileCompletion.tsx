@@ -24,7 +24,7 @@ import {
 	SelectContent,
 	SelectItem,
 } from '../../components/ui/Select';
-import { Input } from '../../components/ui/Input';
+import { Input } from '../../components/ui/input';
 import Spinner from '../../components/ui/Spinner';
 import { TenantProfile } from '../../types';
 import { useTeamStore } from '../../stores/teamStore';
@@ -338,7 +338,7 @@ const ProfileCompletion: React.FC = () => {
 				last_name: values.lastName,
 				role: values.role,
 				phone: values.phone || null,
-				// Changed: pass companyName directly (empty string if not provided)
+
 				company_name: values.companyName,
 				is_individual: !values.isTeamSetup,
 			};
