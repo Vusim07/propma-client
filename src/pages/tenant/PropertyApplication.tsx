@@ -691,7 +691,7 @@ const PropertyApplication: React.FC = () => {
 				throw new Error('Failed to create application');
 			}
 
-			showToast.success('Application submitted successfully');
+			// showToast.success('Application submitted successfully');
 
 			// Redirect to tenant document upload page with the application ID
 			navigate(`/tenant/documents?application=${application.id}`);
