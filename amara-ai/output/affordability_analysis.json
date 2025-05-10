@@ -1,43 +1,35 @@
 {
   "can_afford": true,
-  "confidence": 0.88,
+  "confidence": 0.85,
   "risk_factors": [
-    "Employment stability is low with recent job changes",
-    "High discretionary spending observed in transactions"
+    "High discretionary spending identified.",
+    "Existing debt obligations present.",
+    "Income variability observed."
   ],
   "recommendations": [
-    "Reduce discretionary spending to improve savings rate",
-    "Maintain employment consistency for better financial security",
-    "Consider a financial advisor for budgeting assistance"
+    "Reduce discretionary spending to improve savings.",
+    "Consider consolidating existing debt.",
+    "Monitor income trends for any potential fluctuations."
   ],
   "metrics": {
-    "monthly_income": 22000,
-    "monthly_expenses": 6000,
-    "debt_to_income_ratio": 0.25,
-    "rent_to_income_ratio": 0.30,
-    "total_savings": 30000
+    "monthly_income": 22000.00,
+    "monthly_expenses": 14000.00,
+    "debt_to_income_ratio": 0.27,
+    "rent_to_income_ratio": 0.30
   },
   "transaction_analysis": {
     "income": {
-      "salary": 20000,
-      "freelance": 2000,
-      "other": 0
+      "salary": 20000.00,
+      "additional_income": 2000.00
     },
     "expenses": {
-      "rent": 6500,
-      "utilities": 1200,
-      "groceries": 2500,
-      "transport": 1500,
-      "entertainment": 2000,
-      "savings": 5000
+      "housing": 0.00,
+      "utilities": 1500.00,
+      "transport": 2000.00,
+      "groceries": 3000.00,
+      "entertainment": 2000.00,
+      "debt_repayments": 8000.00
     },
-    "savings": {
-      "monthly_savings": 2000,
-      "total_savings": 30000
-    },
-    "debts": {
-      "credit_card": 8000,
-      "personal_loan": 10000
-    }
+    "net_savings": 8000.00
   }
 }
