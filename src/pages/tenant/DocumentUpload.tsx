@@ -296,10 +296,6 @@ const DocumentUpload: React.FC = () => {
 		}
 	};
 
-	// Helper function to normalize document types for comparison
-	const normalizeDocType = (type: string): string =>
-		type.toLowerCase().replace(/[_\s-]/g, '');
-
 	// Check which required documents are missing
 	const checkRequiredDocuments = () => {
 		// Only consider documents that are valid (within 30 days)
@@ -361,7 +357,9 @@ const DocumentUpload: React.FC = () => {
 			showToast.dismiss(toastId as any);
 
 			if (result) {
-				showToast.success('Application completed successfully!');
+				showToast.success(
+					'Application submitted successfully! Login to view results.',
+				);
 
 				// Verify session is still active before navigating
 				try {
