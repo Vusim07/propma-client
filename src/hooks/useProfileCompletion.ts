@@ -173,22 +173,33 @@ export const useProfileCompletion = (session: any) => {
 			if (redirectPath) {
 				console.log('Found stored redirect path:', redirectPath);
 				sessionStorage.removeItem('post_profile_redirect');
-				sessionStorage.setItem('returning_from_profile_completion', 'true');
-				window.location.href = redirectPath;
+				sessionStorage.removeItem('returning_from_profile_completion');
+
+				// Check if we're coming from a property application
+				if (redirectPath.includes('/apply/')) {
+					navigate(redirectPath, { replace: true });
+					window.location.reload(); // Force full page reload
+				} else {
+					// Default tenant redirect
+					navigate(
+						`/tenant/documents${
+							tenantProfileId ? `?profileId=${tenantProfileId}` : ''
+						}`,
+					);
+					window.location.reload(); // Force full page reload
+				}
 				return;
 			}
 
-			const destination =
+			// Default redirect if no stored path
+			navigate(
 				values.role === 'tenant'
-					? tenantProfileId
-						? `/tenant/documents?profileId=${tenantProfileId}`
-						: '/tenant/documents'
-					: values.role === 'agent' || values.role === 'landlord'
-					? '/agent'
-					: '/';
-
-			console.log('Redirecting to default destination:', destination);
-			window.location.href = destination;
+					? `/tenant/documents${
+							tenantProfileId ? `?profileId=${tenantProfileId}` : ''
+					  }`
+					: '/agent',
+			);
+			window.location.reload(); // Force full page reload
 		} catch (error: any) {
 			console.error('Profile completion error:', error);
 			showToast.error(error.message || 'Failed to complete your profile');

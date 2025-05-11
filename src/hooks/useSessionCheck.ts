@@ -23,18 +23,13 @@ export const useSessionCheck = (form: any, user: any) => {
 
 			setSession(data.session);
 
-			// Only initialize form if no existing values
 			if (!form.formState.isDirty) {
 				form.setValue('tenant_id', data.session.user?.id || '');
 
-				// Initialize role only if not already set
 				if (!form.getValues('role')) {
 					const currentRole = user?.role === 'pending' ? 'tenant' : user?.role;
 					const finalRole =
-						currentRole ||
-						data.session.user?.user_metadata?.role ||
-						localStorage.getItem('userRole') ||
-						'tenant';
+						currentRole || data.session.user?.user_metadata?.role || 'tenant';
 					form.setValue('role', finalRole);
 				}
 
@@ -44,7 +39,12 @@ export const useSessionCheck = (form: any, user: any) => {
 					form.setValue('phone', user.phone || '');
 					form.setValue('companyName', user.company_name || '');
 
-					if (user.role === 'tenant' && user.email) {
+					// Only fetch tenant profile if role is tenant and we haven't already
+					if (
+						user.role === 'tenant' &&
+						user.email &&
+						!form.getValues('id_number')
+					) {
 						const tenantData = await fetchTenantProfile(user.email);
 						if (tenantData) {
 							form.setValue('id_number', tenantData.id_number || '');
@@ -72,32 +72,12 @@ export const useSessionCheck = (form: any, user: any) => {
 					if (authUser?.user_metadata) {
 						const fullName = authUser.user_metadata.full_name || '';
 						const nameParts = fullName.split(' ');
-						form.setValue('firstName', nameParts[0] || '');
-						form.setValue('lastName', nameParts.slice(1).join(' ') || '');
-						form.setValue('phone', authUser.phone || '');
 
-						if (authUser.email && form.getValues('role') === 'tenant') {
-							const tenantData = await fetchTenantProfile(authUser.email);
-							if (tenantData) {
-								form.setValue('id_number', tenantData.id_number || '');
-								form.setValue(
-									'employment_status',
-									tenantData.employment_status || '',
-								);
-								form.setValue(
-									'monthly_income',
-									tenantData.monthly_income || undefined,
-								);
-								form.setValue(
-									'current_address',
-									tenantData.current_address || '',
-								);
-								form.setValue('employer', tenantData.employer || '');
-								form.setValue(
-									'employment_duration',
-									tenantData.employment_duration || undefined,
-								);
-							}
+						// Only set these values if post_profile_redirect is not present
+						if (!sessionStorage.getItem('post_profile_redirect')) {
+							form.setValue('firstName', nameParts[0] || '');
+							form.setValue('lastName', nameParts.slice(1).join(' ') || '');
+							form.setValue('phone', authUser.phone || '');
 						}
 					}
 				}

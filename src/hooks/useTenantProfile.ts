@@ -1,24 +1,35 @@
 import { supabase } from '@/services/supabase';
 import { TenantProfile } from '@/types';
+import { useRef } from 'react';
 
 export const useTenantProfile = () => {
+	// Cache for storing fetched profiles
+	const profileCache = useRef<Map<string, TenantProfile>>(new Map());
+
 	const fetchTenantProfile = async (email: string) => {
 		try {
+			// Return cached result if available
+			if (profileCache.current.has(email)) {
+				return profileCache.current.get(email)!;
+			}
+
 			const { data, error } = await supabase
 				.from('tenant_profiles')
 				.select('*')
-				.eq('email', email);
+				.eq('email', email)
+				.limit(1);
 
 			if (error) {
 				console.error('Error fetching tenant profile:', error);
 				return null;
 			}
 
-			if (data && data.length > 0) {
-				console.log(
-					`Found ${data.length} profile(s) for email: ${email}, using the first one`,
-				);
-				return data[0] as unknown as TenantProfile;
+			if (data?.length) {
+				console.log(`Found profile for email: ${email}`);
+				const profile = data[0] as TenantProfile;
+				// Update cache
+				profileCache.current.set(email, profile);
+				return profile;
 			}
 
 			return null;

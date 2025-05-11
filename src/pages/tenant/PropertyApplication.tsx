@@ -85,6 +85,12 @@ const PropertyApplication: React.FC = () => {
 		existingApplication: null,
 	});
 
+	// Set post_profile_redirect on mount
+	useEffect(() => {
+		const redirectPath = window.location.pathname + window.location.search;
+		sessionStorage.setItem('post_profile_redirect', redirectPath);
+	}, []);
+
 	// Check if returning from profile completion
 	useEffect(() => {
 		const justReturned = sessionStorage.getItem(
@@ -202,8 +208,8 @@ const PropertyApplication: React.FC = () => {
 		};
 
 		const handleProfileCompletionRedirect = () => {
-			const redirectPath = window.location.pathname;
-			sessionStorage.setItem('post_profile_redirect', redirectPath);
+			// const redirectPath = window.location.pathname + window.location.search;
+			// sessionStorage.setItem('post_profile_redirect', redirectPath);
 			sessionStorage.setItem('returning_from_profile_completion', 'true');
 			navigate('/profile-completion');
 		};
@@ -216,6 +222,17 @@ const PropertyApplication: React.FC = () => {
 		navigate,
 		returnedFromProfileCompletion,
 	]);
+
+	// cleanup in useEffect
+	useEffect(() => {
+		return () => {
+			// Only clear sessionStorage if not redirecting to profile completion
+			if (!sessionStorage.getItem('returning_from_profile_completion')) {
+				sessionStorage.removeItem('post_profile_redirect');
+				sessionStorage.removeItem('returning_from_profile_completion');
+			}
+		};
+	}, []);
 
 	// Helper functions
 	const checkForExistingApplications = async (
