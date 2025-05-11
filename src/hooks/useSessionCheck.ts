@@ -45,7 +45,7 @@ export const useSessionCheck = (form: any, user: any) => {
 						user.email &&
 						!form.getValues('id_number')
 					) {
-						const tenantData = await fetchTenantProfile(user.email);
+						const tenantData = await fetchTenantProfile(user.id);
 						if (tenantData) {
 							form.setValue('id_number', tenantData.id_number || '');
 							form.setValue(

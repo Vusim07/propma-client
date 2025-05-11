@@ -7,7 +7,8 @@ import { showToast } from '@/utils/toast';
 import { ProfileCompletionValues } from '../schemas/profileCompletionSchema';
 
 export const useProfileCompletion = (session: any) => {
-	const { checkAuth, updateProfile } = useAuthStore();
+	const { checkAuth, updateProfile, setHasSubmittedApplication } =
+		useAuthStore();
 	const { createTeam } = useTeamStore();
 	const navigate = useNavigate();
 
@@ -113,11 +114,12 @@ export const useProfileCompletion = (session: any) => {
 							last_name: values.lastName,
 							email: userEmail,
 							phone: values.phone,
-							employer: values.companyName,
+							employer: values.employer,
 							current_address: values.current_address,
 							id_number: values.id_number,
 							employment_status: values.employment_status,
 							monthly_income: values.monthly_income ?? 0,
+							employment_duration: values.employment_duration ?? 0, // Include employment_duration
 						})
 						.select('id')
 						.single();
@@ -203,6 +205,9 @@ export const useProfileCompletion = (session: any) => {
 		} catch (error: any) {
 			console.error('Profile completion error:', error);
 			showToast.error(error.message || 'Failed to complete your profile');
+		} finally {
+			// Reset the hasSubmittedApplication flag
+			setHasSubmittedApplication(false);
 		}
 	};
 

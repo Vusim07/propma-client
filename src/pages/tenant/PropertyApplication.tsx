@@ -1,6 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// PropertyApplication.tsx
 import React, { useEffect, useState, createContext, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/services/supabase';
@@ -64,7 +63,8 @@ interface TenantProfileWithEmployment extends TenantProfile {
 const PropertyApplication: React.FC = () => {
 	const { token } = useParams<{ token: string }>();
 	const navigate = useNavigate();
-	const { user }: any = useAuthStore();
+	const { user, hasSubmittedApplication, setHasSubmittedApplication }: any =
+		useAuthStore(); // Access hasSubmittedApplication from AuthStore
 	const { fetchPropertyByToken, submitApplication } = useTenantStore();
 	const [returnedFromProfileCompletion, setReturnedFromProfileCompletion] =
 		useState(false);
@@ -85,6 +85,8 @@ const PropertyApplication: React.FC = () => {
 		existingApplication: null,
 	});
 
+	const [hasFetchedProperty, setHasFetchedProperty] = useState(false); // New flag to avoid duplicate fetches
+
 	// Set post_profile_redirect on mount
 	useEffect(() => {
 		const redirectPath = window.location.pathname + window.location.search;
@@ -104,6 +106,9 @@ const PropertyApplication: React.FC = () => {
 
 	// Fetch property and handle application flow
 	useEffect(() => {
+		// Prevent rerunning if already fetched
+		if (hasFetchedProperty) return;
+
 		const getPropertyByToken = async () => {
 			if (!token) {
 				setState((prev) => ({
@@ -112,6 +117,7 @@ const PropertyApplication: React.FC = () => {
 					error: 'Invalid application link',
 					step: 'loading',
 				}));
+				setHasFetchedProperty(true); // Mark as done
 				return;
 			}
 
@@ -125,6 +131,7 @@ const PropertyApplication: React.FC = () => {
 							'Property not found. This application link may be invalid or expired.',
 						step: 'loading',
 					}));
+					setHasFetchedProperty(true);
 					return;
 				}
 
@@ -137,6 +144,7 @@ const PropertyApplication: React.FC = () => {
 						property,
 						step: 'welcome',
 					}));
+					setHasFetchedProperty(true); // Ensure we mark the fetch as complete
 				}
 			} catch (error) {
 				console.error('Error fetching property:', error);
@@ -147,12 +155,15 @@ const PropertyApplication: React.FC = () => {
 						error instanceof Error ? error.message : 'Failed to load property',
 					step: 'loading',
 				}));
+				setHasFetchedProperty(true);
 			}
 		};
 
 		const handleUserLoggedIn = async (property: Property) => {
 			try {
-				const hasCompletedProfile = await checkProfileCompletion(user.id);
+				const hasCompletedProfile = returnedFromProfileCompletion
+					? true
+					: await checkProfileCompletion(user.id);
 				if (!hasCompletedProfile) {
 					handleProfileCompletionRedirect();
 					return;
@@ -165,6 +176,7 @@ const PropertyApplication: React.FC = () => {
 				);
 
 				if (existingApplication) {
+					console.log('Existing application found, moving to documents step');
 					setState((prev) => ({
 						...prev,
 						loading: false,
@@ -172,22 +184,57 @@ const PropertyApplication: React.FC = () => {
 						existingApplication,
 						step: 'documents',
 					}));
-				} else {
-					const profile: any = await fetchTenantProfile(user.id);
-					if (
-						(profile?.monthly_income ?? 0) > 0 &&
-						profile.employment_status &&
-						profile.employer &&
-						profile.employment_duration
-					) {
-						setApplicationForm({
-							employer: profile.employer || '',
+					setHasFetchedProperty(true); // Mark fetch as complete
+					return; // Exit the function here
+				}
+
+				// Only get here if no existing application was found
+				const profile: any = await fetchTenantProfile(user.id);
+
+				// Pre-fill the form with profile data regardless of completeness
+				setApplicationForm({
+					employer: profile?.employer || '',
+					employment_duration: profile?.employment_duration || 0,
+					monthly_income: profile?.monthly_income || 0,
+					notes: '',
+				});
+
+				// Check if profile has enough data to auto-submit
+				if (
+					(profile?.monthly_income ?? 0) > 0 &&
+					profile?.employment_status &&
+					profile?.employer &&
+					profile?.employment_duration &&
+					!hasSubmittedApplication // Prevent duplicate submission
+				) {
+					console.log('Complete profile found, auto-submitting application');
+					setHasSubmittedApplication(true); // Set the flag to prevent re-submission
+
+					try {
+						const applicationData = {
+							property_id: property.id,
+							agent_id: property.agent_id,
+							tenant_id: profile.id,
+							employer: profile.employer || 'Not specified',
 							employment_duration: profile.employment_duration || 0,
 							monthly_income: profile.monthly_income || 0,
 							notes: '',
-						});
-						await handleApplicationSubmitWithProfile(profile, property);
-					} else {
+						};
+
+						const application = await submitApplication(applicationData);
+						if (!application) throw new Error('Failed to create application');
+
+						showToast.success('Application created based on your profile');
+						setState((prev) => ({
+							...prev,
+							loading: false,
+							property,
+							existingApplication: application,
+							step: 'documents',
+						}));
+					} catch (error) {
+						console.error('Auto-submission failed:', error);
+						// Fall back to showing the application form
 						setState((prev) => ({
 							...prev,
 							loading: false,
@@ -195,7 +242,18 @@ const PropertyApplication: React.FC = () => {
 							step: 'application',
 						}));
 					}
+				} else {
+					// Incomplete profile, show application form
+					console.log('Incomplete profile, showing application form');
+					setState((prev) => ({
+						...prev,
+						loading: false,
+						property,
+						step: 'application',
+					}));
 				}
+
+				setHasFetchedProperty(true); // Mark fetch as complete
 			} catch (error) {
 				console.error('Error with tenant profile:', error);
 				setState((prev) => ({
@@ -204,12 +262,11 @@ const PropertyApplication: React.FC = () => {
 					property: property,
 					step: 'application',
 				}));
+				setHasFetchedProperty(true); // Ensure we mark as complete even on error
 			}
 		};
 
 		const handleProfileCompletionRedirect = () => {
-			// const redirectPath = window.location.pathname + window.location.search;
-			// sessionStorage.setItem('post_profile_redirect', redirectPath);
 			sessionStorage.setItem('returning_from_profile_completion', 'true');
 			navigate('/profile-completion');
 		};
@@ -221,12 +278,13 @@ const PropertyApplication: React.FC = () => {
 		fetchPropertyByToken,
 		navigate,
 		returnedFromProfileCompletion,
+		hasFetchedProperty,
+		submitApplication,
 	]);
 
 	// cleanup in useEffect
 	useEffect(() => {
 		return () => {
-			// Only clear sessionStorage if not redirecting to profile completion
 			if (!sessionStorage.getItem('returning_from_profile_completion')) {
 				sessionStorage.removeItem('post_profile_redirect');
 				sessionStorage.removeItem('returning_from_profile_completion');
@@ -433,48 +491,6 @@ const PropertyApplication: React.FC = () => {
 		} catch (error) {
 			console.error('Error in fetchTenantProfile:', error);
 			return null;
-		}
-	};
-
-	const handleApplicationSubmitWithProfile = async (
-		profile: TenantProfileWithEmployment,
-		property: Property,
-	) => {
-		if (!property || !user) {
-			showToast.error('Missing property or user information');
-			return;
-		}
-
-		setSubmitting(true);
-
-		try {
-			const applicationData = {
-				property_id: property.id,
-				agent_id: property.agent_id,
-				tenant_id: profile.id,
-				employer: profile.employer || 'Not specified',
-				employment_duration: profile.employment_duration || 0,
-				monthly_income: profile.monthly_income || 0,
-				notes: '',
-			};
-
-			const application = await submitApplication(applicationData);
-			if (!application) throw new Error('Failed to create application');
-
-			showToast.success('Application created based on your profile');
-			setState((prev) => ({
-				...prev,
-				existingApplication: application,
-				step: 'documents',
-			}));
-		} catch (error) {
-			console.error('Application submission error:', error);
-			showToast.error(
-				error instanceof Error ? error.message : 'Failed to submit application',
-			);
-			setState((prev) => ({ ...prev, step: 'application' }));
-		} finally {
-			setSubmitting(false);
 		}
 	};
 

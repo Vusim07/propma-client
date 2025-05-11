@@ -10,6 +10,8 @@ interface AuthState {
 	isLoading: boolean;
 	error: string | null;
 	activeTeam: Tables<'teams'> | null;
+	isAuthChecked: boolean;
+	hasSubmittedApplication: boolean;
 
 	// Actions
 	login: (email: string, password: string) => Promise<Tables<'users'> | null>;
@@ -33,6 +35,7 @@ interface AuthState {
 	getProfile: () => Promise<void>;
 	checkAuth: () => Promise<void>; // Restored for backward compatibility
 	initialize: () => Promise<boolean>;
+	setHasSubmittedApplication: (value: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -42,6 +45,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 	isLoading: false,
 	error: null,
 	activeTeam: null,
+	isAuthChecked: false,
+	hasSubmittedApplication: false,
 
 	login: async (email, password) => {
 		try {
@@ -560,5 +565,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 		} finally {
 			set({ loading: false, isLoading: false });
 		}
+	},
+
+	setHasSubmittedApplication: (value: boolean) => {
+		set({ hasSubmittedApplication: value });
 	},
 }));
