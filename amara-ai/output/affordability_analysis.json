@@ -1,35 +1,59 @@
 {
   "can_afford": true,
-  "confidence": 0.85,
+  "confidence": 0.90,
   "risk_factors": [
-    "High discretionary spending identified.",
-    "Existing debt obligations present.",
-    "Income variability observed."
+    "High debt-to-income ratio at 28%",
+    "Variable income from part-time employment",
+    "Potential for unexpected expenses"
   ],
   "recommendations": [
-    "Reduce discretionary spending to improve savings.",
-    "Consider consolidating existing debt.",
-    "Monitor income trends for any potential fluctuations."
+    "Maintain a savings buffer for unplanned expenses",
+    "Consider securing a longer-term lease to ensure stability",
+    "Monitor spending patterns monthly to identify areas for savings"
   ],
   "metrics": {
-    "monthly_income": 22000.00,
-    "monthly_expenses": 14000.00,
-    "debt_to_income_ratio": 0.27,
-    "rent_to_income_ratio": 0.30
+    "monthly_income": 23000.00,
+    "monthly_expenses": 6000.00,
+    "target_rent": 6500.00,
+    "rent_to_income_ratio": 28.26,
+    "debt_to_income_ratio": 28.00
   },
   "transaction_analysis": {
     "income": {
-      "salary": 20000.00,
-      "additional_income": 2000.00
+      "total_income": 23000.00,
+      "sources": [
+        {
+          "type": "salary",
+          "amount": 20000.00,
+          "frequency": "monthly"
+        },
+        {
+          "type": "freelance",
+          "amount": 3000.00,
+          "frequency": "monthly"
+        }
+      ]
     },
     "expenses": {
-      "housing": 0.00,
-      "utilities": 1500.00,
-      "transport": 2000.00,
-      "groceries": 3000.00,
-      "entertainment": 2000.00,
-      "debt_repayments": 8000.00
+      "total_expenses": 6000.00,
+      "breakdown": {
+        "rent": 6500.00,
+        "utilities": 800.00,
+        "groceries": 2000.00,
+        "transport": 700.00,
+        "insurance": 500.00,
+        "other": 500.00
+      }
     },
-    "net_savings": 8000.00
+    "debts": {
+      "existing_loans": [
+        {
+          "type": "personal loan",
+          "amount": 20000.00,
+          "monthly_payment": 1000.00
+        }
+      ],
+      "total_debt": 1000.00
+    }
   }
 }

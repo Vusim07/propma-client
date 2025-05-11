@@ -502,6 +502,13 @@ const PropertyApplication: React.FC = () => {
 			return;
 		}
 
+		if (submitting) {
+			console.log(
+				'Preventing duplicate submission - form is already submitting',
+			);
+			return;
+		}
+
 		if (
 			isNaN(applicationForm.employment_duration) ||
 			isNaN(applicationForm.monthly_income)
@@ -515,7 +522,24 @@ const PropertyApplication: React.FC = () => {
 		setSubmitting(true);
 
 		try {
+			// Check for existing application first
 			const tenantProfileId = await ensureTenantProfile(user.id);
+			const existingApp = await checkForExistingApplications(
+				tenantProfileId,
+				state.property.id,
+			);
+
+			if (existingApp) {
+				console.log('Found existing application:', existingApp);
+				showToast.info('You already have an application for this property');
+				setState((prev) => ({
+					...prev,
+					existingApplication: existingApp,
+					step: 'documents',
+				}));
+				return;
+			}
+
 			const applicationData = {
 				property_id: state.property.id,
 				agent_id: state.property.agent_id,

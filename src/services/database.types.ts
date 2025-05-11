@@ -1105,6 +1105,29 @@ export interface Database {
 				};
 				Returns: Database['public']['Tables']['properties']['Row'][];
 			};
+
+			// Add new safe application insert function
+			insert_application_safe: {
+				Args: {
+					p_property_id: string;
+					p_agent_id: string;
+					p_tenant_id: string;
+					p_employer: string;
+					p_employment_duration: number;
+					p_monthly_income: number;
+					p_notes: string | null;
+				};
+				Returns: string;
+			};
+
+			// Add new function to get existing application
+			get_existing_application: {
+				Args: {
+					p_tenant_id: string;
+					p_property_id: string;
+				};
+				Returns: Database['public']['Tables']['applications']['Row'] | null;
+			};
 		};
 	};
 }

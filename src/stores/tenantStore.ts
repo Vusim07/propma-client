@@ -533,7 +533,7 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 	}): Promise<Application | null> => {
 		set({ isLoading: true, error: null });
 		try {
-			// Validate the numeric fields to ensure they are numbers, not NaN
+			// Validate numeric fields
 			if (
 				isNaN(application.employment_duration) ||
 				isNaN(application.monthly_income)
@@ -543,20 +543,36 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 				);
 			}
 
-			// Ensure numeric fields are actually numbers, not strings
+			// Normalize numeric values
 			const employmentDuration = Number(application.employment_duration);
 			const monthlyIncome = Number(application.monthly_income);
 
-			console.log('Submitting application to Supabase:', {
-				...application,
-				employment_duration: employmentDuration,
-				monthly_income: monthlyIncome,
+			console.log('Checking for existing application...', {
+				tenant_id: application.tenant_id,
+				property_id: application.property_id,
 			});
 
-			// First try to use the RPC function to bypass RLS
+			// First check for existing application using direct query as fallback
+			const { data: existingData } = await supabase
+				.from('applications')
+				.select('*')
+				.eq('tenant_id', application.tenant_id)
+				.eq('property_id', application.property_id)
+				.maybeSingle();
+
+			if (existingData) {
+				console.log('Found existing application:', existingData);
+				set({ isLoading: false });
+				return existingData;
+			}
+
+			// No existing application found, proceed with creation using safe insert
+			console.log('No existing application found, creating new one...');
+
+			// Try RPC insert first (with built-in duplicate check)
 			try {
 				const { data: applicationId, error: rpcError } =
-					await supabase.rpc<string>('insert_application', {
+					await supabase.rpc<string>('insert_application_safe', {
 						p_property_id: application.property_id,
 						p_agent_id: application.agent_id,
 						p_tenant_id: application.tenant_id,
@@ -567,11 +583,11 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 					});
 
 				if (rpcError) {
-					console.log(
-						'RPC insert_application failed, falling back to direct insert:',
+					console.warn(
+						'RPC insert failed, falling back to direct insert:',
 						rpcError,
 					);
-					throw rpcError; // Throw to trigger the fallback
+					throw rpcError;
 				}
 
 				// Fetch the created application
@@ -581,17 +597,12 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 					.eq('id', applicationId)
 					.single();
 
-				if (fetchError) {
-					throw fetchError;
-				}
+				if (fetchError) throw fetchError;
 
 				set({ isLoading: false });
 				return createdApplication;
 			} catch (_) {
-				// Use underscore to indicate unused variable
-				console.log('Using fallback for application submission');
-
-				// Fallback to direct insert (may still trigger RLS errors)
+				// Fallback to direct insert with unique constraint
 				const applicationData = {
 					...application,
 					employment_duration: employmentDuration,
@@ -600,7 +611,6 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 					created_at: new Date().toISOString(),
 				};
 
-				// Create the application record
 				const { data, error } = await supabase
 					.from('applications')
 					.insert(applicationData)
@@ -608,7 +618,20 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 					.single();
 
 				if (error) {
-					console.error('Supabase error on application insert:', error);
+					if (error.code === '23505') {
+						// Unique violation
+						console.log('Duplicate application detected:', error);
+						// Fetch and return the existing application
+						const { data: existingData } = await supabase
+							.from('applications')
+							.select('*')
+							.eq('tenant_id', application.tenant_id)
+							.eq('property_id', application.property_id)
+							.single();
+
+						set({ isLoading: false });
+						return existingData;
+					}
 					throw error;
 				}
 
