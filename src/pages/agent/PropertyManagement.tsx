@@ -3,11 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { useAgentStore } from '../../stores/agentStore';
 import { usePageTitle } from '../../context/PageTitleContext';
-import { Card, CardContent } from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import Spinner from '../../components/ui/Spinner';
-import Badge from '../../components/ui/Badge';
-import Alert from '../../components/ui/Alert';
+import { Card, CardContent } from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import Spinner from '@/components/ui/Spinner';
+import Badge from '@/components/ui/Badge';
+import Alert from '@/components/ui/Alert';
 import {
 	Home,
 	Plus,

@@ -5,10 +5,10 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { useTenantStore } from '../../stores/tenantStore';
 import { usePageTitle } from '../../context/PageTitleContext';
-import { Card, CardHeader, CardContent } from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import Spinner from '../../components/ui/Spinner';
-import Badge from '../../components/ui/Badge';
+import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import Spinner from '@/components/ui/Spinner';
+import Badge from '@/components/ui/Badge';
 import {
 	FileText,
 	CheckSquare,
@@ -28,7 +28,7 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from '../../components/ui/Table';
+} from '@/components/ui/Table';
 
 interface ApplicationInfo {
 	id: string;

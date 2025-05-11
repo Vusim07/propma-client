@@ -10,7 +10,7 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from '../../components/ui/Table';
+} from '@/components/ui/Table';
 import {
 	Sheet,
 	SheetContent,
@@ -20,11 +20,11 @@ import {
 	SheetClose, // Keep SheetClose for the footer button
 	SheetFooter, // Keep SheetFooter
 	SheetDescription,
-} from '../../components/ui/sheet';
-import Button from '../../components/ui/Button';
-import Spinner from '../../components/ui/Spinner';
-import Badge from '../../components/ui/Badge';
-import Alert from '../../components/ui/Alert';
+} from '@/components/ui/sheet';
+import Button from '@/components/ui/Button';
+import Spinner from '@/components/ui/Spinner';
+import Badge from '@/components/ui/Badge';
+import Alert from '@/components/ui/Alert';
 import { usePageTitle } from '../../context/PageTitleContext';
 
 import {

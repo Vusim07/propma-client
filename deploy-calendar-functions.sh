@@ -8,9 +8,9 @@
 # 2. Run this script with: bash deploy-calendar-functions.sh
 
 # Set your Google OAuth credentials
-GOOGLE_CLIENT_ID="673556639603-d09j7jreb70lbi3k0hjon1td10d6ne9r.apps.googleusercontent.com" # e.g. 673556639603-d09j7jreb70lbi3k0hjon1td10d6ne9r.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET="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"
-GOOGLE_REDIRECT_URI="https://ixltqflrvgsirvrzgqtq.supabase.co/functions/v1/calendar-oauth"
+GOOGLE_CLIENT_ID="" # 
+GOOGLE_CLIENT_SECRET=""
+GOOGLE_REDIRECT_URI=""
 
 # Set environment variables
 echo "Setting Supabase environment variables..."

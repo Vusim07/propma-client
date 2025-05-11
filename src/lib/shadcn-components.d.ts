@@ -3,7 +3,7 @@
 declare module '@/components/ui/*' {
 	const Component: any;
 	export default Component;
-	export * from '../../components/ui/*';
+	export * from '@/components/ui/*';
 }
 
 declare module '@/lib/utils' {

@@ -10,8 +10,8 @@ import {
 } from '@/components/ui/Card';
 import CalendarSettings from './CalendarSettings';
 import SubscriptionPage from './SubscriptionPage';
-import AgentProfileForm from '../../components/agent/AgentProfileForm';
-import InboxIntegration from '../../components/agent/InboxIntegration';
+import AgentProfileForm from '@/components/agent/AgentProfileForm';
+import InboxIntegration from '@/components/agent/InboxIntegration';
 import Teams from './Teams';
 import { useLocation, useNavigate } from 'react-router-dom';
 

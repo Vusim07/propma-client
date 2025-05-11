@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { usePageTitle } from '../../context/PageTitleContext';
 import { supabase } from '../../services/supabase';
-import Button from '../../components/ui/Button';
-import { Card, CardHeader, CardContent } from '../../components/ui/Card';
-import Alert from '../../components/ui/Alert';
+import Button from '@/components/ui/Button';
+import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import Alert from '@/components/ui/Alert';
 import { Calendar, Check, X } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 

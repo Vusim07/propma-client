@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore';
-import { Card, CardHeader, CardContent } from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import Spinner from '../../components/ui/Spinner';
-import Badge from '../../components/ui/Badge';
-import Alert from '../../components/ui/Alert';
+import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import Spinner from '@/components/ui/Spinner';
+import Badge from '@/components/ui/Badge';
+import Alert from '@/components/ui/Alert';
 import Calendar from 'react-calendar';
 import {
 	Sheet,
@@ -14,7 +14,7 @@ import {
 	SheetHeader,
 	SheetTitle,
 	SheetFooter,
-} from '../../components/ui/sheet';
+} from '@/components/ui/sheet';
 import { format, parseISO, isBefore, isPast, parse } from 'date-fns';
 import {
 	CalendarIcon,

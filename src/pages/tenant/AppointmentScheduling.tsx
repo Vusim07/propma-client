@@ -3,10 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useTenantStore } from '../../stores/tenantStore';
 import { usePageTitle } from '../../context/PageTitleContext';
-import { Card, CardHeader, CardContent } from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import Alert from '../../components/ui/Alert';
-import Spinner from '../../components/ui/Spinner';
+import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import Alert from '@/components/ui/Alert';
+import Spinner from '@/components/ui/Spinner';
 import Calendar from 'react-calendar';
 import { format, parse, isPast, isBefore, addDays } from 'date-fns'; // Re-add isBefore and addDays
 import {
@@ -17,7 +17,7 @@ import {
 	Check,
 	CheckCircle,
 } from 'lucide-react';
-import Badge from '../../components/ui/Badge';
+import Badge from '@/components/ui/Badge';
 import 'react-calendar/dist/Calendar.css';
 import { supabase } from '../../services/supabase';
 import { Tables } from '../../services/database.types';

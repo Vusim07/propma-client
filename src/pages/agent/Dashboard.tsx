@@ -2,10 +2,10 @@ import React, { useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useAgentStore } from '../../stores/agentStore';
 import { usePageTitle } from '../../context/PageTitleContext';
-import { Card, CardHeader, CardContent } from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import Spinner from '../../components/ui/Spinner';
-import Badge from '../../components/ui/Badge';
+import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import Spinner from '@/components/ui/Spinner';
+import Badge from '@/components/ui/Badge';
 import { Link } from 'react-router-dom';
 import {
 	FileText,
@@ -23,7 +23,7 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from '../../components/ui/Table';
+} from '@/components/ui/Table';
 import { format } from 'date-fns';
 import { ApplicationWithRelations } from '../../types';
 
