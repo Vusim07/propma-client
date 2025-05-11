@@ -3,19 +3,19 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { useAgentStore } from '../../stores/agentStore';
-import { Card, CardHeader, CardContent } from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import { Input } from '../../components/ui/input';
-import { Textarea } from '../../components/ui/Textarea';
+import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/Textarea';
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '../../components/ui/select';
-import Spinner from '../../components/ui/Spinner';
-import Alert from '../../components/ui/Alert';
+} from '@/components/ui/select';
+import Spinner from '@/components/ui/Spinner';
+import Alert from '@/components/ui/Alert';
 import { ArrowLeft, Plus, X, Upload } from 'lucide-react';
 import { Property } from '../../types';
 import { showToast } from '../../utils/toast';

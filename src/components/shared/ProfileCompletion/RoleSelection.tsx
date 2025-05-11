@@ -4,14 +4,14 @@ import {
 	FormItem,
 	FormLabel,
 	FormMessage,
-} from '../../../components/ui/form';
+} from '../@/components/ui/form';
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '../../../components/ui/select';
+} from '../@/components/ui/select';
 import { roleOptions } from '@/types/profileCompletionTypes';
 
 export const RoleSelection = () => (

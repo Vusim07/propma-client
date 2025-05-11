@@ -12,8 +12,8 @@ import {
 	Loader2,
 	Star,
 } from 'lucide-react';
-import Button from '../../components/ui/Button';
-import SubscriptionHistory from '../../components/agent/SubscriptionHistory';
+import Button from '@/components/ui/Button';
+import SubscriptionHistory from '@/components/agent/SubscriptionHistory';
 import { showToast } from '../../utils/toast';
 import { supabase } from '../../services/supabase';
 

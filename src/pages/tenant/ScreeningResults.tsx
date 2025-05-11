@@ -3,10 +3,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useTenantStore } from '../../stores/tenantStore';
 import { usePageTitle } from '../../context/PageTitleContext';
-import { Card, CardHeader, CardContent } from '../../components/ui/Card';
-import Spinner from '../../components/ui/Spinner';
-import Badge from '../../components/ui/Badge';
-import Alert from '../../components/ui/Alert';
+import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import Spinner from '@/components/ui/Spinner';
+import Badge from '@/components/ui/Badge';
+import Alert from '@/components/ui/Alert';
 import {
 	CheckCircle,
 	AlertCircle,

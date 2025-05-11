@@ -2,11 +2,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
-import { Card, CardHeader, CardContent } from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import Spinner from '../../components/ui/Spinner';
-import Badge from '../../components/ui/Badge';
-import Alert from '../../components/ui/Alert';
+import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import Spinner from '@/components/ui/Spinner';
+import Badge from '@/components/ui/Badge';
+import Alert from '@/components/ui/Alert';
 import { supabase } from '../../services/supabase';
 import { Tables } from '../../services/database.types';
 import { formatCurrency } from '../../utils/formatters';
@@ -22,7 +22,7 @@ import {
 	Home,
 	Eye,
 } from 'lucide-react';
-import DocumentViewerSheet from '../../components/agent/DocumentViewerSheet';
+import DocumentViewerSheet from '@/components/agent/DocumentViewerSheet';
 
 type ScreeningReportWithDetails = Tables<'screening_reports'> & {
 	tenant_profiles: Tables<'tenant_profiles'> | null;

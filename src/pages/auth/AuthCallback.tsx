@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
-import Spinner from '../../components/ui/Spinner';
+import Spinner from '@/components/ui/Spinner';
 import { supabase } from '../../services/supabase';
 import { showToast } from '../../utils/toast';
 

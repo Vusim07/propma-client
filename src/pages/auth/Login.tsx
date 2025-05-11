@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuthStore } from '../../stores/authStore';
-import Button from '../../components/ui/Button';
+import Button from '@/components/ui/Button';
 import { showToast } from '../../utils/toast';
 import { loginSchema, LoginFormValues } from '../../schemas/auth';
 import {
@@ -14,8 +14,8 @@ import {
 	FormItem,
 	FormLabel,
 	FormMessage,
-} from '../../components/ui/form';
-import { Input } from '../../components/ui/input';
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { LockIcon, MailIcon } from 'lucide-react';
 import { useAuthFlowContext } from '../tenant/PropertyApplication';
 

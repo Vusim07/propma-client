@@ -9,13 +9,13 @@ import {
 	CardHeader,
 	CardContent,
 	CardFooter,
-} from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import { Input } from '../../components/ui/input';
-import { Textarea } from '../../components/ui/Textarea';
-import Spinner from '../../components/ui/Spinner';
-import Badge from '../../components/ui/Badge';
-import Alert from '../../components/ui/Alert';
+} from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/Textarea';
+import Spinner from '@/components/ui/Spinner';
+import Badge from '@/components/ui/Badge';
+import Alert from '@/components/ui/Alert';
 import {
 	Workflow,
 	Mail,
@@ -34,7 +34,7 @@ import {
 	Link as LinkIcon,
 } from 'lucide-react';
 import { Tables } from '../../services/database.types';
-import InboxIntegration from '../../components/agent/InboxIntegration';
+import InboxIntegration from '@/components/agent/InboxIntegration';
 
 interface WorkflowEmailFilter {
 	subject_contains?: string[];
