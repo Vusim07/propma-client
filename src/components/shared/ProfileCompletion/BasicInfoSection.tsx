@@ -4,8 +4,8 @@ import {
 	FormItem,
 	FormLabel,
 	FormMessage,
-} from '../@/components/ui/form';
-import { Input } from '../@/components/ui/input';
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 
 export const BasicInfoSection = () => (
 	<div className='grid grid-cols-2 gap-4'>
