@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useAgentStore } from '../../stores/agentStore';
+import { useTeamStore } from '../../stores/teamStore';
+import { useNavigate, useLocation } from 'react-router-dom';
 import paystackService from '../../services/paystackService';
 import { Subscription } from '../../types';
-import { usePageTitle } from '../../context/PageTitleContext';
 import {
 	CheckCircle,
 	AlertCircle,
@@ -12,6 +13,9 @@ import {
 	Star,
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
+import SubscriptionHistory from '../../components/agent/SubscriptionHistory';
+import { showToast } from '../../utils/toast';
+import { supabase } from '../../services/supabase';
 
 interface PlanOption {
 	id: string;
@@ -22,16 +26,19 @@ interface PlanOption {
 	popular?: boolean;
 	description?: string;
 	extraUsage?: string;
+	isTeamPlan?: boolean;
+	maxTeamSize?: number;
 }
 
 const planOptions: PlanOption[] = [
 	{
-		id: 'starter',
-		name: 'Starter',
+		id: 'starter-individual',
+		name: 'Individual Starter',
 		price: 500,
 		usageLimit: 20,
 		description: '20 screening credits included',
 		extraUsage: 'R65 per additional screening',
+		isTeamPlan: false,
 		features: [
 			'R25 effective cost per screening',
 			'Advanced tenant verification',
@@ -41,12 +48,13 @@ const planOptions: PlanOption[] = [
 		],
 	},
 	{
-		id: 'growth',
-		name: 'Growth',
+		id: 'growth-individual',
+		name: 'Individual Growth',
 		price: 950,
 		usageLimit: 40,
 		description: '40 screening credits included',
 		extraUsage: 'R65 per additional screening',
+		isTeamPlan: false,
 		popular: true,
 		features: [
 			'R23.75 effective cost per screening',
@@ -58,18 +66,59 @@ const planOptions: PlanOption[] = [
 		],
 	},
 	{
-		id: 'enterprise',
-		name: 'Enterprise',
-		price: 1900,
-		usageLimit: 80,
-		description: '80 screening credits included',
+		id: 'starter-team',
+		name: 'Team Starter',
+		price: 1500,
+		usageLimit: 60,
+		description: '60 screening credits included',
+		extraUsage: 'R65 per additional screening',
+		isTeamPlan: true,
+		maxTeamSize: 3,
+		features: [
+			'R25 effective cost per screening',
+			'Up to 3 team members',
+			'Team dashboard & analytics',
+			'Shared document library',
+			'Team workflow automation',
+			'Priority support',
+		],
+	},
+	{
+		id: 'growth-team',
+		name: 'Team Growth',
+		price: 2850,
+		usageLimit: 120,
+		description: '120 screening credits included',
+		extraUsage: 'R65 per additional screening',
+		isTeamPlan: true,
+		maxTeamSize: 10,
+		popular: true,
+		features: [
+			'R23.75 effective cost per screening',
+			'Up to 10 team members',
+			'Everything in Team Starter, plus:',
+			'Advanced team analytics',
+			'Custom workflow templates',
+			'API integrations',
+			'Premium support',
+		],
+	},
+	{
+		id: 'enterprise-team',
+		name: 'Team Enterprise',
+		price: 5700,
+		usageLimit: 240,
+		description: '240 screening credits included',
 		extraUsage: 'Volume discounts available',
+		isTeamPlan: true,
+		maxTeamSize: 25,
 		features: [
 			'Volume-based discounts',
-			'Everything in Growth, plus:',
+			'Up to 25 team members',
+			'Everything in Team Growth, plus:',
 			'Dedicated account manager',
 			'Custom API integrations',
-			'Advanced analytics',
+			'Advanced team analytics',
 			'Custom reporting',
 			'24/7 premium support',
 		],
@@ -101,14 +150,19 @@ const creditBundles = [
 	},
 ];
 
+const progressBarClass = `bg-blue-600 h-full`;
+
 const SubscriptionPage: React.FC = () => {
+	const hasInitialized = useRef(false);
 	const { user } = useAuthStore();
+	const { currentTeam, refreshTeamData } = useTeamStore();
+	const navigate = useNavigate();
+	const location = useLocation();
 	const {
 		fetchSubscriptions,
 		isLoading: storeLoading,
 		error: storeError,
 	} = useAgentStore();
-	const { setPageTitle } = usePageTitle();
 	const [subscription, setSubscription] = useState<Subscription | null>(null);
 	const [selectedPlanId, setSelectedPlanId] = useState<string>('');
 	const [isProcessing, setIsProcessing] = useState(false);
@@ -116,157 +170,382 @@ const SubscriptionPage: React.FC = () => {
 	const [subscriptionType, setSubscriptionType] = useState<'monthly' | 'paygo'>(
 		'monthly',
 	);
+	const [showTeamPlans, setShowTeamPlans] = useState(false);
+	const [isOnboarding, setIsOnboarding] = useState(false);
+
+	// Effect to handle team data refresh when subscription changes
+	useEffect(() => {
+		// Only refresh team data when the subscription.id changes and we're not in a processing state
+		if (subscription?.team_id && !isProcessing) {
+			const teamId = subscription.team_id;
+			console.log(
+				`Refreshing team data for subscription id: ${subscription.id}`,
+			);
+			refreshTeamData(teamId);
+		}
+	}, [subscription?.id, refreshTeamData, isProcessing]);
+
+	const fetchCurrentSubscription = useCallback(async () => {
+		if (!user || isProcessing) return;
+
+		try {
+			console.log('Fetching subscription data');
+			const subscriptionData = await fetchSubscriptions(user.id);
+			setSubscription(subscriptionData);
+
+			if (!subscriptionData && !selectedPlanId) {
+				const storedPlanType = localStorage.getItem('selectedPlanType');
+				const isTeamPlan = localStorage.getItem('isTeamPlan') === 'true';
+
+				if (isOnboarding && storedPlanType) {
+					setShowTeamPlans(isTeamPlan);
+
+					const planPrefix = storedPlanType || 'starter';
+					const planSuffix = isTeamPlan ? 'team' : 'individual';
+					const planId = `${planPrefix}-${planSuffix}`;
+
+					setSelectedPlanId(planId);
+					console.log(`Pre-selected plan: ${planId} from onboarding flow`);
+				} else {
+					setSelectedPlanId('starter-individual');
+				}
+			}
+
+			if (storeError) {
+				setError(storeError);
+			}
+		} catch (err: unknown) {
+			console.error('Error fetching subscription:', err);
+			setError('Failed to load subscription information');
+		}
+	}, [
+		user,
+		fetchSubscriptions,
+		selectedPlanId,
+		storeError,
+		isOnboarding,
+		isProcessing,
+	]);
+
+	// Add a function to navigate back to the teams tab with refresh state
+	const navigateToTeams = useCallback(() => {
+		navigate('/agent/settings', {
+			state: {
+				activeTab: 'team',
+				fromBilling: true,
+			},
+			replace: true,
+		});
+	}, [navigate]);
+
+	// Update handlePaymentCallback to navigate to teams tab after completion if it was a team subscription
+	const handlePaymentCallback = useCallback(
+		async (reference: string, isUpgrade = false) => {
+			setIsProcessing(true);
+			try {
+				console.log(`Processing payment callback for reference: ${reference}`);
+				const updatedSubscription = await paystackService.handlePaymentCallback(
+					reference,
+				);
+				setSubscription(updatedSubscription);
+
+				if (updatedSubscription.team_id) {
+					console.log('Refreshing team data after subscription update');
+					try {
+						await refreshTeamData(updatedSubscription.team_id);
+					} catch (teamError) {
+						console.error('Error refreshing team data:', teamError);
+					}
+				}
+
+				// Refresh the user's auth session to ensure JWT claims are updated
+				console.log('Refreshing auth session after payment');
+				await supabase.auth.refreshSession();
+
+				// Explicitly refresh the user profile in the auth store to ensure state is current
+				await useAuthStore.getState().getProfile();
+
+				if (isUpgrade) {
+					showToast.success('Plan upgraded successfully');
+				}
+			} catch {
+				setError('Payment verification failed. Please contact support.');
+				if (isUpgrade) {
+					showToast.error('Failed to verify upgrade payment');
+				}
+			} finally {
+				setIsProcessing(false);
+				if (isUpgrade) {
+					sessionStorage.removeItem('upgrading_from_plan');
+					sessionStorage.removeItem('upgrading_to_plan');
+				}
+				await fetchCurrentSubscription();
+			}
+		},
+		[fetchCurrentSubscription, refreshTeamData],
+	);
 
 	useEffect(() => {
-		setPageTitle('Manage Subscription');
-		fetchCurrentSubscription();
-	}, [setPageTitle]);
+		// Skip if we've already initialized or we don't have a user
+		if (hasInitialized.current || !user) return;
 
-	useEffect(() => {
-		// Get the URL search parameters
-		const searchParams = new URLSearchParams(window.location.search);
+		console.log('Initializing subscription component');
+		hasInitialized.current = true;
+
+		// Check if this is part of the onboarding flow
+		const searchParams = new URLSearchParams(location.search);
+		const onboarding = searchParams.get('onboarding') === 'true';
+		setIsOnboarding(onboarding);
+
+		// Onboarding-specific logic
+		if (
+			onboarding &&
+			!sessionStorage.getItem('onboarding_notification_shown')
+		) {
+			showToast.info(
+				'Complete your subscription to finish setting up your account',
+			);
+			sessionStorage.setItem('onboarding_notification_shown', 'true');
+		}
+
+		// Check for team context from localStorage in onboarding flow
+		const isTeamPlanOnboarding = localStorage.getItem('isTeamPlan') === 'true';
+		setShowTeamPlans(!user.is_individual || isTeamPlanOnboarding); // Set initial view based on user type or onboarding context
+
+		// For onboarding with teams, ensure team data is loaded or user active_team_id is set
+		if (
+			(isTeamPlanOnboarding || !user.is_individual) &&
+			!currentTeam &&
+			user.active_team_id
+		) {
+			console.log(
+				`Fetching team data for user's active team: ${user.active_team_id}`,
+			);
+			const fetchTeamData = async () => {
+				try {
+					// Fetch all teams and let fetchTeams set currentTeam based on active_team_id
+					await useTeamStore.getState().fetchTeams();
+					console.log(
+						'Team data refreshed and currentTeam set from user profile',
+					);
+				} catch (teamError) {
+					console.error(
+						'Error fetching teams during initialization:',
+						teamError,
+					);
+					// Handle error - maybe redirect or show an error message
+				}
+			};
+			fetchTeamData();
+		} else if (!onboarding) {
+			// Normal flow - set based on user and team context if not onboarding
+			setShowTeamPlans(!user.is_individual && currentTeam !== null);
+		}
+
+		// Look for payment references
 		const reference =
 			searchParams.get('reference') || searchParams.get('trxref');
 
 		if (reference) {
-			console.log('Payment reference detected:', reference);
-			// Store the reference in sessionStorage (more persistent than localStorage)
 			sessionStorage.setItem('paystack_reference', reference);
-			// Clear the URL to prevent multiple processing
 			window.history.replaceState({}, document.title, window.location.pathname);
-
-			// Immediately try to process the payment if the user is authenticated
-			if (user) {
-				console.log(
-					'User authenticated, processing payment reference:',
-					reference,
-				);
-				setIsProcessing(true);
-				paystackService
-					.handlePaymentCallback(reference)
-					.then((updatedSubscription) => {
-						console.log('Payment successfully verified:', updatedSubscription);
-						setSubscription(updatedSubscription);
-					})
-					.catch((error) => {
-						console.error('Payment verification failed:', error);
-						setError('Payment verification failed. Please contact support.');
-					})
-					.finally(() => {
-						setIsProcessing(false);
-						fetchCurrentSubscription();
-					});
-			}
-		}
-	}, []);
-
-	// Add separate effect to handle restoration of auth and process stored reference
-	useEffect(() => {
-		// Check for stored reference in sessionStorage when user becomes available
-		if (user) {
+			handlePaymentCallback(reference);
+		} else {
 			const storedReference = sessionStorage.getItem('paystack_reference');
 			if (storedReference) {
-				console.log(
-					'Found stored payment reference after auth restored:',
-					storedReference,
-				);
-
-				// Remove from sessionStorage to prevent duplicate processing
 				sessionStorage.removeItem('paystack_reference');
-
-				// Process the payment
-				setIsProcessing(true);
-				paystackService
-					.handlePaymentCallback(storedReference)
-					.then((updatedSubscription) => {
-						console.log('Payment successfully verified:', updatedSubscription);
-						setSubscription(updatedSubscription);
-					})
-					.catch((error) => {
-						console.error('Payment verification failed:', error);
-						setError('Payment verification failed. Please contact support.');
-					})
-					.finally(() => {
-						setIsProcessing(false);
-						fetchCurrentSubscription();
-					});
+				handlePaymentCallback(storedReference);
+			} else {
+				const upgradeRef = sessionStorage.getItem('paystack_upgrade_reference');
+				if (upgradeRef) {
+					sessionStorage.removeItem('paystack_upgrade_reference');
+					handlePaymentCallback(upgradeRef, true);
+				} else {
+					// Only fetch subscription if there's no payment verification in progress
+					fetchCurrentSubscription();
+				}
 			}
 		}
-	}, [user]); // This effect runs when user auth state changes
 
-	const fetchCurrentSubscription = async () => {
+		// Return cleanup function
+		return () => {
+			// Clean up onboarding references if needed
+			if (onboarding) {
+				localStorage.removeItem('selectedPlanType');
+				localStorage.removeItem('isTeamPlan');
+			}
+		};
+	}, [
+		user,
+		currentTeam,
+		location.search,
+		handlePaymentCallback,
+		fetchCurrentSubscription,
+	]);
+
+	// Set default plan only if no subscription and no selectedPlanId
+	useEffect(() => {
+		if (!subscription && !selectedPlanId) {
+			setSelectedPlanId('starter-individual');
+		}
+	}, [subscription, selectedPlanId]);
+
+	const handleSelectPlan = async (planId: string) => {
 		if (!user) return;
 
-		try {
-			const subscriptionData = await fetchSubscriptions(user.id);
-			setSubscription(subscriptionData);
+		const selectedPlan = planOptions.find((plan) => plan.id === planId);
+		if (!selectedPlan) return;
 
-			// If no active subscription, default to the Starter plan
-			if (!subscriptionData && !selectedPlanId) {
-				setSelectedPlanId('starter');
+		// Skip validation for onboarding users if they selected plan type matches current selection
+		if (isOnboarding) {
+			const isTeamPlan = localStorage.getItem('isTeamPlan') === 'true';
+			// Allow selection if the plan type matches what was selected during profile completion
+			if (selectedPlan.isTeamPlan === isTeamPlan) {
+				setSelectedPlanId(planId);
+				setError(null);
+				return;
 			}
-
-			// Update error state if there's an error from the store
-			if (storeError) {
-				setError(storeError);
-			}
-		} catch (error) {
-			console.error('Error fetching subscription:', error);
-			setError('Failed to load subscription information');
 		}
-	};
 
-	const handleSelectPlan = (planId: string) => {
+		// Standard validation for non-onboarding users
+		if (selectedPlan.isTeamPlan && user.is_individual) {
+			showToast.error(
+				'You need to create a team before selecting a team plan. Go to Teams to create one.',
+			);
+			return;
+		}
+
 		setSelectedPlanId(planId);
+		setError(null);
 	};
 
 	const handleSubscribe = async () => {
 		if (!user || !selectedPlanId) return;
 
-		let selectedPlan;
-		let planName;
-		let planPrice;
-		let usageLimit;
+		const selectedPlan = planOptions.find((plan) => plan.id === selectedPlanId);
+		if (!selectedPlan) return;
 
-		if (subscriptionType === 'monthly') {
-			selectedPlan = planOptions.find((plan) => plan.id === selectedPlanId);
-			if (!selectedPlan) return;
+		// For team plans during onboarding, handle the special case where team context hasn't loaded
+		if (selectedPlan.isTeamPlan) {
+			// During onboarding, if they selected a team plan previously, we should allow them to proceed
+			// even if the team context hasn't fully loaded yet
+			const isTeamOnboarding =
+				isOnboarding && localStorage.getItem('isTeamPlan') === 'true';
 
-			planName = selectedPlan.name;
-			planPrice = selectedPlan.price;
-			usageLimit = selectedPlan.usageLimit;
-		} else {
-			selectedPlan = creditBundles.find(
-				(bundle) => bundle.id === selectedPlanId,
-			);
-			if (!selectedPlan) return;
-
-			planName = `Credit Bundle: ${selectedPlan.name}`;
-			planPrice = selectedPlan.price;
-			usageLimit = selectedPlan.credits;
+			if (!currentTeam && !isTeamOnboarding) {
+				showToast.error(
+					'Please create or join a team before purchasing a team plan',
+				);
+				return;
+			}
 		}
 
 		setIsProcessing(true);
 		setError(null);
 
 		try {
+			// For team plans during onboarding, handle the special case where team context hasn't loaded
+			let effectiveTeamId = null;
+
+			if (selectedPlan.isTeamPlan) {
+				const isTeamOnboarding =
+					isOnboarding && localStorage.getItem('isTeamPlan') === 'true';
+
+				if (currentTeam) {
+					// Use current team if available
+					effectiveTeamId = currentTeam.id;
+					console.log(`Using current team ID: ${effectiveTeamId}`);
+				} else if (isTeamOnboarding) {
+					// For onboarding, we need to get the user's active_team_id directly
+					console.log('Team context not loaded yet, fetching active team ID');
+					try {
+						const { data: userData, error: userError } = await supabase
+							.from('users')
+							.select('active_team_id')
+							.eq('id', user.id)
+							.single();
+
+						if (userError) throw userError;
+
+						if (userData?.active_team_id) {
+							effectiveTeamId = userData.active_team_id;
+							console.log(`Retrieved active team ID: ${effectiveTeamId}`);
+						} else {
+							console.error(
+								'No active team ID found for user during onboarding',
+							);
+							showToast.error(
+								'Unable to find team information. Please try again.',
+							);
+							setIsProcessing(false);
+							return;
+						}
+					} catch (teamError) {
+						console.error('Error fetching team ID:', teamError);
+						showToast.error(
+							'Failed to retrieve team information. Please try again.',
+						);
+						setIsProcessing(false);
+						return;
+					}
+				}
+			}
+
 			const { authorizationUrl } = await paystackService.createSubscription({
 				userId: user.id,
-				planName,
-				planPrice,
+				planName: selectedPlan.name,
+				planPrice: subscriptionType === 'monthly' ? selectedPlan.price : 0,
 				email: user.email,
-				usageLimit,
+				usageLimit: selectedPlan.usageLimit,
 				isOneTime: subscriptionType === 'paygo',
+				teamId: effectiveTeamId,
 			});
 
-			// Redirect to Paystack payment page
+			// Store information that this subscription is part of onboarding
+			if (isOnboarding) {
+				sessionStorage.setItem('completing_onboarding', 'true');
+			}
+
 			window.location.href = authorizationUrl;
 		} catch (err) {
-			console.error('Error creating subscription:', err);
-			setError('Failed to create subscription. Please try again.');
+			console.error('Subscription creation error:', err);
+			showToast.error('Failed to create subscription. Please try again.');
 			setIsProcessing(false);
 		}
 	};
+
+	// Add function to handle successful subscription during onboarding
+	useEffect(() => {
+		// Check if we're returning from a successful payment during onboarding
+		const completingOnboarding =
+			sessionStorage.getItem('completing_onboarding') === 'true';
+		const hasSubscription = subscription !== null;
+
+		if (completingOnboarding && hasSubscription && !isProcessing) {
+			// Clear flag
+			sessionStorage.removeItem('completing_onboarding');
+
+			// Show success message and redirect to dashboard
+			showToast.success('Account setup complete! Welcome to Amara.');
+
+			// Force a state refresh before navigating to ensure auth state is current
+			const refreshAndNavigate = async () => {
+				try {
+					// Refresh auth session to ensure JWT is current
+					await supabase.auth.refreshSession();
+					// Update auth store state
+					await useAuthStore.getState().getProfile();
+					console.log('Auth state refreshed before dashboard navigation');
+					// Use window.location for a full reload to ensure fresh state
+					window.location.href = '/agent';
+				} catch (err) {
+					console.error('Error refreshing state before navigation:', err);
+					navigate('/agent');
+				}
+			};
+			refreshAndNavigate();
+		}
+	}, [subscription, navigate, isProcessing]);
 
 	const handleCancelSubscription = async () => {
 		if (!subscription) return;
@@ -278,13 +557,55 @@ const SubscriptionPage: React.FC = () => {
 				subscription.paystack_subscription_id,
 			);
 			await fetchCurrentSubscription();
-		} catch (err) {
-			console.error('Error cancelling subscription:', err);
+		} catch {
 			setError('Failed to cancel subscription. Please try again.');
 		} finally {
 			setIsProcessing(false);
 		}
 	};
+
+	const handleUpgrade = async (newPlanId: string) => {
+		if (!user || !subscription) return;
+
+		const selectedPlan = planOptions.find((plan) => plan.id === newPlanId);
+		if (!selectedPlan) return;
+
+		if (selectedPlan.isTeamPlan && !currentTeam) {
+			showToast.error(
+				'Please create or join a team before upgrading to a team plan',
+			);
+			return;
+		}
+
+		setIsProcessing(true);
+		setError(null);
+
+		try {
+			const { authorizationUrl, proratedAmount } =
+				await paystackService.upgradeSubscription({
+					subscriptionId: subscription.id,
+					newPlanId,
+					userId: user.id,
+					teamId: currentTeam?.id,
+				});
+
+			if (confirm(`Upgrade cost: R${proratedAmount}. Continue with upgrade?`)) {
+				sessionStorage.setItem('upgrading_from_plan', subscription.plan_name);
+				sessionStorage.setItem('upgrading_to_plan', newPlanId);
+
+				window.location.href = authorizationUrl;
+			} else {
+				setIsProcessing(false);
+			}
+		} catch {
+			showToast.error('Failed to process upgrade. Please try again.');
+			setIsProcessing(false);
+		}
+	};
+
+	const availablePlans = planOptions.filter(
+		(plan) => plan.isTeamPlan === showTeamPlans,
+	);
 
 	if (storeLoading) {
 		return (
@@ -296,6 +617,45 @@ const SubscriptionPage: React.FC = () => {
 
 	return (
 		<div className='max-w-5xl mx-auto'>
+			{isOnboarding && (
+				<div className='bg-blue-50 text-blue-800 rounded-lg p-4 mb-4 flex items-start'>
+					<AlertCircle className='h-5 w-5 mr-2 flex-shrink-0 mt-0.5' />
+					<div>
+						<p className='font-medium'>Complete your account setup</p>
+						<p>
+							Choose a subscription plan to continue using Amara for property
+							management.
+						</p>
+					</div>
+				</div>
+			)}
+
+			{!subscription && (
+				<div className='bg-white rounded-lg shadow-sm p-6 mb-4'>
+					<div className='flex justify-between items-center'>
+						<h3 className='text-lg font-medium'>Plan Type</h3>
+						<div className='flex items-center space-x-4'>
+							<button
+								className={`px-4 py-2 rounded-md ${
+									!showTeamPlans ? 'bg-blue-100 text-blue-700' : 'text-gray-600'
+								}`}
+								onClick={() => setShowTeamPlans(false)}
+							>
+								Individual
+							</button>
+							<button
+								className={`px-4 py-2 rounded-md ${
+									showTeamPlans ? 'bg-blue-100 text-blue-700' : 'text-gray-600'
+								}`}
+								onClick={() => setShowTeamPlans(true)}
+							>
+								Team
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+
 			<div className='bg-white rounded-lg shadow-sm p-6 mb-8'>
 				<h2 className='text-2xl font-semibold mb-6'>Subscription Status</h2>
 
@@ -337,12 +697,12 @@ const SubscriptionPage: React.FC = () => {
 							<h4 className='font-medium mb-2'>Usage</h4>
 							<div className='bg-gray-100 rounded-full h-4 w-full overflow-hidden'>
 								<div
-									className='bg-blue-600 h-full'
+									className={progressBarClass}
 									style={{
 										width: `${Math.min(
-											100,
 											(subscription.current_usage / subscription.usage_limit) *
 												100,
+											100,
 										)}%`,
 									}}
 								></div>
@@ -361,6 +721,16 @@ const SubscriptionPage: React.FC = () => {
 									: 'Not available'}
 							</p>
 						</div>
+
+						<SubscriptionHistory subscriptionId={subscription.id} />
+
+						{subscription && subscription.team_id && (
+							<div className='mt-6 flex justify-center'>
+								<Button variant='outline' onClick={navigateToTeams}>
+									Back to Team Management
+								</Button>
+							</div>
+						)}
 					</div>
 				) : (
 					<div className='bg-yellow-50 text-yellow-800 rounded-md p-4 flex items-start mb-6'>
@@ -378,7 +748,11 @@ const SubscriptionPage: React.FC = () => {
 			<div className='bg-white rounded-lg shadow-sm p-6 mb-8'>
 				<div className='flex justify-between items-center mb-6'>
 					<h2 className='text-2xl font-semibold'>
-						{subscription ? 'Upgrade Your Plan' : 'Choose a Plan'}
+						{subscription
+							? 'Upgrade Your Plan'
+							: showTeamPlans
+							? 'Choose a Team Plan'
+							: 'Choose an Individual Plan'}
 					</h2>
 
 					<div className='flex items-center bg-gray-100 rounded-lg p-1'>
@@ -407,7 +781,7 @@ const SubscriptionPage: React.FC = () => {
 
 				{subscriptionType === 'monthly' ? (
 					<div className='grid md:grid-cols-3 gap-6 mb-8'>
-						{planOptions.map((plan) => (
+						{availablePlans.map((plan) => (
 							<div
 								key={plan.id}
 								className={`border rounded-lg p-6 cursor-pointer transition-all relative ${
@@ -441,15 +815,32 @@ const SubscriptionPage: React.FC = () => {
 									))}
 								</ul>
 
+								{plan.isTeamPlan && (
+									<p className='text-sm text-gray-600 mt-2'>
+										Up to {plan.maxTeamSize} team members
+									</p>
+								)}
+
 								<Button
 									variant='primary'
 									className='w-full'
 									onClick={(e) => {
 										e.stopPropagation();
-										handleSelectPlan(plan.id);
+										if (subscription && plan.id !== subscription.plan_name) {
+											handleUpgrade(plan.id);
+										} else {
+											handleSelectPlan(plan.id);
+										}
 									}}
+									disabled={isProcessing || subscription?.plan_name === plan.id}
 								>
-									{selectedPlanId === plan.id ? 'Selected' : 'Select'}
+									{subscription
+										? subscription.plan_name === plan.id
+											? 'Current Plan'
+											: 'Upgrade'
+										: selectedPlanId === plan.id
+										? 'Selected'
+										: 'Select'}
 								</Button>
 							</div>
 						))}
@@ -519,6 +910,8 @@ const SubscriptionPage: React.FC = () => {
 							)}
 							{subscription
 								? 'Upgrade Subscription'
+								: isOnboarding
+								? 'Complete Account Setup'
 								: subscriptionType === 'monthly'
 								? 'Subscribe Now'
 								: 'Purchase Credits'}
@@ -526,6 +919,17 @@ const SubscriptionPage: React.FC = () => {
 					</div>
 				)}
 			</div>
+
+			{isOnboarding && (
+				<div className='mt-4 text-center'>
+					<button
+						onClick={() => navigate('/agent')}
+						className='text-gray-500 hover:text-gray-700 text-sm'
+					>
+						Skip for now (You can subscribe later)
+					</button>
+				</div>
+			)}
 		</div>
 	);
 };

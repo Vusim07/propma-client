@@ -5,7 +5,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { useAgentStore } from '../../stores/agentStore';
 import { Card, CardHeader, CardContent } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
+import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/Textarea';
 import {
 	Select,
@@ -13,7 +13,7 @@ import {
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '../../components/ui/Select';
+} from '../../components/ui/select';
 import Spinner from '../../components/ui/Spinner';
 import Alert from '../../components/ui/Alert';
 import { ArrowLeft, Plus, X, Upload } from 'lucide-react';
@@ -39,6 +39,7 @@ const PropertyForm: React.FC = () => {
 		Omit<Property, 'id' | 'created_at' | 'application_link'>
 	>({
 		agent_id: user?.id || '',
+		team_id: user?.active_team_id || '',
 		address: '',
 		city: '',
 		province: '',
@@ -83,6 +84,7 @@ const PropertyForm: React.FC = () => {
 
 				setFormData({
 					agent_id: propertyToEdit.agent_id,
+					team_id: propertyToEdit.team_id,
 					address: propertyToEdit.address,
 					city: propertyToEdit.city,
 					province: propertyToEdit.province,

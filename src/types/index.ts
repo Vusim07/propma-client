@@ -53,6 +53,20 @@ export type Subscription = Tables<'subscriptions'>;
 export type InsertSubscription = InsertTables<'subscriptions'>;
 export type UpdateSubscription = UpdateTables<'subscriptions'>;
 
+export interface SubscriptionChange {
+	id: string;
+	subscription_id: string;
+	previous_plan_name: string;
+	new_plan_name: string;
+	prorated_amount: number;
+	unused_credits: number;
+	credit_value: number;
+	final_amount: number;
+	created_at: string;
+	user_id: string;
+	team_id?: string;
+}
+
 // Email workflow types
 export type EmailWorkflow = Tables<'email_workflows'>;
 export type InsertEmailWorkflow = InsertTables<'email_workflows'>;
@@ -62,3 +76,38 @@ export type UpdateEmailWorkflow = UpdateTables<'email_workflows'>;
 export type WorkflowLog = Tables<'workflow_logs'>;
 export type InsertWorkflowLog = InsertTables<'workflow_logs'>;
 export type UpdateWorkflowLog = UpdateTables<'workflow_logs'>;
+
+// Team types
+export type Team = Tables<'teams'> & {
+	subscription?: {
+		id: string;
+		plan_name: string;
+		status: 'active' | 'inactive' | 'cancelled';
+		usage_limit: number;
+		current_usage: number;
+		created_at: string;
+		updated_at: string;
+	};
+};
+export type InsertTeam = InsertTables<'teams'>;
+export type UpdateTeam = UpdateTables<'teams'>;
+
+export interface TeamSubscription {
+	id: string;
+	plan_name: string;
+	status: 'active' | 'inactive' | 'cancelled';
+	usage_limit: number;
+	current_usage: number;
+	created_at: string;
+	updated_at: string;
+}
+
+// Team member types
+export type TeamMember = Tables<'team_members'>;
+export type InsertTeamMember = InsertTables<'team_members'>;
+export type UpdateTeamMember = UpdateTables<'team_members'>;
+
+// Team invitation types
+export type TeamInvitation = Tables<'team_invitations'>;
+export type InsertTeamInvitation = InsertTables<'team_invitations'>;
+export type UpdateTeamInvitation = UpdateTables<'team_invitations'>;

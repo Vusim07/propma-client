@@ -15,7 +15,7 @@ import {
 	FormLabel,
 	FormMessage,
 } from '../../components/ui/form';
-import { Input } from '../../components/ui/Input';
+import { Input } from '../../components/ui/input';
 import { LockIcon, MailIcon } from 'lucide-react';
 import { useAuthFlowContext } from '../tenant/PropertyApplication';
 

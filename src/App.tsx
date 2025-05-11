@@ -5,6 +5,7 @@ import {
 	Route,
 	Navigate,
 	useNavigate,
+	useLocation,
 } from 'react-router-dom';
 import { useAuthStore } from './stores/authStore';
 import { PageTitleProvider } from './context/PageTitleContext';
@@ -15,6 +16,7 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import AuthCallback from './pages/auth/AuthCallback';
 import ProfileCompletion from './pages/auth/ProfileCompletion';
+import PaymentCallback from './pages/auth/PaymentCallback';
 import AuthLayout from './components/layout/AuthLayout';
 
 // Add this import
@@ -38,6 +40,7 @@ import PropertyForm from './pages/agent/PropertyForm';
 import SubscriptionPage from './pages/agent/SubscriptionPage';
 import CalendarSettings from './pages/agent/CalendarSettings';
 import Settings from './pages/agent/Settings';
+import Teams from './pages/agent/Teams'; // Add this import
 
 // Layout Components
 import TenantLayout from './components/layout/TenantLayout';
@@ -53,14 +56,32 @@ const ProtectedRoute = ({
 	children: React.ReactNode;
 	allowedRoles: string[];
 }) => {
-	const { user, isLoading } = useAuthStore();
+	const { user, isLoading, initialize } = useAuthStore();
 	const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 	const navigate = useNavigate();
+	const location = useLocation(); // Add this to get current URL
 
 	useEffect(() => {
 		// Extra check to ensure auth state is stable
 		const checkAuthState = async () => {
 			console.log('ProtectedRoute - Initial user state:', user?.role);
+
+			// Check if we're returning from a payment processor
+			const searchParams = new URLSearchParams(location.search);
+			const isReturningFromPayment =
+				searchParams.has('reference') || searchParams.has('trxref');
+
+			if (isReturningFromPayment) {
+				console.log(
+					'Detected return from payment processor, reinitializing auth',
+				);
+				// If coming back from payment provider, force a complete auth reinitialization
+				await initialize();
+				// Clean URL parameters to avoid multiple reinits
+				if (window.history.replaceState) {
+					window.history.replaceState({}, document.title, location.pathname);
+				}
+			}
 
 			// Brief delay to ensure auth state is settled
 			await new Promise((r) => setTimeout(r, 100));
@@ -84,7 +105,7 @@ const ProtectedRoute = ({
 		};
 
 		checkAuthState();
-	}, [user, navigate]);
+	}, [user, navigate, location.search, initialize]); // Add location.search and initialize to deps
 
 	// Function to check if a profile has minimal required fields
 	const isProfileIncomplete = (profile: Tables<'users'>): boolean => {
@@ -187,6 +208,7 @@ function App() {
 						}
 					/>
 					<Route path='/auth/callback' element={<AuthCallback />} />
+					<Route path='/payment/callback' element={<PaymentCallback />} />
 					<Route
 						path='/profile-completion'
 						element={
@@ -236,6 +258,7 @@ function App() {
 						<Route path='appointments' element={<ManageAppointments />} />
 						<Route path='calendar-settings' element={<CalendarSettings />} />
 						<Route path='workflows' element={<WorkflowManagement />} />
+						<Route path='teams' element={<Teams />} />
 						<Route path='subscription' element={<SubscriptionPage />} />
 						<Route path='settings' element={<Settings />} />
 					</Route>

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand';
 import { supabase } from '../services/supabase';
@@ -102,15 +101,21 @@ interface AgentState {
 	calendarIntegration: CalendarIntegration | null; // Add calendar integration state
 	emailIntegration: EmailIntegration | null; // Add email integration state
 	isLoading: boolean;
+	loadingCount: number; // Add loadingCount to state
 	error: string | null;
+	currentTeamId: string | null;
+	setCurrentTeamId: (teamId: string | null) => void;
 
-	fetchApplications: (agentId: string) => Promise<void>;
+	fetchApplications: (agentId: string, teamId?: string | null) => Promise<void>;
 	updateApplicationStatus: (
 		applicationId: string,
 		status: Application['status'],
 		notes?: string,
 	) => Promise<void>;
-	fetchProperties: (agentId: string) => Promise<Property[]>; // Changed return type
+	fetchProperties: (
+		agentId: string,
+		teamId?: string | null,
+	) => Promise<Property[]>; // Changed return type
 	addProperty: (
 		property: Omit<Property, 'id' | 'created_at' | 'application_link'>,
 	) => Promise<void>;
@@ -157,6 +162,9 @@ interface AgentState {
 		subject: string,
 		body: string,
 	) => Promise<boolean>;
+
+	// Subscription changes function
+	fetchSubscriptionChanges: (subscriptionId: string) => Promise<any[]>;
 }
 
 export const useAgentStore = create<AgentState>((set, get) => ({
@@ -169,25 +177,32 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 	calendarIntegration: null, // Initialize calendar integration state
 	emailIntegration: null, // Initialize email integration state
 	isLoading: false,
+	loadingCount: 0, // Initialize loadingCount
 	error: null,
+	currentTeamId: null,
 
-	fetchApplications: async (agentId) => {
+	setCurrentTeamId: (teamId) => set({ currentTeamId: teamId }),
+
+	fetchApplications: async (agentId, teamId) => {
 		set({ isLoading: true, error: null });
 		try {
-			console.log('Fetching applications for agent:', agentId);
-
-			// Update the select query to use tenant_profiles instead of tenants
-			// The tenants(*) relation doesn't exist, use tenant_profiles via join instead
-			const { data, error } = await supabase
-				.from('applications')
-				.select(
-					`
+			let query = supabase.from('applications').select(
+				`
 					*,
 					properties(*),
 					tenant_profiles:tenant_id(*)
 				`,
-				)
-				.eq('agent_id', agentId);
+			);
+
+			if (teamId) {
+				// If team context, fetch team applications
+				query = query.eq('team_id', teamId);
+			} else {
+				// Otherwise fetch personal applications
+				query = query.eq('agent_id', agentId).is('team_id', null);
+			}
+
+			const { data, error } = await query;
 
 			if (error) {
 				console.error('Error fetching applications:', error);
@@ -210,7 +225,7 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 				'Applications fetched successfully:',
 				formattedApplications?.length || 0,
 			);
-			set({ applications: formattedApplications || [], isLoading: false });
+			set({ applications: formattedApplications || [] });
 		} catch (error) {
 			// Enhanced error logging
 			console.error('Failed to fetch applications:', {
@@ -218,7 +233,9 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 				message: (error as Error).message,
 				stack: (error as Error).stack,
 			});
-			set({ error: (error as Error).message, isLoading: false });
+			set({ error: (error as Error).message });
+		} finally {
+			set({ isLoading: false });
 		}
 	},
 
@@ -259,17 +276,21 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 		}
 	},
 
-	fetchProperties: async (agentId) => {
+	fetchProperties: async (agentId, teamId) => {
 		try {
 			set({ isLoading: true, error: null });
 
-			console.log('Fetching properties for agent:', agentId);
+			let query = supabase.from('properties').select('*');
 
-			// Use agent_id instead of owner_id in the query
-			const { data, error } = await supabase
-				.from('properties')
-				.select('*')
-				.eq('agent_id', agentId); // Make sure to use agent_id here, not owner_id
+			if (teamId) {
+				// If team context, fetch team properties
+				query = query.eq('team_id', teamId);
+			} else {
+				// Otherwise fetch personal properties
+				query = query.eq('agent_id', agentId).is('team_id', null);
+			}
+
+			const { data, error } = await query;
 
 			if (error) {
 				console.error('Error fetching properties:', error);
@@ -305,11 +326,15 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 				.substring(2, 10)}`;
 			const applicationLink = `${window.location.origin}/apply/${token}`;
 
+			// Include team_id in property creation if in team context
+			const teamId = get().currentTeamId;
+
 			const { data, error } = await supabase
 				.from('properties')
 				.insert({
 					...property,
 					application_link: applicationLink,
+					team_id: teamId, // Add team context if exists
 				})
 				.select()
 				.single();
@@ -421,7 +446,11 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 	},
 
 	fetchWorkflows: async (agentId) => {
-		set({ isLoading: true, error: null });
+		set((state) => ({
+			loadingCount: state.loadingCount + 1,
+			isLoading: true,
+			error: null,
+		}));
 		try {
 			const { data, error } = await supabase
 				.from('email_workflows')
@@ -430,9 +459,14 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 
 			if (error) throw error;
 
-			set({ workflows: data || [], isLoading: false });
+			set({ workflows: data || [] });
 		} catch (error) {
-			set({ error: (error as Error).message, isLoading: false });
+			set({ error: (error as Error).message });
+		} finally {
+			set((state) => {
+				const newCount = Math.max(state.loadingCount - 1, 0);
+				return { loadingCount: newCount, isLoading: newCount > 0 };
+			});
 		}
 	},
 
@@ -511,7 +545,11 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 	},
 
 	fetchWorkflowLogs: async (workflowId) => {
-		set({ isLoading: true, error: null });
+		set((state) => ({
+			loadingCount: state.loadingCount + 1,
+			isLoading: true,
+			error: null,
+		}));
 		try {
 			let query = supabase.from('workflow_logs').select('*');
 
@@ -523,15 +561,19 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 
 			if (error) throw error;
 
-			// Format dates for display
 			const formattedLogs = data?.map((log) => ({
 				...log,
 				triggered_at: formatDate(log.triggered_at),
 			}));
 
-			set({ workflowLogs: formattedLogs || [], isLoading: false });
+			set({ workflowLogs: formattedLogs || [] });
 		} catch (error) {
-			set({ error: (error as Error).message, isLoading: false });
+			set({ error: (error as Error).message });
+		} finally {
+			set((state) => {
+				const newCount = Math.max(state.loadingCount - 1, 0);
+				return { loadingCount: newCount, isLoading: newCount > 0 };
+			});
 		}
 	},
 
@@ -884,6 +926,24 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 				isLoading: false,
 			});
 			return false;
+		}
+	},
+
+	// Add fetchSubscriptionChanges function
+	fetchSubscriptionChanges: async (subscriptionId) => {
+		try {
+			const { data, error } = await supabase
+				.from('subscription_changes')
+				.select('*')
+				.eq('subscription_id', subscriptionId)
+				.order('created_at', { ascending: false });
+
+			if (error) throw error;
+			return data;
+		} catch (error) {
+			console.error('Error fetching subscription changes:', error);
+			set({ error: 'Failed to load subscription changes' });
+			return [];
 		}
 	},
 }));

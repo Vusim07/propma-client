@@ -1,41 +1,59 @@
 {
   "can_afford": true,
-  "confidence": 0.88,
+  "confidence": 0.90,
   "risk_factors": [
-    "High discretionary spending",
-    "Variable income source",
-    "Existing debt obligations"
+    "High debt-to-income ratio at 28%",
+    "Variable income from part-time employment",
+    "Potential for unexpected expenses"
   ],
   "recommendations": [
-    "Reduce non-essential expenses",
-    "Create a budget for variable income months",
-    "Consider additional income sources for savings"
+    "Maintain a savings buffer for unplanned expenses",
+    "Consider securing a longer-term lease to ensure stability",
+    "Monitor spending patterns monthly to identify areas for savings"
   ],
   "metrics": {
-    "monthly_income": 27500.00,
-    "monthly_expenses": 6900.00,
-    "debt_to_income_ratio": 0.25,
-    "rent_to_income_ratio": 0.30,
-    "target_rent": 8250.00
+    "monthly_income": 23000.00,
+    "monthly_expenses": 6000.00,
+    "target_rent": 6500.00,
+    "rent_to_income_ratio": 28.26,
+    "debt_to_income_ratio": 28.00
   },
   "transaction_analysis": {
-    "essential_expenses": {
-      "housing": 4500.00,
-      "utilities": 1200.00,
-      "groceries": 2500.00
+    "income": {
+      "total_income": 23000.00,
+      "sources": [
+        {
+          "type": "salary",
+          "amount": 20000.00,
+          "frequency": "monthly"
+        },
+        {
+          "type": "freelance",
+          "amount": 3000.00,
+          "frequency": "monthly"
+        }
+      ]
     },
-    "discretionary_expenses": {
-      "restaurants": 1500.00,
-      "entertainment": 1000.00,
-      "shopping": 800.00
+    "expenses": {
+      "total_expenses": 6000.00,
+      "breakdown": {
+        "rent": 6500.00,
+        "utilities": 800.00,
+        "groceries": 2000.00,
+        "transport": 700.00,
+        "insurance": 500.00,
+        "other": 500.00
+      }
     },
-    "income_sources": {
-      "salary": 25000.00,
-      "freelance": 2500.00
-    },
-    "debt_obligations": {
-      "personal_loan": 2000.00,
-      "credit_card": 1600.00
+    "debts": {
+      "existing_loans": [
+        {
+          "type": "personal loan",
+          "amount": 20000.00,
+          "monthly_payment": 1000.00
+        }
+      ],
+      "total_debt": 1000.00
     }
   }
 }

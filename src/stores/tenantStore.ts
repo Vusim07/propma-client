@@ -11,8 +11,9 @@ import {
 	UpdateTenantProfile,
 	Property,
 	Application,
+	Tables,
 } from '../types';
-import { TablesInsert } from '../services/database.types'; // Corrected path
+import { InsertTables } from '../services/database.types'; // Corrected path
 
 interface TenantState {
 	profile: TenantProfile | null;
@@ -34,7 +35,7 @@ interface TenantState {
 	fetchScreeningReport: (id: string) => Promise<void>;
 	fetchAppointments: (tenantId: string) => Promise<void>;
 	scheduleAppointment: (
-		appointment: Omit<TablesInsert<'appointments'>, 'id' | 'created_at'>,
+		appointment: Omit<InsertTables<'appointments'>, 'id' | 'created_at'>,
 	) => Promise<void>;
 	fetchPropertyByToken: (token: string) => Promise<Property | null>;
 	submitApplication: (application: {
@@ -53,7 +54,7 @@ interface TenantState {
 	) => Promise<boolean>;
 }
 
-export const useTenantStore = create<TenantState>((set) => ({
+export const useTenantStore = create<TenantState>((set, get) => ({
 	profile: null,
 	documents: [],
 	screeningReport: null,
@@ -90,7 +91,7 @@ export const useTenantStore = create<TenantState>((set) => ({
 
 			// If no tenant profile exists yet, create a default one
 			if (!tenantData) {
-				const defaultProfile: TenantProfile = {
+				const defaultProfile: Tables<'tenant_profiles'> = {
 					...userData,
 					current_address: '',
 					id_number: '',
@@ -103,10 +104,7 @@ export const useTenantStore = create<TenantState>((set) => ({
 			}
 
 			// Merge existing user data with tenant profile data
-			const profileData: TenantProfile = {
-				...userData,
-				...tenantData,
-			};
+			const profileData = tenantData as Tables<'tenant_profiles'>;
 
 			set({ profile: profileData, isLoading: false });
 			console.log('Tenant profile:', profileData);
@@ -302,8 +300,6 @@ export const useTenantStore = create<TenantState>((set) => ({
 				}
 			}
 
-			// At this point, we're likely dealing with an auth user ID
-			// First, get the tenant profile ID that corresponds to this auth user ID
 			const { data: profileData, error: profileError } = await supabase
 				.from('tenant_profiles')
 				.select('id')
@@ -451,13 +447,13 @@ export const useTenantStore = create<TenantState>((set) => ({
 	},
 
 	scheduleAppointment: async (
-		appointment: Omit<TablesInsert<'appointments'>, 'id' | 'created_at'>,
+		appointment: Omit<InsertTables<'appointments'>, 'id' | 'created_at'>,
 	): Promise<void> => {
 		set({ isLoading: true, error: null });
 		try {
 			console.log('Scheduling appointment with payload:', appointment);
 			// Ensure the payload matches the expected type for insertion
-			const appointmentPayload: TablesInsert<'appointments'> = {
+			const appointmentPayload: InsertTables<'appointments'> = {
 				...appointment,
 				status: appointment.status || 'scheduled', // Default status
 			};
@@ -537,7 +533,7 @@ export const useTenantStore = create<TenantState>((set) => ({
 	}): Promise<Application | null> => {
 		set({ isLoading: true, error: null });
 		try {
-			// Validate the numeric fields to ensure they are numbers, not NaN
+			// Validate numeric fields
 			if (
 				isNaN(application.employment_duration) ||
 				isNaN(application.monthly_income)
@@ -547,20 +543,36 @@ export const useTenantStore = create<TenantState>((set) => ({
 				);
 			}
 
-			// Ensure numeric fields are actually numbers, not strings
+			// Normalize numeric values
 			const employmentDuration = Number(application.employment_duration);
 			const monthlyIncome = Number(application.monthly_income);
 
-			console.log('Submitting application to Supabase:', {
-				...application,
-				employment_duration: employmentDuration,
-				monthly_income: monthlyIncome,
+			console.log('Checking for existing application...', {
+				tenant_id: application.tenant_id,
+				property_id: application.property_id,
 			});
 
-			// First try to use the RPC function to bypass RLS
+			// First check for existing application using direct query as fallback
+			const { data: existingData } = await supabase
+				.from('applications')
+				.select('*')
+				.eq('tenant_id', application.tenant_id)
+				.eq('property_id', application.property_id)
+				.maybeSingle();
+
+			if (existingData) {
+				console.log('Found existing application:', existingData);
+				set({ isLoading: false });
+				return existingData;
+			}
+
+			// No existing application found, proceed with creation using safe insert
+			console.log('No existing application found, creating new one...');
+
+			// Try RPC insert first (with built-in duplicate check)
 			try {
 				const { data: applicationId, error: rpcError } =
-					await supabase.rpc<string>('insert_application', {
+					await supabase.rpc<string>('insert_application_safe', {
 						p_property_id: application.property_id,
 						p_agent_id: application.agent_id,
 						p_tenant_id: application.tenant_id,
@@ -571,11 +583,11 @@ export const useTenantStore = create<TenantState>((set) => ({
 					});
 
 				if (rpcError) {
-					console.log(
-						'RPC insert_application failed, falling back to direct insert:',
+					console.warn(
+						'RPC insert failed, falling back to direct insert:',
 						rpcError,
 					);
-					throw rpcError; // Throw to trigger the fallback
+					throw rpcError;
 				}
 
 				// Fetch the created application
@@ -585,17 +597,12 @@ export const useTenantStore = create<TenantState>((set) => ({
 					.eq('id', applicationId)
 					.single();
 
-				if (fetchError) {
-					throw fetchError;
-				}
+				if (fetchError) throw fetchError;
 
 				set({ isLoading: false });
 				return createdApplication;
 			} catch (_) {
-				// Use underscore to indicate unused variable
-				console.log('Using fallback for application submission');
-
-				// Fallback to direct insert (may still trigger RLS errors)
+				// Fallback to direct insert with unique constraint
 				const applicationData = {
 					...application,
 					employment_duration: employmentDuration,
@@ -604,7 +611,6 @@ export const useTenantStore = create<TenantState>((set) => ({
 					created_at: new Date().toISOString(),
 				};
 
-				// Create the application record
 				const { data, error } = await supabase
 					.from('applications')
 					.insert(applicationData)
@@ -612,7 +618,20 @@ export const useTenantStore = create<TenantState>((set) => ({
 					.single();
 
 				if (error) {
-					console.error('Supabase error on application insert:', error);
+					if (error.code === '23505') {
+						// Unique violation
+						console.log('Duplicate application detected:', error);
+						// Fetch and return the existing application
+						const { data: existingData } = await supabase
+							.from('applications')
+							.select('*')
+							.eq('tenant_id', application.tenant_id)
+							.eq('property_id', application.property_id)
+							.single();
+
+						set({ isLoading: false });
+						return existingData;
+					}
 					throw error;
 				}
 
@@ -628,165 +647,63 @@ export const useTenantStore = create<TenantState>((set) => ({
 
 	completeApplicationWithDocuments: async (
 		applicationId: string,
-		documentTypes: string[],
+		requiredDocTypes: string[],
 		forceComplete: boolean = false,
 	): Promise<boolean> => {
-		set({ isLoading: true, error: null });
-		console.log(
-			`Checking application ${applicationId} for document types:`,
-			documentTypes,
-		);
-
-		// For development use - bypass document check if forceComplete is true
-		if (forceComplete && process.env.NODE_ENV === 'development') {
-			console.log(
-				'DEVELOPMENT MODE: Forcing application completion, bypassing document checks',
-			);
-
-			try {
-				// Update the application status to submitted
-				const updateData = {
-					status: 'submitted',
-					created_at: new Date().toISOString(),
-				};
-
-				console.log('Updating application status to submitted:', applicationId);
-
-				const { error: updateError } = await supabase
-					.from('applications')
-					.update(updateData)
-					.eq('id', applicationId);
-
-				if (updateError) {
-					console.error('Error updating application status:', updateError);
-					throw updateError;
-				}
-
-				set({ isLoading: false });
-				return true;
-			} catch (error) {
-				console.error('Error in force complete:', error);
-				set({ error: (error as Error).message, isLoading: false });
-				return false;
-			}
-		}
-
 		try {
-			// 1. Verify that the required document types have been uploaded
-			console.log('Fetching documents for application ID:', applicationId);
-			const { data: appDocuments, error: docError } = await supabase
-				.from('documents')
-				.select('id, document_type, file_name, application_id, user_id')
-				.eq('application_id', applicationId);
+			// Use get() to access current state
+			const validDocuments = get().documents.filter((doc: any) =>
+				isDocumentValid(doc.created_at),
+			);
 
-			if (docError) {
-				console.error('Error fetching documents for application:', docError);
-				throw docError;
-			}
+			// Normalize the document_type strings for comparison.
+			const normalizedUploadedTypes = validDocuments.map((doc: any) =>
+				doc.document_type.toLowerCase().replace(/[_\s-]/g, ''),
+			);
 
-			console.log('Found documents for application:', appDocuments);
-
-			// Extra check: If no docs found, try to find by user_id if we have it stored
-			if (!appDocuments || appDocuments.length === 0) {
-				// This is a workaround for cases where application_id might not be set correctly
-				console.log(
-					'No documents found with this application ID, attempting secondary lookup',
+			// Check for any missing required document types.
+			const missingDocs = requiredDocTypes.filter((req) => {
+				const normRequired = req.toLowerCase().replace(/[_\s-]/g, '');
+				return !normalizedUploadedTypes.some(
+					(uploaded) =>
+						uploaded === normRequired ||
+						uploaded.includes(normRequired) ||
+						normRequired.includes(uploaded),
 				);
+			});
 
-				// Get the application to find the tenant ID
-				const { data: application, error: appError } = await supabase
-					.from('applications')
-					.select('tenant_id')
-					.eq('id', applicationId)
-					.single();
-
-				if (appError) {
-					console.error('Failed to fetch application:', appError);
-				} else if (application) {
-					console.log(
-						'Found application with tenant ID:',
-						application.tenant_id,
-					);
-
-					// Get documents by tenant ID if we couldn't find by application_id
-					const { data: userDocs, error: userDocsError } = await supabase
-						.from('documents')
-						.select('id, document_type, file_name, application_id, user_id')
-						.is('application_id', null);
-
-					if (userDocsError) {
-						console.error('Error in secondary document lookup:', userDocsError);
-					} else if (userDocs && userDocs.length > 0) {
-						console.log('Found documents without application_id:', userDocs);
-						// Use these documents instead
-						appDocuments.push(...userDocs);
-					}
-				}
-			}
-
-			// Handle both "id_document" and "ID Document" type formats - normalize to lowercase and remove spaces
-			const normalizeDocType = (type: string): string =>
-				type.toLowerCase().replace(/[_\s-]/g, '');
-
-			// Check if all required document types exist - case insensitive comparison
-			const uploadedTypes = appDocuments.map((doc) =>
-				normalizeDocType(doc.document_type),
-			);
-			const normalizedRequiredTypes = documentTypes.map((type) =>
-				normalizeDocType(type),
-			);
-
-			console.log('Normalized uploaded types:', uploadedTypes);
-			console.log('Normalized required types:', normalizedRequiredTypes);
-
-			const missingTypes = normalizedRequiredTypes.filter(
-				(requiredType) =>
-					!uploadedTypes.some(
-						(uploadedType) =>
-							uploadedType.includes(requiredType) ||
-							requiredType.includes(uploadedType),
-					),
-			);
-
-			if (missingTypes.length > 0) {
-				const errorMessage = `Missing required documents: ${missingTypes.join(
-					', ',
-				)}`;
-				console.error(errorMessage);
-				set({ error: errorMessage, isLoading: false });
+			// If required docs are missing and forceComplete is not set, do not complete.
+			if (missingDocs.length > 0 && !forceComplete) {
 				return false;
 			}
 
-			// 2. Update the application status to submitted
-			const updateData = {
-				status: 'submitted',
-				created_at: new Date().toISOString(),
-			};
-
-			console.log('Updating application status to submitted:', applicationId);
-
-			const { error: updateError } = await supabase
+			// Otherwise, update the application record to complete the application.
+			const { error } = await supabase
 				.from('applications')
-				.update(updateData)
+				.update({
+					status: 'completed',
+					updated_at: new Date().toISOString(),
+				})
 				.eq('id', applicationId);
 
-			if (updateError) {
-				console.error('Error updating application status:', updateError);
-				throw updateError;
+			if (error) {
+				console.error('Error updating application:', error);
+				throw error;
 			}
 
-			// 3. Trigger application processing (normally handled by backend webhook/function)
-			console.log(
-				'Application submitted and ready for processing:',
-				applicationId,
-			);
-
-			set({ isLoading: false });
 			return true;
-		} catch (error) {
-			console.error('Error completing application:', error);
-			set({ error: (error as Error).message, isLoading: false });
+		} catch (err) {
+			console.error('Failed to complete application:', err);
 			return false;
 		}
 	},
 }));
+
+// Helper to determine if a document is valid (uploaded in the last 30 days)
+const isDocumentValid = (docDate: string): boolean => {
+	const createdAt = new Date(docDate);
+	const now = new Date();
+	const diff = now.getTime() - createdAt.getTime();
+	const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+	return diff <= THIRTY_DAYS;
+};

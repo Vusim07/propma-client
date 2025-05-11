@@ -9,6 +9,9 @@ interface AuthState {
 	loading: boolean;
 	isLoading: boolean;
 	error: string | null;
+	activeTeam: Tables<'teams'> | null;
+	isAuthChecked: boolean;
+	hasSubmittedApplication: boolean;
 
 	// Actions
 	login: (email: string, password: string) => Promise<Tables<'users'> | null>;
@@ -30,8 +33,9 @@ interface AuthState {
 		updates: Partial<Tables<'users'>>,
 	) => Promise<Tables<'users'>>; // Fixed return type
 	getProfile: () => Promise<void>;
-	checkAuth: () => Promise<void>;
+	checkAuth: () => Promise<void>; // Restored for backward compatibility
 	initialize: () => Promise<boolean>;
+	setHasSubmittedApplication: (value: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -40,6 +44,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 	loading: false,
 	isLoading: false,
 	error: null,
+	activeTeam: null,
+	isAuthChecked: false,
+	hasSubmittedApplication: false,
 
 	login: async (email, password) => {
 		try {
@@ -211,7 +218,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
 			if (error) throw error;
 
-			set({ user: null, session: null });
+			set({ user: null, session: null, activeTeam: null });
 		} catch (error: any) {
 			set({ error: error.message });
 		} finally {
@@ -255,6 +262,29 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 				normalizedUpdates.role = normalizedRole;
 			}
 
+			// Handle team context in updates
+			if ('active_team_id' in updates) {
+				// If switching teams, validate team membership
+				if (updates.active_team_id) {
+					const { data: membership, error: membershipError } = await supabase
+						.from('team_members')
+						.select('team:teams(*)')
+						.eq('user_id', user.id)
+						.eq('team_id', updates.active_team_id)
+						.single();
+
+					if (membershipError || !membership) {
+						throw new Error('Not a member of the selected team');
+					}
+
+					// Set active team in state
+					set({ activeTeam: membership.team } as any);
+				} else {
+					// Clearing team context
+					set({ activeTeam: null });
+				}
+			}
+
 			console.log('Updating profile with data:', normalizedUpdates);
 
 			const { error } = await supabase
@@ -292,32 +322,39 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 			const { data: sessionData } = await supabase.auth.getSession();
 
 			if (!sessionData.session) {
-				set({ user: null });
+				set({ user: null, activeTeam: null });
 				return;
 			}
 
 			const { data, error } = await supabase
 				.from('users')
-				.select('*')
+				.select(
+					`
+					*,
+					team_members!team_members_user_id_fkey(
+						team:teams(*)
+					)
+				`,
+				)
 				.eq('id', sessionData.session.user.id)
 				.single();
 
 			if (error) throw error;
 
-			set({ user: data });
-		} catch (error: any) {
-			set({ error: error.message, user: null });
-		} finally {
-			set({ loading: false, isLoading: false });
-		}
-	},
+			// Find active team if user has one set
+			let activeTeam = null;
+			if (data.active_team_id && data.team_members) {
+				const teamMembership = data.team_members.find(
+					(tm: any) => tm.team.id === data.active_team_id,
+				);
+				if (teamMembership) {
+					activeTeam = teamMembership.team;
+				}
+			}
 
-	checkAuth: async () => {
-		try {
-			set({ loading: true, isLoading: true, error: null });
-			await get().getProfile();
+			set({ user: data, activeTeam });
 		} catch (error: any) {
-			set({ error: error.message });
+			set({ error: error.message, user: null, activeTeam: null });
 		} finally {
 			set({ loading: false, isLoading: false });
 		}
@@ -461,17 +498,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
 			if (!sessionData.session) {
 				console.log('No existing session found');
-				set({ user: null, session: null });
+				set({ user: null, session: null, activeTeam: null });
 				return false;
 			}
 
 			console.log('Existing session found');
 			set({ session: sessionData.session });
 
-			// Fetch the profile for this session
+			// Fetch the profile and team data for this session
 			const { data: profileData, error: profileError } = await supabase
 				.from('users')
-				.select('*')
+				.select(
+					`
+					*,
+					team_members!team_members_user_id_fkey(
+						team:teams(*)
+					)
+				`,
+				)
 				.eq('id', sessionData.session.user.id)
 				.single();
 
@@ -483,15 +527,47 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 				return false;
 			}
 
-			set({ user: profileData });
+			// Find active team if user has one set
+			let activeTeam = null;
+			if (profileData.active_team_id && profileData.team_members) {
+				const teamMembership = profileData.team_members.find(
+					(tm: any) => tm.team.id === profileData.active_team_id,
+				);
+				if (teamMembership) {
+					activeTeam = teamMembership.team;
+				}
+			}
+
+			set({ user: profileData, activeTeam });
 			console.log('Auth initialization complete');
 			return true;
 		} catch (error: any) {
 			console.error('Auth initialization error:', error);
-			set({ error: error.message, user: null, session: null });
+			set({
+				error: error.message,
+				user: null,
+				session: null,
+				activeTeam: null,
+			});
 			return false;
 		} finally {
 			set({ loading: false, isLoading: false });
 		}
+	},
+
+	checkAuth: async () => {
+		// Implementation of checkAuth method
+		try {
+			set({ loading: true, isLoading: true, error: null });
+			await get().getProfile();
+		} catch (error: any) {
+			set({ error: error.message });
+		} finally {
+			set({ loading: false, isLoading: false });
+		}
+	},
+
+	setHasSubmittedApplication: (value: boolean) => {
+		set({ hasSubmittedApplication: value });
 	},
 }));

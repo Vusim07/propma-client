@@ -24,6 +24,12 @@ interface WebhookPayload {
 			userId?: string;
 			planName?: string;
 			usageLimit?: number;
+			isUpgrade?: boolean;
+			subscriptionId?: number;
+			newPlanId?: string;
+			unusedCredits?: number;
+			proratedAmount?: number;
+			teamId?: number;
 		};
 	};
 }
@@ -62,6 +68,77 @@ serve(async (req: Request) => {
 			if (status !== 'success') {
 				return new Response(
 					JSON.stringify({ message: 'Payment not successful' }),
+					{
+						headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+						status: 200,
+					},
+				);
+			}
+
+			// Handle plan upgrade payment
+			if (metadata?.isUpgrade) {
+				console.log('Processing plan upgrade payment');
+
+				const { subscriptionId, newPlanId, unusedCredits, proratedAmount } =
+					metadata;
+
+				// Update the existing subscription
+				const { data: subscription, error: subError } = await supabase
+					.from('subscriptions')
+					.select('*')
+					.eq('id', subscriptionId)
+					.single();
+
+				if (subError || !subscription) {
+					throw new Error('Subscription not found for upgrade');
+				}
+
+				// Calculate new start/end dates
+				const now = new Date();
+				const endDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+				// Update subscription with new plan details
+				const { error: updateError } = await supabase
+					.from('subscriptions')
+					.update({
+						plan_name: newPlanId,
+						plan_price: proratedAmount,
+						usage_limit: subscription.usage_limit + Number(unusedCredits || 0),
+						paystack_subscription_id: reference,
+						start_date: now.toISOString(),
+						end_date: endDate.toISOString(),
+					})
+					.eq('id', subscriptionId);
+
+				if (updateError) {
+					throw new Error('Failed to update subscription for upgrade');
+				}
+
+				// If this is a team plan upgrade, update team limits
+				if (metadata.teamId) {
+					const maxMembers = {
+						'starter-team': 3,
+						'growth-team': 10,
+						'enterprise-team': 25,
+					}[newPlanId];
+
+					if (maxMembers) {
+						const { error: teamError } = await supabase
+							.from('teams')
+							.update({
+								max_members: maxMembers,
+								plan_type: newPlanId.split('-')[0], // starter, growth, or enterprise
+							})
+							.eq('id', metadata.teamId);
+
+						if (teamError) {
+							console.error('Failed to update team limits:', teamError);
+						}
+					}
+				}
+
+				return new Response(
+					JSON.stringify({ success: true, type: 'upgrade' }),
 					{
 						headers: { ...corsHeaders, 'Content-Type': 'application/json' },
 						status: 200,

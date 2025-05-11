@@ -22,6 +22,7 @@ export interface Database {
 					monthly_income: number;
 					notes: string | null;
 					property_id: string;
+					team_id: string | null;
 					status: string;
 					tenant_id: string;
 					updated_at: string;
@@ -33,6 +34,7 @@ export interface Database {
 					employer: string;
 					employment_duration: number;
 					id?: string;
+					team_id?: string | null;
 					monthly_income: number;
 					notes?: string | null;
 					property_id: string;
@@ -47,6 +49,7 @@ export interface Database {
 					employer?: string;
 					employment_duration?: number;
 					id?: string;
+					team_id?: string | null;
 					monthly_income?: number;
 					notes?: string | null;
 					property_id?: string;
@@ -77,6 +80,13 @@ export interface Database {
 						referencedRelation: 'tenant_profiles';
 						referencedColumns: ['id'];
 					},
+					{
+						foreignKeyName: '${tableName}_team_id_fkey';
+						columns: ['team_id'];
+						isOneToOne: false;
+						referencedRelation: 'teams';
+						referencedColumns: ['id'];
+					},
 				];
 			};
 			documents: {
@@ -91,6 +101,7 @@ export interface Database {
 					updated_at: string;
 					verification_status: string;
 					user_id: string;
+					team_id: string | null;
 					file_name: string;
 					file_size: number;
 				};
@@ -105,6 +116,7 @@ export interface Database {
 					updated_at?: string;
 					verification_status: string;
 					user_id?: string | null;
+					team_id?: string | null;
 					file_name?: string | null;
 					file_size?: number | null;
 				};
@@ -119,6 +131,7 @@ export interface Database {
 					updated_at?: string;
 					verification_status?: string;
 					user_id?: string | null;
+					team_id?: string | null;
 					file_name?: string | null;
 					file_size?: number | null;
 				};
@@ -137,6 +150,13 @@ export interface Database {
 						referencedRelation: 'users';
 						referencedColumns: ['id'];
 					},
+					{
+						foreignKeyName: '${tableName}_team_id_fkey';
+						columns: ['team_id'];
+						isOneToOne: false;
+						referencedRelation: 'teams';
+						referencedColumns: ['id'];
+					},
 				];
 			};
 			users: {
@@ -149,6 +169,8 @@ export interface Database {
 					last_name: string;
 					phone: string | null;
 					role: string;
+					active_team_id: string | null;
+					is_individual: boolean;
 					updated_at: string;
 				};
 				Insert: {
@@ -160,6 +182,8 @@ export interface Database {
 					last_name: string;
 					phone?: string | null;
 					role: string;
+					active_team_id: string | null;
+					is_individual: boolean;
 					updated_at?: string;
 				};
 				Update: {
@@ -171,14 +195,25 @@ export interface Database {
 					last_name?: string;
 					phone?: string | null;
 					role?: string;
+					active_team_id?: string | null;
+					is_individual?: boolean;
 					updated_at?: string;
 				};
-				Relationships: [];
+				Relationships: [
+					{
+						foreignKeyName: '${tableName}_team_id_fkey';
+						columns: ['team_id'];
+						isOneToOne: false;
+						referencedRelation: 'teams';
+						referencedColumns: ['id'];
+					},
+				];
 			};
 			properties: {
 				Row: {
 					address: string;
 					agent_id: string;
+					team_id: string | null;
 					available_from: string;
 					bathrooms: number;
 					bedrooms: number;
@@ -203,6 +238,7 @@ export interface Database {
 				Insert: {
 					address: string;
 					agent_id: string;
+					team_id: string | null;
 					available_from: string;
 					bathrooms: number;
 					bedrooms: number;
@@ -226,6 +262,7 @@ export interface Database {
 				Update: {
 					address?: string;
 					agent_id?: string;
+					team_id?: string | null;
 					available_from?: string;
 					bathrooms?: number;
 					bedrooms?: number;
@@ -254,6 +291,13 @@ export interface Database {
 						referencedRelation: 'users';
 						referencedColumns: ['id'];
 					},
+					{
+						foreignKeyName: '${tableName}_team_id_fkey';
+						columns: ['team_id'];
+						isOneToOne: false;
+						referencedRelation: 'teams';
+						referencedColumns: ['id'];
+					},
 				];
 			};
 			screening_reports: {
@@ -262,6 +306,7 @@ export interface Database {
 					affordability_score: number | null;
 					agent_id: string;
 					application_id: string;
+					team_id: string | null;
 					created_at: string;
 					credit_score: number | null;
 					id: string;
@@ -278,6 +323,7 @@ export interface Database {
 					affordability_notes?: string | null;
 					affordability_score?: number | null;
 					agent_id: string;
+					team_id?: string | null;
 					application_id: string;
 					created_at?: string;
 					credit_score?: number | null;
@@ -295,6 +341,7 @@ export interface Database {
 					affordability_notes?: string | null;
 					affordability_score?: number | null;
 					agent_id?: string;
+					team_id?: string | null;
 					application_id?: string;
 					created_at?: string;
 					credit_score?: number | null;
@@ -330,6 +377,13 @@ export interface Database {
 						referencedRelation: 'credit_reports';
 						referencedColumns: ['id'];
 					},
+					{
+						foreignKeyName: '${tableName}_team_id_fkey';
+						columns: ['team_id'];
+						isOneToOne: false;
+						referencedRelation: 'teams';
+						referencedColumns: ['id'];
+					},
 				];
 			};
 			tenant_profiles: {
@@ -341,7 +395,9 @@ export interface Database {
 					id: string;
 					tenant_id: string;
 					id_number: string;
+					employer: string | null;
 					employment_status: string;
+					employment_duration: number;
 					monthly_income: number;
 					last_name: string;
 					phone: string | null;
@@ -356,7 +412,9 @@ export interface Database {
 					tenant_id?: string;
 					id_number: string;
 					last_name: string;
+					employer?: string;
 					employment_status?: string;
+					employment_duration?: number;
 					monthly_income?: number;
 					phone: string | null;
 					updated_at?: string;
@@ -369,7 +427,9 @@ export interface Database {
 					id?: string;
 					tenant_id?: string;
 					id_number?: string;
+					employer?: string;
 					employment_status?: string;
+					employment_duration?: number;
 					monthly_income?: number;
 					last_name?: string;
 					phone?: string | null;
@@ -552,6 +612,9 @@ export interface Database {
 					user_id: string;
 					plan_name: string;
 					plan_price: number;
+					team_id: string | null;
+					plan_type: string | null;
+					is_team: boolean;
 					usage_limit: number;
 					current_usage: number;
 					status: string;
@@ -566,6 +629,9 @@ export interface Database {
 					user_id: string;
 					plan_name: string;
 					plan_price: number;
+					team_id: string | null;
+					plan_type: string | null;
+					is_team: boolean;
 					usage_limit: number;
 					current_usage?: number;
 					status: string;
@@ -580,6 +646,9 @@ export interface Database {
 					user_id?: string;
 					plan_name?: string;
 					plan_price?: number;
+					team_id?: string | null;
+					plan_type?: string | null;
+					is_team?: boolean;
 					usage_limit?: number;
 					current_usage?: number;
 					status?: string;
@@ -595,6 +664,13 @@ export interface Database {
 						columns: ['user_id'];
 						isOneToOne: false;
 						referencedRelation: 'users';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: '${tableName}_team_id_fkey';
+						columns: ['team_id'];
+						isOneToOne: false;
+						referencedRelation: 'teams';
 						referencedColumns: ['id'];
 					},
 				];
@@ -779,13 +855,169 @@ export interface Database {
 					},
 				];
 			};
+			teams: {
+				Row: {
+					id: string;
+					name: string;
+					created_at: string;
+					subscription_id: string | null;
+					plan_type: string;
+					max_members: number;
+					updated_at: string;
+				};
+				Insert: {
+					id?: string;
+					name: string;
+					subscription_id?: string;
+					plan_type?: string;
+					max_members?: number;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					id?: string;
+					name?: string;
+					subscription_id?: string;
+					plan_type?: string;
+					max_members?: number;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'teams_subscription_id_fkey';
+						columns: ['subscription_id'];
+						isOneToOne: false;
+						referencedRelation: 'subscriptions';
+						referencedColumns: ['id'];
+					},
+				];
+			};
+
+			team_members: {
+				Row: {
+					user_id: string;
+					team_id: string;
+					role: string;
+					joined_at: string;
+				};
+				Insert: {
+					user_id: string;
+					team_id: string;
+					role: string;
+					joined_at?: string;
+				};
+				Update: {
+					user_id?: string;
+					team_id?: string;
+					role?: string;
+					joined_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'team_members_team_id_fkey';
+						columns: ['team_id'];
+						isOneToOne: false;
+						referencedRelation: 'teams';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'team_members_user_id_fkey';
+						columns: ['user_id'];
+						isOneToOne: false;
+						referencedRelation: 'users';
+						referencedColumns: ['id'];
+					},
+				];
+			};
+
+			team_invitations: {
+				Row: {
+					id: string;
+					team_id: string;
+					email: string;
+					token: string;
+					role: string;
+					expires_at: string;
+					created_at: string;
+					created_by: string;
+					status: string;
+				};
+				Insert: {
+					id?: string;
+					team_id: string;
+					email: string;
+					token: string;
+					role?: string;
+					expires_at: string;
+					created_at?: string;
+					created_by: string;
+					status?: string;
+				};
+				Update: {
+					id?: string;
+					team_id?: string;
+					email?: string;
+					token?: string;
+					role?: string;
+					expires_at?: string;
+					created_at?: string;
+					created_by?: string;
+					status?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'team_invitations_team_id_fkey';
+						columns: ['team_id'];
+						isOneToOne: false;
+						referencedRelation: 'teams';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'team_invitations_created_by_fkey';
+						columns: ['created_by'];
+						isOneToOne: false;
+						referencedRelation: 'users';
+						referencedColumns: ['id'];
+					},
+				];
+			};
+			team_stats: {
+				Row: {
+					team_id: string;
+					member_count: number;
+					pending_invites: number;
+					last_updated: string;
+				};
+				Insert: {
+					team_id: string;
+					member_count?: number;
+					pending_invites?: number;
+					last_updated?: string;
+				};
+				Update: {
+					team_id?: string;
+					member_count?: number;
+					pending_invites?: number;
+					last_updated?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'team_stats_team_id_fkey';
+						columns: ['team_id'];
+						isOneToOne: true;
+						referencedRelation: 'teams';
+						referencedColumns: ['id'];
+					},
+				];
+			};
 		};
 		Functions: {
 			save_screening_report: {
 				Args: {
 					p_application_id: string;
-					p_agent_id: string;
-					p_tenant_id: string; // <-- Added tenant profile ID as required
+					p_agent_id_val: string; // renamed parameter to match SQL function
+					p_tenant_id_val: string; // renamed parameter to match SQL function
 					p_affordability_score: number;
 					p_affordability_notes: string;
 					p_income_verification: boolean;
@@ -838,6 +1070,63 @@ export interface Database {
 					property_id_param: string;
 				};
 				Returns: Array<any>; // You can refine this to Application[] if needed
+			};
+			// Subscription usage tracking function
+			increment_screening_usage: {
+				Args: {
+					agent_id: string;
+				};
+				Returns: {
+					success: boolean;
+					message: string;
+					current_usage?: number;
+					usage_limit?: number;
+					remaining?: number;
+					is_team?: boolean;
+				};
+			};
+			// Added new RPC function to insert an application
+			insert_application: {
+				Args: {
+					p_property_id: string;
+					p_agent_id: string;
+					p_tenant_id: string;
+					p_employer: string;
+					p_employment_duration: number;
+					p_monthly_income: number;
+					p_notes: string | null;
+				};
+				Returns: string;
+			};
+			// Added new RPC function to get property by token
+			get_property_by_token: {
+				Args: {
+					token_param: string;
+				};
+				Returns: Database['public']['Tables']['properties']['Row'][];
+			};
+
+			// Add new safe application insert function
+			insert_application_safe: {
+				Args: {
+					p_property_id: string;
+					p_agent_id: string;
+					p_tenant_id: string;
+					p_employer: string;
+					p_employment_duration: number;
+					p_monthly_income: number;
+					p_notes: string | null;
+				};
+				Returns: string;
+			};
+
+			// Add new function to get existing application
+			get_existing_application: {
+				Args: {
+					p_tenant_id: string;
+					p_property_id: string;
+				};
+				Returns: Database['public']['Tables']['applications']['Row'] | null;
 			};
 		};
 	};

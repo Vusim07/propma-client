@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { usePageTitle } from '../../context/PageTitleContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -8,46 +8,121 @@ import {
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/Card';
-import { User, CreditCard, Plug } from 'lucide-react';
 import CalendarSettings from './CalendarSettings';
 import SubscriptionPage from './SubscriptionPage';
 import AgentProfileForm from '../../components/agent/AgentProfileForm';
 import InboxIntegration from '../../components/agent/InboxIntegration';
+import Teams from './Teams';
+import { useLocation, useNavigate } from 'react-router-dom';
+
+// Add a memoized wrapper component for each tab content to prevent re-renders
+const MemoizedSubscriptionPage = memo(() => <SubscriptionPage />);
+const MemoizedTeams = memo(() => <Teams />);
+
+// Define type for navigation state
+interface NavigationState {
+	activeTab: string;
+	fromBilling?: boolean;
+}
 
 const Settings: React.FC = () => {
 	const { setPageTitle } = usePageTitle();
+	const location = useLocation();
+	const navigate = useNavigate();
 	const [activeTab, setActiveTab] = useState('profile');
 
-	React.useEffect(() => {
+	// Handle tab from navigation state - only runs once on component mount
+	useEffect(() => {
+		// Check if we have a tab specified in the location state
+		const stateTab = location.state?.activeTab;
+		if (stateTab) {
+			setActiveTab(stateTab);
+			// Clear the state to avoid persisting across navigation
+			window.history.replaceState({}, document.title);
+		}
+	}, [location.state?.activeTab]); // Only depend on the tab value, not the entire state object
+
+	useEffect(() => {
 		setPageTitle('Settings');
 	}, [setPageTitle]);
 
+	// Handle tab change with navigation state
+	const handleTabChange = useCallback(
+		(value: string) => {
+			// Only update if the tab is actually changing
+			if (value !== activeTab) {
+				setActiveTab(value);
+
+				// Create navigation state based on tab transition
+				const navigationState: NavigationState = { activeTab: value };
+
+				// If switching from billing to team tab, pass additional state
+				if (activeTab === 'billing' && value === 'team') {
+					navigationState.fromBilling = true;
+				}
+
+				// Update the URL with the tab value without page reload
+				navigate('/agent/settings', {
+					state: navigationState,
+					replace: true,
+				});
+			}
+		},
+		[activeTab, navigate],
+	);
+
 	return (
 		<div>
-			<div className='mb-6'>
-				<p className='text-gray-600 mt-1'>
-					Manage your account settings and preferences
-				</p>
-			</div>
-
 			<Tabs
 				defaultValue='profile'
 				value={activeTab}
-				onValueChange={setActiveTab}
+				onValueChange={handleTabChange}
 				className='w-full'
 			>
-				<TabsList className='grid w-full grid-cols-3 mb-8'>
-					<TabsTrigger value='profile' className='flex items-center'>
-						<User className='h-4 w-4 mr-2' />
-						<span>Profile</span>
+				<TabsList className='flex w-full  rounded-lg p-0'>
+					<TabsTrigger
+						value='profile'
+						className={`flex-1 px-4 py-2 text-center text-base font-semibold transition-colors duration-150 rounded-lg
+							${
+								activeTab === 'profile'
+									? 'bg-white text-black shadow-none'
+									: 'bg-transparent text-gray-400'
+							}`}
+					>
+						Profile
 					</TabsTrigger>
-					<TabsTrigger value='billing' className='flex items-center'>
-						<CreditCard className='h-4 w-4 mr-2' />
-						<span>Billing</span>
+					<TabsTrigger
+						value='billing'
+						className={`flex-1 px-4 py-2 text-center text-base font-semibold transition-colors duration-150 rounded-lg
+							${
+								activeTab === 'billing'
+									? 'bg-white text-black shadow-none'
+									: 'bg-transparent text-gray-400'
+							}`}
+					>
+						Billing
 					</TabsTrigger>
-					<TabsTrigger value='integrations' className='flex items-center'>
-						<Plug className='h-4 w-4 mr-2' />
-						<span>Integrations</span>
+					<TabsTrigger
+						value='team'
+						className={`flex-1 px-4 py-2 text-center text-base font-semibold transition-colors duration-150 rounded-lg
+							${
+								activeTab === 'team'
+									? 'bg-white text-black shadow-none'
+									: 'bg-transparent text-gray-400'
+							}`}
+					>
+						Team
+					</TabsTrigger>
+					<TabsTrigger
+						value='integrations'
+						className={`flex-1 px-4 py-2 text-center text-base font-semibold transition-colors duration-150 rounded-lg
+							${
+								activeTab === 'integrations'
+									? 'bg-white text-black shadow-none'
+									: 'bg-transparent text-gray-400'
+							}`}
+					>
+						Integrations
 					</TabsTrigger>
 				</TabsList>
 
@@ -74,7 +149,23 @@ const Settings: React.FC = () => {
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<SubscriptionPage />
+							{/* Use memo to prevent unnecessary re-renders */}
+							{activeTab === 'billing' && <MemoizedSubscriptionPage />}
+						</CardContent>
+					</Card>
+				</TabsContent>
+
+				<TabsContent value='team'>
+					<Card>
+						<CardHeader>
+							<CardTitle>Your Team</CardTitle>
+							<CardDescription>
+								Manage your team members and their roles
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							{/* Use memo to prevent unnecessary re-renders */}
+							{activeTab === 'team' && <MemoizedTeams />}
 						</CardContent>
 					</Card>
 				</TabsContent>

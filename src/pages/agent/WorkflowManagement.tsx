@@ -11,7 +11,7 @@ import {
 	CardFooter,
 } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
+import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/Textarea';
 import Spinner from '../../components/ui/Spinner';
 import Badge from '../../components/ui/Badge';
@@ -98,6 +98,7 @@ const WorkflowManagement: React.FC = () => {
 	const [isCreating, setIsCreating] = useState(false);
 	const [isEditing, setIsEditing] = useState<string | null>(null);
 	const [success, setSuccess] = useState('');
+	const [initialLoading, setInitialLoading] = useState(true);
 
 	// Form state
 	const [name, setName] = useState('');
@@ -132,6 +133,8 @@ const WorkflowManagement: React.FC = () => {
 				} catch (err) {
 					console.error('Error loading workflows:', err);
 					// No need to do anything special, the error state will be set by the store
+				} finally {
+					setInitialLoading(false);
 				}
 			};
 
@@ -343,7 +346,7 @@ const WorkflowManagement: React.FC = () => {
 		}
 	};
 
-	if (isLoading && workflows.length === 0) {
+	if (initialLoading) {
 		return (
 			<div className='flex justify-center items-center h-64'>
 				<Spinner size='lg' />

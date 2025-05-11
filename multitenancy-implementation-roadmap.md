@@ -1,4 +1,3 @@
-````markdown
 # Multi-Tenancy Implementation Roadmap
 
 **Goal**: Add team support while retaining solo agent functionality.
@@ -9,7 +8,7 @@
 
 ### New Tables
 
-[ ] **Create `teams` table**
+[x] **Create `teams` table**
 
 ```sql
 id UUID PRIMARY KEY,
@@ -19,9 +18,8 @@ subscription_id UUID REFERENCES subscriptions(id),
 plan_type TEXT CHECK (plan_type IN ('starter', 'growth', 'scale', 'enterprise')),
 max_members INT
 ```
-````
 
-[ ] **Create `team_members` table**
+[x] **Create `team_members` table**
 
 ```sql
 user_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -31,7 +29,7 @@ joined_at TIMESTAMPTZ DEFAULT NOW(),
 PRIMARY KEY (user_id, team_id)
 ```
 
-[ ] **Create `team_invitations` table**
+[x] **Create `team_invitations` table**
 
 ```sql
 id UUID PRIMARY KEY,
@@ -43,7 +41,7 @@ expires_at TIMESTAMPTZ NOT NULL
 
 ### Modify Existing Tables
 
-[ ] **Add columns to `users`**
+[x] **Add columns to `users`**
 
 ```sql
 ALTER TABLE users
@@ -51,7 +49,7 @@ ADD COLUMN active_team_id UUID REFERENCES teams(id),
 ADD COLUMN is_individual BOOLEAN DEFAULT false;
 ```
 
-[ ] **Add `team_id` to these tables**:
+[x] **Add `team_id` to these tables**:
 
 - `properties`
 - `applications`
@@ -64,7 +62,7 @@ ALTER TABLE properties
 ADD COLUMN team_id UUID REFERENCES teams(id);
 ```
 
-[ ] **Update `subscriptions` table**
+[x] **Update `subscriptions` table**
 
 ```sql
 ALTER TABLE subscriptions
@@ -79,7 +77,7 @@ ADD COLUMN is_team BOOLEAN DEFAULT false;
 
 ### For Team-Scoped Tables (e.g., `properties`)
 
-[ ] **Solo user access**
+[x] **Solo user access**
 
 ```sql
 CREATE POLICY "Solo users access own data" ON properties
@@ -89,7 +87,7 @@ FOR SELECT USING (
 );
 ```
 
-[ ] **Team member access**
+[x] **Team member access**
 
 ```sql
 CREATE POLICY "Team members access shared data" ON properties
@@ -100,7 +98,7 @@ FOR ALL USING (
 
 ### For `teams` Table
 
-[ ] **Admin-only management**
+[x] **Admin-only management**
 
 ```sql
 CREATE POLICY "Only admins manage teams" ON teams
@@ -118,30 +116,18 @@ FOR ALL USING (
 
 ## Authentication & Team Workflows
 
-[ ] **Onboarding flow**
-
-```// src/pages/auth/
-   // src/components/layout
-   // src/stores
-
-```
+[x] **Onboarding flow**
 
 - Add UI toggle: "Join as an individual" vs "Create team"
 - Auto-create `team` record for team signups
 
-[ ] **Invite system**
+[x] **Invite system**
 
-```typescript
-// Example edge function for invites:
-const { data, error } = await supabase.from('team_invitations').insert({
-	team_id: teamId,
-	email: 'user@example.com',
-	token: crypto.randomUUID(),
-	expires_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
-});
-```
+- Email notifications for team invites
+- Accept/reject invite flow
+- Handle expired invites cleanup
 
-[ ] **Team switching**
+[x] **Team switching**
 
 - Update `users.active_team_id` on switch
 - Refresh JWT claims via `supabase.auth.refreshSession()`
@@ -150,7 +136,7 @@ const { data, error } = await supabase.from('team_invitations').insert({
 
 ## Subscription & Billing
 
-[ ] **Link team plans**
+[x] **Link team plans**
 
 ```sql
 UPDATE teams
@@ -158,7 +144,7 @@ SET subscription_id = 'sub_123', plan_type = 'growth', max_members = 5
 WHERE id = 'team-uuid';
 ```
 
-[ ] **Enforce team limits**
+[x] **Enforce team limits**
 
 ```typescript
 // Block invites if team is full:
@@ -170,22 +156,29 @@ const { count } = await supabase
 if (count >= team.max_members) throw new Error('Team full');
 ```
 
-[ ] **Proration logic**
+[x] **Team plan selection**
 
-- Use Paystack API to calculate upgrade costs
-- Migrate individual user data to team on plan change
+- Prevent individual users from selecting team plans
+- Handle team context in subscription creation
+- Sync subscription status with team members
+
+[x] **Proration logic**
+
+- Calculate upgrade costs via Paystack
+- Handle team plan migrations
+- Manage credit distribution
 
 ---
 
 ## UI/API Changes
 
-[ ] **Team dashboard**
+[x] **Team dashboard**
 
 - Member list with role badges
 - "Invite" button with email input
 - Team usage stats (screenings/appointments)
 
-[ ] **Resource ownership UI**
+[x] **Resource ownership UI**
 
 ```tsx
 // Show team/personal toggle:
@@ -194,7 +187,7 @@ if (count >= team.max_members) throw new Error('Team full');
 </Button>
 ```
 
-[ ] **Update all queries**
+[x] **Update all queries**
 
 ```typescript
 // Replace:
@@ -214,7 +207,7 @@ const { data } = await supabase
 
 ## Testing & Deployment
 
-[ ] **Data migration script**
+[x] **Data migration script**
 
 ```sql
 -- Backfill team_id for early adopters:
@@ -224,7 +217,7 @@ FROM users
 WHERE properties.user_id = users.id;
 ```
 
-[ ] **Edge case tests**
+[x] **Edge case tests**
 
 - Individual user tries to invite member → block
 - Team admin downgrades plan → enforce member removal
@@ -239,8 +232,9 @@ WHERE properties.user_id = users.id;
 
 ## Supabase Type Updates
 
+[x] **database.types.ts adjustments:**
+
 ```typescript
-// database.types.ts adjustments:
 export interface Database {
 	public: {
 		Tables: {
@@ -272,7 +266,6 @@ export interface Database {
 }
 ```
 
-````markdown
 # Team Invitation Process Task List
 
 **Scope**: Tasks to implement the team invitation flow (not covered in the original roadmap).
@@ -281,16 +274,16 @@ export interface Database {
 
 ### **Backend Tasks**
 
-[ ] **Create API endpoint/functions for sending invites**
+[x] **Create API endpoint/functions for sending invites**
 
 - Accepts `email` and `team_id` (called by admins).
 - Generates a token, saves to `team_invitations` table.
 
-[ ] **Create API endpoint/functions for accepting invites**
+[x] **Create API endpoint/functions for accepting invites**
 
 - Validates the token, checks expiration, and links user to the team.
 
-[ ] **Add RLS policies for `team_invitations` table**
+[x] **Add RLS policies for `team_invitations` table**
 
 ```sql
 -- Only admins can create invites:
@@ -304,13 +297,12 @@ FOR INSERT WITH CHECK (
   )
 );
 ```
-````
 
-[ ] **Add email validation logic**
+[x] **Add email validation logic**
 
-- Ensure the user’s sign-up/login email matches the invited email.
+- Ensure the user's sign-up/login email matches the invited email.
 
-[ ] **Add team membership checks**
+[x] **Add team membership checks**
 
 - Block adding users already in the team.
 
@@ -318,18 +310,18 @@ FOR INSERT WITH CHECK (
 
 ### **Frontend Tasks**
 
-[ ] **Build invite UI for team admins**
+[x] **Build invite UI for team admins**
 
 - Email input field + "Send Invite" button in the team dashboard.
 
-[ ] **Build invite acceptance page**
+[x] **Build invite acceptance page**
 
 - Page at `/join-team?token=...` that handles token validation.
 - Show loading/error states (e.g., "Invalid token").
 
-[ ] **Add notifications**
+[x] **Add notifications**
 
-- Success: "You’ve joined Team XYZ!"
+- Success: "You've joined Team XYZ!"
 - Errors: "Invite expired" or "Team is full."
 
 ---
@@ -364,7 +356,7 @@ FOR INSERT WITH CHECK (
 
 [ ] **Audit RLS policies**
 
-- Ensure non-admins can’t read/write `team_invitations`.
+- Ensure non-admins can't read/write `team_invitations`.
 
 ---
 
@@ -372,7 +364,3 @@ FOR INSERT WITH CHECK (
 
 [ ] **Update API docs** with `/invite` and `/join-team` endpoints.  
 [ ] **Write user guide** for admins: "How to invite team members."
-
-```
-
-```

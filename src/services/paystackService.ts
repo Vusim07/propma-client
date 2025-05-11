@@ -16,6 +16,7 @@ interface InitializeSubscriptionParams {
 	email: string;
 	usageLimit: number;
 	isOneTime?: boolean; // Flag to indicate if this is a one-time payment
+	teamId?: string | null; // Add team ID for team subscriptions
 }
 
 interface VerifyTransactionResult {
@@ -136,6 +137,7 @@ class PaystackService {
 			interface TransactionData {
 				email: string;
 				amount: number;
+				callback_url: string;
 				metadata: {
 					userId: string;
 					planName: string;
@@ -150,6 +152,7 @@ class PaystackService {
 			const transactionData: TransactionData = {
 				email: params.email,
 				amount: params.planPrice * 100, // Payment amount in kobo (ZAR cents)
+				callback_url: `${window.location.origin}/payment/callback`,
 				metadata: {
 					userId: params.userId,
 					planName: params.planName,
@@ -176,6 +179,21 @@ class PaystackService {
 			const startDate = new Date();
 			const endDate = new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000);
 
+			// Extract plan type from plan name to ensure it matches the constraint
+			// Extract "starter", "growth", "scale", or "enterprise" from plan name
+			let planType = 'starter'; // Default to starter
+			const planNameLower = params.planName.toLowerCase();
+
+			if (planNameLower.includes('growth')) {
+				planType = 'growth';
+			} else if (planNameLower.includes('scale')) {
+				planType = 'scale';
+			} else if (planNameLower.includes('enterprise')) {
+				planType = 'enterprise';
+			} else if (planNameLower.includes('starter')) {
+				planType = 'starter';
+			}
+
 			const subscriptionData: InsertSubscription = {
 				user_id: params.userId,
 				plan_name: params.planName,
@@ -183,6 +201,9 @@ class PaystackService {
 				usage_limit: params.usageLimit,
 				current_usage: 0,
 				status: 'inactive',
+				is_team: params.teamId ? true : false, // Set based on teamId parameter
+				team_id: params.teamId || null, // Use the teamId parameter
+				plan_type: planType, // Use extracted plan type that matches constraint
 				paystack_subscription_id: response.data.reference,
 				start_date: startDate.toISOString(),
 				end_date: params.isOneTime ? undefined : endDate.toISOString(),
@@ -477,6 +498,54 @@ class PaystackService {
 			subscription.current_usage < subscription.usage_limit &&
 			subscription.status === 'active'
 		);
+	}
+
+	async upgradeSubscription(params: {
+		subscriptionId: string;
+		newPlanId: string;
+		userId: string;
+		teamId?: string;
+	}): Promise<{ authorizationUrl: string; proratedAmount: number }> {
+		try {
+			const response = await fetch(
+				`${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/subscription-change`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${
+							(
+								await supabase.auth.getSession()
+							).data.session?.access_token
+						}`,
+					},
+					body: JSON.stringify({
+						...params,
+						callback_url: `${window.location.origin}/payment/callback`,
+					}),
+				},
+			);
+
+			if (!response.ok) {
+				throw new Error('Failed to calculate upgrade cost');
+			}
+
+			const data = await response.json();
+			if (!data.success) {
+				throw new Error(data.error || 'Unknown error occurred');
+			}
+
+			// Store the upgrade reference for later use
+			sessionStorage.setItem('paystack_upgrade_reference', data.reference);
+
+			return {
+				authorizationUrl: data.authorizationUrl,
+				proratedAmount: data.proratedAmount,
+			};
+		} catch (error) {
+			console.error('Error in upgradeSubscription:', error);
+			throw error;
+		}
 	}
 }
 
