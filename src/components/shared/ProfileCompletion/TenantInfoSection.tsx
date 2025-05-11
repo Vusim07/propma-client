@@ -12,7 +12,7 @@ import {
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '@/components/ui/Select';
+} from '@/components/ui/select';
 import { employmentStatusOptions } from '@/types/profileCompletionTypes';
 
 export const TenantInfoSection = () => (

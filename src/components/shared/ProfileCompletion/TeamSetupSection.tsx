@@ -13,7 +13,7 @@ import {
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '../../../components/ui/Select';
+} from '../../../components/ui/select';
 import { teamPlanOptions } from '@/types/profileCompletionTypes';
 
 export const TeamSetupSection = () => {

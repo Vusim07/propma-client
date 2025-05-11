@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useTeamStore } from '../../stores/teamStore';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import Button from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Label } from '../ui/label';
@@ -12,7 +12,7 @@ import {
 	SelectValue,
 	SelectContent,
 	SelectItem,
-} from '@/components/ui/Select';
+} from '@/components/ui/select';
 import { AlertCircle } from 'lucide-react';
 
 const AgentProfileForm: React.FC = () => {

@@ -11,7 +11,7 @@ import {
 	CardFooter,
 } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
-import { Input } from '../../components/ui/Input';
+import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/Textarea';
 import Spinner from '../../components/ui/Spinner';
 import Badge from '../../components/ui/Badge';
