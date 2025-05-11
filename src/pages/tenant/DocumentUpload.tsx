@@ -392,9 +392,9 @@ const DocumentUpload: React.FC = () => {
 
 	// Update document type options to match database constraints
 	const documentTypeOptions = [
-		{ value: 'id_document', label: "ID/Driver's License" },
-		{ value: 'bank_statement', label: 'Bank Statement' },
-		{ value: 'payslip', label: 'Pay Slip' },
+		{ value: 'id_document', label: "ID/Driver's License/Passport" },
+		{ value: 'bank_statement', label: '3 Months Bank Statement' },
+		{ value: 'payslip', label: 'Recent Pay Slip' },
 		{ value: 'other', label: 'Other' },
 	];
 

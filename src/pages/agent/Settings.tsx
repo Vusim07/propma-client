@@ -79,7 +79,7 @@ const Settings: React.FC = () => {
 				onValueChange={handleTabChange}
 				className='w-full'
 			>
-				<TabsList className='flex w-full bg-black rounded-lg p-0'>
+				<TabsList className='flex w-full  rounded-lg p-0'>
 					<TabsTrigger
 						value='profile'
 						className={`flex-1 px-4 py-2 text-center text-base font-semibold transition-colors duration-150 rounded-lg

@@ -74,7 +74,7 @@ export const TenantInfoSection = () => (
 				name='monthly_income'
 				render={({ field }) => (
 					<FormItem>
-						<FormLabel>Monthly Income (ZAR)</FormLabel>
+						<FormLabel>Monthly Income</FormLabel>
 						<FormControl>
 							<Input
 								type='number'
