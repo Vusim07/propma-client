@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore';
-import { useAgentStore, GmailMessage } from '../../stores/agentStore';
+import { useAgentStore } from '../../stores/agentStore';
 import { usePageTitle } from '../../context/PageTitleContext';
 
 import {
@@ -91,8 +90,6 @@ const WorkflowManagement: React.FC = () => {
 		error,
 		properties,
 		fetchProperties,
-		fetchGmailMessages,
-		sendGmailMessage,
 	} = useAgentStore();
 
 	const [isCreating, setIsCreating] = useState(false);
@@ -113,13 +110,6 @@ const WorkflowManagement: React.FC = () => {
 	const [currentWorkflows, setCurrentWorkflows] = useState<WorkflowViewModel[]>(
 		[],
 	);
-
-	const [gmailMessages, setGmailMessages] = useState<GmailMessage[]>([]);
-	const [fetchingEmails, setFetchingEmails] = useState(false);
-	const [emailError, setEmailError] = useState<string | null>(null);
-	const [replyingTo, setReplyingTo] = useState<string | null>(null);
-	const [replyBody, setReplyBody] = useState('');
-	const [replySuccess, setReplySuccess] = useState('');
 
 	useEffect(() => {
 		setPageTitle('Workflows & Automation');
@@ -319,30 +309,6 @@ const WorkflowManagement: React.FC = () => {
 			);
 		} else {
 			setSelectedPropertyPatterns([...selectedPropertyPatterns, pattern]);
-		}
-	};
-
-	const handleFetchEmails = async () => {
-		setFetchingEmails(true);
-		setEmailError(null);
-		try {
-			const emails = await fetchGmailMessages();
-			setGmailMessages(emails);
-		} catch (err: any) {
-			setEmailError(err.message || 'Failed to fetch emails');
-		} finally {
-			setFetchingEmails(false);
-		}
-	};
-
-	const handleSendReply = async (to: string, subject: string, body: string) => {
-		setReplyingTo(null);
-		setReplySuccess('');
-		try {
-			const sent = await sendGmailMessage(to, subject, body);
-			if (sent) setReplySuccess('Reply sent successfully!');
-		} catch (err: any) {
-			setEmailError(err.message || 'Failed to send reply');
 		}
 	};
 
@@ -561,97 +527,6 @@ const WorkflowManagement: React.FC = () => {
 					</CardFooter>
 				</Card>
 			)}
-
-			{/* Email Inbox Preview (for workflow testing) */}
-			<div className='mb-8'>
-				<Button
-					onClick={handleFetchEmails}
-					isLoading={fetchingEmails}
-					variant='outline'
-				>
-					Fetch Recent Emails
-				</Button>
-				{emailError && (
-					<Alert variant='error' className='mt-2'>
-						{emailError}
-					</Alert>
-				)}
-				{replySuccess && (
-					<Alert variant='success' className='mt-2'>
-						{replySuccess}
-					</Alert>
-				)}
-				{gmailMessages.length > 0 && (
-					<Card className='mt-4'>
-						<CardHeader>
-							<h3 className='text-base font-semibold flex items-center gap-2'>
-								<Mail className='h-4 w-4 text-blue-500' />
-								Recent Gmail Messages
-							</h3>
-						</CardHeader>
-						<CardContent>
-							<div className='divide-y divide-gray-100'>
-								{gmailMessages.map((msg) => (
-									<div key={msg.id} className='py-3'>
-										<div className='flex items-center justify-between'>
-											<div>
-												<div className='font-medium text-sm'>{msg.subject}</div>
-												<div className='text-xs text-gray-500'>
-													From: {msg.from}
-												</div>
-												<div className='text-xs text-gray-400'>{msg.date}</div>
-											</div>
-											<Button
-												size='sm'
-												variant='outline'
-												onClick={() => {
-													setReplyingTo(msg.id);
-													setReplyBody('');
-												}}
-											>
-												Reply
-											</Button>
-										</div>
-										{replyingTo === msg.id && (
-											<div className='mt-2'>
-												<Textarea
-													value={replyBody}
-													onChange={(e) => setReplyBody(e.target.value)}
-													placeholder='Type your reply...'
-													rows={3}
-												/>
-												<Button
-													className='mt-2'
-													onClick={() =>
-														handleSendReply(
-															msg.from,
-															`Re: ${msg.subject}`,
-															replyBody,
-														)
-													}
-													isLoading={fetchingEmails}
-												>
-													Send Reply
-												</Button>
-												<Button
-													className='mt-2 ml-2'
-													variant='secondary'
-													onClick={() => setReplyingTo(null)}
-												>
-													Cancel
-												</Button>
-											</div>
-										)}
-										<div className='text-xs text-gray-700 mt-2 whitespace-pre-line'>
-											{msg.body}
-										</div>
-									</div>
-								))}
-							</div>
-						</CardContent>
-					</Card>
-				)}
-			</div>
 
 			{/* Workflows List */}
 			<div className='grid grid-cols-1 gap-6 mb-8'>

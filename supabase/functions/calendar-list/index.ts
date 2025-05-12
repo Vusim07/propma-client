@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // Deno-specific imports that won't be resolved by the TS compiler in VS Code
@@ -165,12 +166,15 @@ serve(async (req) => {
 
 		console.log('Found integration for user:', user.id);
 
-		// Check if token is expired and refresh if needed
+		// Check if token is near expiry (less than 5 minutes remaining) and refresh if needed
 		let accessToken = integration.access_token;
-		if (new Date(integration.token_expiry) < new Date()) {
+		if (
+			new Date(integration.token_expiry).getTime() - Date.now() <
+			5 * 60 * 1000
+		) {
+			// less than 5 minutes remaining
 			try {
-				console.log('Token expired, refreshing...');
-
+				console.log('Token is about to expire or expired, refreshing...');
 				const refreshResponse = await fetch(
 					'https://oauth2.googleapis.com/token',
 					{
@@ -201,18 +205,15 @@ serve(async (req) => {
 				accessToken = tokens.access_token;
 
 				// Update the tokens in the database
-				const updateData = {
+				const updateData: any = {
 					access_token: tokens.access_token,
 					token_expiry: new Date(
 						Date.now() + (tokens.expires_in || 3600) * 1000,
 					).toISOString(),
 				};
-
-				// If we received a new refresh token, update that too
 				if (tokens.refresh_token) {
 					updateData.refresh_token = tokens.refresh_token;
 				}
-
 				const { error: updateError } = await supabaseAdmin
 					.from('calendar_integrations')
 					.update(updateData)
@@ -222,21 +223,10 @@ serve(async (req) => {
 					console.error('Error updating tokens in database:', updateError);
 				}
 			} catch (refreshError) {
-				console.error('Token refresh error:', refreshError.message);
-				return new Response(
-					JSON.stringify({
-						error: 'Failed to refresh token',
-						message:
-							'Your authorization may have expired. Please reconnect your calendar.',
-						details: refreshError.message,
-					}),
-					{
-						status: 401,
-						headers: {
-							...corsResult,
-							'Content-Type': 'application/json',
-						},
-					},
+				console.error('Automatic token refresh failed:', refreshError.message);
+				// Optionally, you could disconnect the integration here or notify the frontend to reconnect.
+				throw new Error(
+					'Your calendar session has expired. Please reconnect your calendar.',
 				);
 			}
 		}
