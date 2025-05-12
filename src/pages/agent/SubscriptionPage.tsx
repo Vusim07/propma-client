@@ -648,7 +648,7 @@ const SubscriptionPage: React.FC = () => {
 						{subscription && subscription.team_id && (
 							<div className='mt-6 flex justify-center'>
 								<Button variant='outline' onClick={navigateToTeams}>
-									Back to Team Management
+									Manage Team
 								</Button>
 							</div>
 						)}
