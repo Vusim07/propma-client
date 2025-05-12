@@ -1010,6 +1010,50 @@ export interface Database {
 						referencedColumns: ['id'];
 					},
 				];
+				plans: {
+					Row: {
+						id: string;
+						name: string;
+						price: number;
+						usage_limit: number;
+						description: string;
+						extra_usage: string | null;
+						is_team_plan: boolean;
+						max_team_size: number | null;
+						popular: boolean;
+						features: string[];
+						created_at: string;
+						updated_at: string;
+					};
+					Insert: {
+						id: string;
+						name: string;
+						price: number;
+						usage_limit: number;
+						description: string;
+						extra_usage?: string | null;
+						is_team_plan?: boolean;
+						max_team_size?: number | null;
+						popular?: boolean;
+						features: string[];
+						created_at?: string;
+						updated_at?: string;
+					};
+					Update: {
+						id?: string;
+						name?: string;
+						price?: number;
+						usage_limit?: number;
+						description?: string;
+						extra_usage?: string | null;
+						is_team_plan?: boolean;
+						max_team_size?: number | null;
+						popular?: boolean;
+						features?: string[];
+						created_at?: string;
+						updated_at?: string;
+					};
+				};
 			};
 		};
 		Functions: {
