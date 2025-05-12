@@ -685,7 +685,9 @@ const SubscriptionPage: React.FC = () => {
 							}`}
 							onClick={() => setSubscriptionType('monthly')}
 						>
-							Monthly Plans
+							{showTeamPlans
+								? 'Teams Monthly Plans'
+								: 'Individual Monthly Plans'}
 						</button>
 						<button
 							className={`py-2 px-4 rounded-md text-sm font-medium ${
