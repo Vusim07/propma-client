@@ -17,6 +17,7 @@ class PlansService {
 			.from('plans')
 			.select('*')
 			.eq('is_team_plan', false)
+			.eq('is_paygo', false) // filter out paygo bundles
 			.order('price');
 
 		if (error) throw error;
@@ -28,6 +29,7 @@ class PlansService {
 			.from('plans')
 			.select('*')
 			.eq('is_team_plan', true)
+			.eq('is_paygo', false) // filter out paygo bundles
 			.order('price');
 
 		if (error) throw error;
@@ -43,6 +45,16 @@ class PlansService {
 
 		if (error) throw error;
 		return data as Plan;
+	}
+
+	async getPaygoPlans(): Promise<Plan[]> {
+		const { data, error } = await supabase
+			.from('plans')
+			.select('*')
+			.eq('is_paygo', true)
+			.order('price');
+		if (error) throw error;
+		return data as Plan[];
 	}
 }
 

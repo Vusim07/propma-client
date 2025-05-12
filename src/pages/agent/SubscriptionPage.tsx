@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useAgentStore } from '../../stores/agentStore';
@@ -5,6 +6,7 @@ import { useTeamStore } from '../../stores/teamStore';
 import { useNavigate, useLocation } from 'react-router-dom';
 import paystackService from '../../services/paystackService';
 import { Subscription } from '../../types';
+import type { Plan } from '../../types/plan';
 import {
 	CheckCircle,
 	AlertCircle,
@@ -16,139 +18,7 @@ import Button from '@/components/ui/Button';
 import SubscriptionHistory from '@/components/agent/SubscriptionHistory';
 import { showToast } from '../../utils/toast';
 import { supabase } from '../../services/supabase';
-
-interface PlanOption {
-	id: string;
-	name: string;
-	price: number;
-	usageLimit: number;
-	features: string[];
-	popular?: boolean;
-	description?: string;
-	extraUsage?: string;
-	isTeamPlan?: boolean;
-	maxTeamSize?: number;
-}
-
-const planOptions: PlanOption[] = [
-	{
-		id: 'starter-individual',
-		name: 'Individual Starter',
-		price: 500,
-		usageLimit: 20,
-		description: '20 screening credits included',
-		extraUsage: 'R65 per additional screening',
-		isTeamPlan: false,
-		features: [
-			'R25 effective cost per screening',
-			'Advanced tenant verification',
-			'Document automation',
-			'Smart scheduling system',
-			'Email & chat support',
-		],
-	},
-	{
-		id: 'growth-individual',
-		name: 'Individual Growth',
-		price: 950,
-		usageLimit: 40,
-		description: '40 screening credits included',
-		extraUsage: 'R65 per additional screening',
-		isTeamPlan: false,
-		popular: true,
-		features: [
-			'R23.75 effective cost per screening',
-			'Everything in Starter, plus:',
-			'Priority tenant verification',
-			'Analytics dashboard',
-			'API integration with listing sites',
-			'Priority support',
-		],
-	},
-	{
-		id: 'starter-team',
-		name: 'Team Starter',
-		price: 1500,
-		usageLimit: 60,
-		description: '60 screening credits included',
-		extraUsage: 'R65 per additional screening',
-		isTeamPlan: true,
-		maxTeamSize: 3,
-		features: [
-			'R25 effective cost per screening',
-			'Up to 3 team members',
-			'Team dashboard & analytics',
-			'Shared document library',
-			'Team workflow automation',
-			'Priority support',
-		],
-	},
-	{
-		id: 'growth-team',
-		name: 'Team Growth',
-		price: 2850,
-		usageLimit: 120,
-		description: '120 screening credits included',
-		extraUsage: 'R65 per additional screening',
-		isTeamPlan: true,
-		maxTeamSize: 10,
-		popular: true,
-		features: [
-			'R23.75 effective cost per screening',
-			'Up to 10 team members',
-			'Everything in Team Starter, plus:',
-			'Advanced team analytics',
-			'Custom workflow templates',
-			'API integrations',
-			'Premium support',
-		],
-	},
-	{
-		id: 'enterprise-team',
-		name: 'Team Enterprise',
-		price: 5700,
-		usageLimit: 240,
-		description: '240 screening credits included',
-		extraUsage: 'Volume discounts available',
-		isTeamPlan: true,
-		maxTeamSize: 25,
-		features: [
-			'Volume-based discounts',
-			'Up to 25 team members',
-			'Everything in Team Growth, plus:',
-			'Dedicated account manager',
-			'Custom API integrations',
-			'Advanced team analytics',
-			'Custom reporting',
-			'24/7 premium support',
-		],
-	},
-];
-
-const creditBundles = [
-	{
-		id: 'single',
-		name: 'Single Credit',
-		price: 65,
-		credits: 1,
-		pricePerCredit: 'R65 per screening',
-	},
-	{
-		id: 'bundle-50',
-		name: '50 Credit Bundle',
-		price: 3000,
-		credits: 50,
-		pricePerCredit: 'R60 per screening',
-		popular: true,
-	},
-	{
-		id: 'bundle-100',
-		name: '100 Credit Bundle',
-		price: 5500,
-		credits: 100,
-		pricePerCredit: 'R55 per screening',
-	},
-];
+import { plansService } from '../../services/plansService';
 
 const progressBarClass = `bg-blue-600 h-full`;
 
@@ -172,6 +42,37 @@ const SubscriptionPage: React.FC = () => {
 	);
 	const [showTeamPlans, setShowTeamPlans] = useState(false);
 	const [isOnboarding, setIsOnboarding] = useState(false);
+	// New state provided by plansService;
+	const [monthlyPlans, setMonthlyPlans] = useState<Plan[]>([]);
+	const [paygoPlans, setPaygoPlans] = useState<Plan[]>([]);
+
+	// Fetch plans when subscriptionType or team mode changes
+	useEffect(() => {
+		const loadPlans = async () => {
+			try {
+				if (subscriptionType === 'monthly') {
+					const plans = showTeamPlans
+						? await plansService.getTeamPlans()
+						: await plansService.getIndividualPlans();
+					setMonthlyPlans(plans);
+					// Preselect the first plan if none is selected
+					if (!selectedPlanId && plans.length) {
+						setSelectedPlanId(plans[0].id);
+					}
+				} else {
+					const bundles = await plansService.getPaygoPlans();
+					setPaygoPlans(bundles);
+					if (!selectedPlanId && bundles.length) {
+						setSelectedPlanId(bundles[0].id);
+					}
+				}
+			} catch (err) {
+				console.error('Error loading plans:', err);
+				showToast.error('Failed to load plans. Please try again.');
+			}
+		};
+		loadPlans();
+	}, [subscriptionType, showTeamPlans]);
 
 	// Effect to handle team data refresh when subscription changes
 	useEffect(() => {
@@ -393,14 +294,14 @@ const SubscriptionPage: React.FC = () => {
 	const handleSelectPlan = async (planId: string) => {
 		if (!user) return;
 
-		const selectedPlan = planOptions.find((plan) => plan.id === planId);
+		const selectedPlan = availablePlans.find((plan) => plan.id === planId);
 		if (!selectedPlan) return;
 
 		// Skip validation for onboarding users if they selected plan type matches current selection
 		if (isOnboarding) {
 			const isTeamPlan = localStorage.getItem('isTeamPlan') === 'true';
 			// Allow selection if the plan type matches what was selected during profile completion
-			if (selectedPlan.isTeamPlan === isTeamPlan) {
+			if (selectedPlan.is_team_plan === isTeamPlan) {
 				setSelectedPlanId(planId);
 				setError(null);
 				return;
@@ -408,7 +309,7 @@ const SubscriptionPage: React.FC = () => {
 		}
 
 		// Standard validation for non-onboarding users
-		if (selectedPlan.isTeamPlan && user.is_individual) {
+		if (selectedPlan.is_team_plan && user.is_individual) {
 			showToast.error(
 				'You need to create a team before selecting a team plan. Go to Teams to create one.',
 			);
@@ -422,11 +323,13 @@ const SubscriptionPage: React.FC = () => {
 	const handleSubscribe = async () => {
 		if (!user || !selectedPlanId) return;
 
-		const selectedPlan = planOptions.find((plan) => plan.id === selectedPlanId);
+		const selectedPlan = availablePlans.find(
+			(plan) => plan.id === selectedPlanId,
+		);
 		if (!selectedPlan) return;
 
 		// For team plans during onboarding, handle the special case where team context hasn't loaded
-		if (selectedPlan.isTeamPlan) {
+		if (selectedPlan.is_team_plan) {
 			// During onboarding, if they selected a team plan previously, we should allow them to proceed
 			// even if the team context hasn't fully loaded yet
 			const isTeamOnboarding =
@@ -447,7 +350,7 @@ const SubscriptionPage: React.FC = () => {
 			// For team plans during onboarding, handle the special case where team context hasn't loaded
 			let effectiveTeamId = null;
 
-			if (selectedPlan.isTeamPlan) {
+			if (selectedPlan.is_team_plan) {
 				const isTeamOnboarding =
 					isOnboarding && localStorage.getItem('isTeamPlan') === 'true';
 
@@ -494,10 +397,10 @@ const SubscriptionPage: React.FC = () => {
 			const { authorizationUrl } = await paystackService.createSubscription({
 				userId: user.id,
 				planName: selectedPlan.name,
-				planPrice: subscriptionType === 'monthly' ? selectedPlan.price : 0,
+				planPrice: selectedPlan.price, // send actual price for both monthly and paygo
 				email: user.email,
-				usageLimit: selectedPlan.usageLimit,
-				isOneTime: subscriptionType === 'paygo',
+				usageLimit: selectedPlan.usage_limit,
+				isOneTime: subscriptionType === 'paygo', // true for bundles
 				teamId: effectiveTeamId,
 			});
 
@@ -567,10 +470,10 @@ const SubscriptionPage: React.FC = () => {
 	const handleUpgrade = async (newPlanId: string) => {
 		if (!user || !subscription) return;
 
-		const selectedPlan = planOptions.find((plan) => plan.id === newPlanId);
+		const selectedPlan = availablePlans.find((plan) => plan.id === newPlanId);
 		if (!selectedPlan) return;
 
-		if (selectedPlan.isTeamPlan && !currentTeam) {
+		if (selectedPlan.is_team_plan && !currentTeam) {
 			showToast.error(
 				'Please create or join a team before upgrading to a team plan',
 			);
@@ -603,9 +506,27 @@ const SubscriptionPage: React.FC = () => {
 		}
 	};
 
-	const availablePlans = planOptions.filter(
-		(plan) => plan.isTeamPlan === showTeamPlans,
-	);
+	// Helper to determine button label based on active subscription and plan's usage limit
+	const getPlanButtonText = (plan: any): string => {
+		if (!subscription)
+			return selectedPlanId === plan.id ? 'Selected' : 'Select';
+		// If crossing plan type (individual vs team), always "Upgrade"
+		if (plan.is_team_plan !== subscription.is_team) return 'Upgrade';
+		// Compare usage limits for same plan category
+		if (plan.usage_limit < subscription.usage_limit) return 'Downgrade';
+		if (plan.usage_limit > subscription.usage_limit) return 'Upgrade';
+		return 'Upgrade';
+	};
+
+	// Filter out the active plan if subscription exists, otherwise use whole list.
+	const filteredPlans = subscription
+		? (subscriptionType === 'monthly' ? monthlyPlans : paygoPlans).filter(
+				(plan: any) => plan.id !== subscription.plan_name,
+		  )
+		: subscriptionType === 'monthly'
+		? monthlyPlans
+		: paygoPlans;
+	const availablePlans = filteredPlans;
 
 	if (storeLoading) {
 		return (
@@ -804,8 +725,11 @@ const SubscriptionPage: React.FC = () => {
 									</span>
 								</p>
 								<p className='text-sm text-gray-600 mb-4'>{plan.description}</p>
-								<p className='text-xs text-gray-500 mb-4'>{plan.extraUsage}</p>
-
+								{plan.extra_usage && (
+									<p className='text-xs text-gray-500 mb-4'>
+										{plan.extra_usage}
+									</p>
+								)}
 								<ul className='space-y-2 mb-6'>
 									{plan.features.map((feature, index) => (
 										<li key={index} className='flex items-start'>
@@ -814,30 +738,26 @@ const SubscriptionPage: React.FC = () => {
 										</li>
 									))}
 								</ul>
-
-								{plan.isTeamPlan && (
+								{plan.is_team_plan && (
 									<p className='text-sm text-gray-600 mt-2'>
-										Up to {plan.maxTeamSize} team members
+										Up to {plan.max_team_size} team members
 									</p>
 								)}
-
 								<Button
 									variant='primary'
 									className='w-full'
 									onClick={(e) => {
 										e.stopPropagation();
-										if (subscription && plan.id !== subscription.plan_name) {
+										if (subscription) {
 											handleUpgrade(plan.id);
 										} else {
 											handleSelectPlan(plan.id);
 										}
 									}}
-									disabled={isProcessing || subscription?.plan_name === plan.id}
+									disabled={isProcessing}
 								>
 									{subscription
-										? subscription.plan_name === plan.id
-											? 'Current Plan'
-											: 'Upgrade'
+										? getPlanButtonText(plan)
 										: selectedPlanId === plan.id
 										? 'Selected'
 										: 'Select'}
@@ -853,7 +773,7 @@ const SubscriptionPage: React.FC = () => {
 						</p>
 
 						<div className='grid md:grid-cols-3 gap-6'>
-							{creditBundles.map((bundle) => (
+							{availablePlans.map((bundle) => (
 								<div
 									key={bundle.id}
 									className={`border rounded-lg p-6 cursor-pointer transition-all relative ${
@@ -876,7 +796,7 @@ const SubscriptionPage: React.FC = () => {
 									</div>
 									<p className='text-2xl font-bold mb-2'>R{bundle.price}</p>
 									<p className='text-sm text-gray-600 mb-4'>
-										{bundle.pricePerCredit}
+										{bundle.price_per_screening || ''}
 									</p>
 
 									<Button
@@ -884,10 +804,18 @@ const SubscriptionPage: React.FC = () => {
 										className='w-full'
 										onClick={(e) => {
 											e.stopPropagation();
-											handleSelectPlan(bundle.id);
+											if (subscription) {
+												handleUpgrade(bundle.id);
+											} else {
+												handleSelectPlan(bundle.id);
+											}
 										}}
 									>
-										{selectedPlanId === bundle.id ? 'Selected' : 'Select'}
+										{subscription
+											? getPlanButtonText(bundle)
+											: selectedPlanId === bundle.id
+											? 'Selected'
+											: 'Select'}
 									</Button>
 								</div>
 							))}
