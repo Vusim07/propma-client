@@ -1,59 +1,44 @@
 {
-  "can_afford": true,
-  "confidence": 0.90,
+  "can_afford": false,
+  "confidence": 0.75,
   "risk_factors": [
-    "High debt-to-income ratio at 28%",
-    "Variable income from part-time employment",
-    "Potential for unexpected expenses"
+    "Debt-to-Income ratio exceeds recommended 30%",
+    "High discretionary spending observed",
+    "Insufficient savings for emergencies"
   ],
   "recommendations": [
-    "Maintain a savings buffer for unplanned expenses",
-    "Consider securing a longer-term lease to ensure stability",
-    "Monitor spending patterns monthly to identify areas for savings"
+    "Reduce discretionary spending by 20%",
+    "Increase income through side jobs or freelancing",
+    "Establish an emergency fund with at least ZAR 10,000"
   ],
   "metrics": {
-    "monthly_income": 23000.00,
-    "monthly_expenses": 6000.00,
-    "target_rent": 6500.00,
-    "rent_to_income_ratio": 28.26,
-    "debt_to_income_ratio": 28.00
+    "monthly_income": 22000,
+    "total_expenses": 8000,
+    "debt_service": 3500,
+    "debt_to_income_ratio": 31.8,
+    "target_rent": 6500,
+    "rent_to_income_ratio": 29.5
   },
   "transaction_analysis": {
     "income": {
-      "total_income": 23000.00,
-      "sources": [
-        {
-          "type": "salary",
-          "amount": 20000.00,
-          "frequency": "monthly"
-        },
-        {
-          "type": "freelance",
-          "amount": 3000.00,
-          "frequency": "monthly"
-        }
-      ]
+      "salary": 20000,
+      "side_income": 2000
     },
     "expenses": {
-      "total_expenses": 6000.00,
-      "breakdown": {
-        "rent": 6500.00,
-        "utilities": 800.00,
-        "groceries": 2000.00,
-        "transport": 700.00,
-        "insurance": 500.00,
-        "other": 500.00
+      "fixed": {
+        "rent": 6500,
+        "utilities": 1500,
+        "insurance": 1000
+      },
+      "variable": {
+        "groceries": 3000,
+        "transport": 1000,
+        "entertainment": 2000
+      },
+      "debt_payments": {
+        "loan_repayment": 2500,
+        "credit_card_payment": 1000
       }
-    },
-    "debts": {
-      "existing_loans": [
-        {
-          "type": "personal loan",
-          "amount": 20000.00,
-          "monthly_payment": 1000.00
-        }
-      ],
-      "total_debt": 1000.00
     }
   }
 }
