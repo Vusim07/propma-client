@@ -34,17 +34,26 @@ const Login: React.FC = () => {
 
 	const onSubmit = async (values: LoginFormValues) => {
 		try {
-			// Show loading toast
 			showToast.info('Signing you in...');
 
 			console.log('Login attempt with:', values.email);
 
-			// Login and get the profile data
 			const profile = await login(values.email, values.password);
 			console.log('Login successful, profile received:', profile?.role);
 
 			if (!profile) {
 				showToast.error('Failed to retrieve user data');
+				return;
+			}
+
+			// If we're in property application flow, handle redirect differently
+			if (isPropertyFlow) {
+				const redirectPath = window.location.pathname + window.location.search;
+				console.log(
+					'Property application flow detected, redirecting to:',
+					redirectPath,
+				);
+				window.location.href = redirectPath;
 				return;
 			}
 
