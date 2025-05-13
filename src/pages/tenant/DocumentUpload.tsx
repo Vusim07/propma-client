@@ -407,12 +407,7 @@ const DocumentUpload: React.FC = () => {
 
 	return (
 		<div>
-			<div className='mb-6'>
-				<h1 className='text-2xl font-bold text-gray-900'>Document Upload</h1>
-				<p className='text-gray-600 mt-1'>
-					Upload and process your documents for verification
-				</p>
-			</div>
+			<div className='mb-6'></div>
 
 			{showProfileCompletionMessage && (
 				<Alert variant='success' className='mb-6'>
@@ -514,33 +509,6 @@ const DocumentUpload: React.FC = () => {
 						<h2 className='text-lg font-semibold'>Upload Documents</h2>
 					</CardHeader>
 					<CardContent>
-						{/* <div className='mb-4'>
-							<label
-								htmlFor='document-type'
-								className='text-sm font-medium text-gray-700 block mb-1'
-							>
-								Document Type
-							</label>
-							<Select
-								value={documentType}
-								onValueChange={(value) => setDocumentType(value as any)}
-							>
-								<SelectTrigger className='w-full'>
-									<SelectValue placeholder='Select document type' />
-								</SelectTrigger>
-								<SelectContent>
-									{documentTypeOptions.map((option) => (
-										<SelectItem key={option.value} value={option.value}>
-											{option.label}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-							<p className='text-sm text-gray-500 mt-1'>
-								Select document type before uploading
-							</p>
-						</div> */}
-
 						<div
 							{...getRootProps()}
 							className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
