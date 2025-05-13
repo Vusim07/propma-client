@@ -4,6 +4,7 @@ import {
 	AzureKeyCredential,
 	DocumentAnalysisClient,
 } from '@azure/ai-form-recognizer';
+import { AzureDocumentAnalysisResult } from './types';
 
 // Azure Document Intelligence credentials
 const AZURE_ENDPOINT =
@@ -72,7 +73,8 @@ export class AzureOcrProvider implements OcrProvider {
 				fileUrl,
 			);
 
-			const result = await poller.pollUntilDone();
+			const result =
+				(await poller.pollUntilDone()) as AzureDocumentAnalysisResult;
 			console.log('Document analysis completed:', result);
 
 			// Format current date in South African format (DD/MM/YYYY)

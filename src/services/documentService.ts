@@ -1,14 +1,16 @@
 import { getOcrProvider } from './ocr';
 
-// This service remains unchanged even with document reuse.
-// Documents once processed are stored with their created_at timestamp,
-// allowing the frontend to decide if they are still valid for reuse.
+export interface Point2D {
+	x: number;
+	y: number;
+}
+
 export interface DocumentAnalysisResult {
 	content: string;
 	paragraphs?: Array<{
 		content: string;
 		boundingRegions?: Array<{
-			polygon: number[];
+			polygon: Point2D[] | number[]; // Accept both Point2D[] and number[]
 		}>;
 	}>;
 	keyValuePairs?: Array<{
