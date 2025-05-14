@@ -93,7 +93,9 @@ const DocumentViewerSheet: React.FC<DocumentViewerSheetProps> = ({
 			};
 			fetchUrl();
 		} else if (isOpen && !document?.file_path) {
-			setError('Document path is missing.');
+			setError(
+				'Document not found. Try refreshing the page or contact support.',
+			);
 			setIsLoadingUrl(false);
 		}
 	}, [document?.file_path, document?.id, isOpen]);

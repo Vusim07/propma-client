@@ -5,7 +5,7 @@ import { supabase } from '../../services/supabase';
 import Button from '@/components/ui/Button';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import Alert from '@/components/ui/Alert';
-import { Calendar, Check, X } from 'lucide-react';
+import { Calendar, Check, RefreshCcw, X } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 
 interface CalendarIntegration {
@@ -437,13 +437,13 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 						</div>
 					) : integration ? (
 						<div className='bg-white p-4 rounded-md border border-gray-200'>
-							<div className='flex items-center justify-between'>
+							<div className='flex flex-col md:flex-row md:items-center md:justify-between'>
 								<div className='flex items-center'>
 									<div className='bg-green-100 p-2 rounded-full mr-4'>
 										<Calendar className='h-6 w-6 text-green-600' />
 									</div>
 									<div>
-										<h3 className='text-lg font-medium flex items-center'>
+										<h3 className='text-md font-medium flex items-center'>
 											{integration.provider === 'google'
 												? 'Google Calendar'
 												: 'Calendar'}
@@ -457,13 +457,15 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 										</p>
 									</div>
 								</div>
-								<Button
-									variant='outline'
-									onClick={disconnectCalendar}
-									className='text-red-600 border-red-300 hover:bg-red-50'
-								>
-									<X className='h-4 w-4 mr-1' /> Disconnect
-								</Button>
+								<div className='mt-4 md:mt-0'>
+									<Button
+										variant='outline'
+										onClick={disconnectCalendar}
+										className='text-red-600 border-red-300 hover:bg-red-50'
+									>
+										<X className='h-4 w-4 mr-1' /> Disconnect
+									</Button>
+								</div>
 							</div>
 
 							{integration.provider === 'google' && (
@@ -489,25 +491,27 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 													</option>
 												))}
 											</select>
-											<Button
-												onClick={updateSelectedCalendar}
-												size='sm'
-												disabled={
-													!selectedCalendarId ||
-													selectedCalendarId === integration.calendar_id
-												}
-											>
-												Update Default Calendar
-											</Button>
-											<Button
-												onClick={fetchAvailableCalendars}
-												size='sm'
-												variant='outline'
-												className='ml-2'
-												isLoading={loadingCalendars}
-											>
-												Refresh Calendars
-											</Button>
+											<div className='flex items-center'>
+												<Button
+													onClick={updateSelectedCalendar}
+													size='sm'
+													disabled={
+														!selectedCalendarId ||
+														selectedCalendarId === integration.calendar_id
+													}
+												>
+													Update Default Calendar
+												</Button>
+												<Button
+													onClick={fetchAvailableCalendars}
+													size='sm'
+													variant='outline'
+													isLoading={loadingCalendars}
+													className='ml-2'
+												>
+													<RefreshCcw size={20} />
+												</Button>
+											</div>
 										</div>
 									) : (
 										<div>

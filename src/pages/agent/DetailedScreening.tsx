@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -186,7 +187,7 @@ const DetailedScreening: React.FC = () => {
 	const getCreditScoreCategory = (score: number | null) => {
 		// First line handles null/undefined, subsequent checks are safe
 		if (score === null || score === undefined)
-			return { label: 'N/A', color: 'secondary' };
+			return { label: 'Error retrieving credit score', color: 'danger' };
 		if (score >= 750) return { label: 'Excellent', color: 'success' };
 		if (score >= 700) return { label: 'Good', color: 'success' };
 		if (score >= 650) return { label: 'Fair', color: 'warning' };
@@ -368,7 +369,7 @@ const DetailedScreening: React.FC = () => {
 					<CardContent>
 						<div className='flex items-center justify-between mb-4'>
 							<div>
-								<p className='text-3xl font-bold'>{creditScore ?? 'N/A'}</p>
+								<p className='text-3xl font-bold'>{creditScore ?? '0'}</p>
 								<Badge variant={creditCategory.color as any}>
 									{creditCategory.label}
 								</Badge>
@@ -450,9 +451,6 @@ const DetailedScreening: React.FC = () => {
 									</p>
 								</div>
 								<div>
-									<p className='text-sm text-gray-500'>
-										Detailed Credit Report
-									</p>
 									<DocumentViewerSheet
 										document={{
 											id: screeningData.credit_reports?.[0]?.id ?? '',
@@ -462,7 +460,11 @@ const DetailedScreening: React.FC = () => {
 												screeningData.credit_reports?.[0]?.pdf_path ?? '',
 										}}
 										trigger={
-											<Button variant='outline' size='sm'>
+											<Button
+												variant='outline'
+												size='sm'
+												className='w-full md:w-auto'
+											>
 												<Eye size={16} className='mr-1.5' />
 												View Credit Report
 											</Button>
@@ -661,7 +663,7 @@ const DetailedScreening: React.FC = () => {
 					</CardContent>
 				</Card>
 
-				<Card>
+				{/* <Card>
 					<CardHeader>
 						<h2 className='text-lg font-semibold flex items-center'>
 							<Home className='h-5 w-5 text-blue-600 mr-2' />
@@ -725,7 +727,7 @@ const DetailedScreening: React.FC = () => {
 							</div>
 						)}
 					</CardContent>
-				</Card>
+				</Card> */}
 			</div>
 
 			<Card>

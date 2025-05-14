@@ -339,8 +339,16 @@ const ReviewApplications: React.FC = () => {
 										return (
 											<TableRow key={application.id}>
 												<TableCell>
-													<div className='font-medium'>{fullName || 'N/A'}</div>
-													<div className='text-sm text-gray-500'>
+													<div
+														className='font-medium'
+														onClick={() => handleViewApplication(application)}
+													>
+														{fullName || 'N/A'}
+													</div>
+													<div
+														className='text-sm text-gray-500'
+														onClick={() => handleViewApplication(application)}
+													>
 														{tenantProfile.email || 'No email'}
 													</div>
 												</TableCell>

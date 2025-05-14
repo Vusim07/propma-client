@@ -578,7 +578,7 @@ const SubscriptionPage: React.FC = () => {
 			)}
 
 			<div className='bg-white rounded-lg shadow-sm p-6 mb-8'>
-				<h2 className='text-2xl font-semibold mb-6'>Subscription Status</h2>
+				<h2 className='text-lg font-semibold mb-6'>Subscription Status</h2>
 
 				{error && (
 					<div className='bg-red-50 text-red-800 rounded-md p-4 mb-6 flex items-start'>
@@ -589,7 +589,7 @@ const SubscriptionPage: React.FC = () => {
 
 				{subscription ? (
 					<div className='border border-gray-200 rounded-lg p-6'>
-						<div className='flex justify-between items-start mb-4'>
+						<div className='flex flex-col md:flex-row md:justify-between items-start mb-4'>
 							<div>
 								<span className='inline-flex items-center bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full mb-2'>
 									<CheckCircle className='h-4 w-4 mr-1' />
@@ -602,16 +602,20 @@ const SubscriptionPage: React.FC = () => {
 									R{subscription.plan_price} / month
 								</p>
 							</div>
-							<Button
-								variant='outline'
-								onClick={handleCancelSubscription}
-								disabled={isProcessing}
-							>
-								{isProcessing ? (
-									<Loader2 className='h-4 w-4 mr-2 animate-spin' />
-								) : null}
-								Cancel Subscription
-							</Button>
+							<div className='mt-4 md:mt-0'>
+								<Button
+									variant='outline'
+									onClick={handleCancelSubscription}
+									disabled={isProcessing}
+									size='sm'
+									className='text-sm'
+								>
+									{isProcessing ? (
+										<Loader2 className='h-4 w-4 mr-2 animate-spin' />
+									) : null}
+									Cancel Subscription
+								</Button>
+							</div>
 						</div>
 
 						<div className='mt-6 border-t border-gray-200 pt-6'>
@@ -667,8 +671,8 @@ const SubscriptionPage: React.FC = () => {
 			</div>
 
 			<div className='bg-white rounded-lg shadow-sm p-6 mb-8'>
-				<div className='flex justify-between items-center mb-6'>
-					<h2 className='text-2xl font-semibold'>
+				<div className='flex flex-col md:flex-row justify-between items-center mb-6'>
+					<h2 className='text-lg font-semibold order-1'>
 						{subscription
 							? 'Upgrade Your Plan'
 							: showTeamPlans
@@ -676,7 +680,7 @@ const SubscriptionPage: React.FC = () => {
 							: 'Choose an Individual Plan'}
 					</h2>
 
-					<div className='flex items-center bg-gray-100 rounded-lg p-1'>
+					<div className='order-2 mt-4 md:mt-0 flex items-center bg-gray-100 rounded-lg p-1'>
 						<button
 							className={`py-2 px-4 rounded-md text-sm font-medium ${
 								subscriptionType === 'monthly'
@@ -697,7 +701,7 @@ const SubscriptionPage: React.FC = () => {
 							}`}
 							onClick={() => setSubscriptionType('paygo')}
 						>
-							Pay-As-You-Go
+							Credits
 						</button>
 					</div>
 				</div>
