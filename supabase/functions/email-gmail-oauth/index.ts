@@ -78,6 +78,7 @@ serve(async (req) => {
 			if (!tokenData.refresh_token)
 				throw new Error('No refresh token received');
 			const userId = state || '';
+
 			// Get user's Gmail address
 			let email_address = null;
 			if (tokenData.access_token) {
@@ -92,6 +93,7 @@ serve(async (req) => {
 					email_address = profile.emailAddress || null;
 				}
 			}
+
 			// Upsert into email_integrations
 			const { error } = await supabaseAdmin.from('email_integrations').upsert({
 				user_id: userId,
@@ -104,10 +106,20 @@ serve(async (req) => {
 				email_address,
 			});
 			if (error) throw error;
-			return Response.redirect(
-				`${FRONTEND_URL}/agent/settings?connected=gmail`,
-				302,
-			);
+
+			// Retrieve any session cookie from the incoming request
+			const sessionCookie = req.headers.get('cookie') || '';
+			const headersResponse = {
+				...corsResult,
+				'Content-Type': 'application/json',
+				...(sessionCookie && { 'Set-Cookie': sessionCookie }),
+				Location: `${FRONTEND_URL}/agent/settings?connected=gmail`,
+			};
+
+			return new Response(null, {
+				status: 302,
+				headers: headersResponse,
+			});
 		} catch (error) {
 			console.error('OAuth error:', error);
 			return Response.redirect(

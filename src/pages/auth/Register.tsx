@@ -114,7 +114,7 @@ const Register: React.FC = () => {
 	};
 
 	return (
-		<div className='w-full max-w-md mx-auto space-y-6 p-6 bg-white rounded-lg shadow-md'>
+		<div className='w-full max-w-md mx-auto space-y-6 p-6 bg-white rounded-lg '>
 			<img
 				src='/assets/amara-logo-black.svg'
 				alt='Amara Logo'

@@ -84,16 +84,14 @@ const Login: React.FC = () => {
 	};
 
 	return (
-		<div className='w-full max-w-md mx-auto space-y-6 p-6 bg-white rounded-lg shadow-md'>
+		<div className='w-full max-w-md mx-auto space-y-6 p-6 bg-white rounded-lg '>
 			<img
 				src='/assets/amara-logo-black.svg'
 				alt='Amara Logo'
 				className='h-6 w-auto items-center mx-auto'
 			/>
 			<div className='text-center mx-auto'>
-				<p className='text-gray-600 mt-2'>
-					Welcome back! Please sign in to your account
-				</p>
+				<p className='text-gray-600 mt-2'>Sign in to your account</p>
 			</div>
 
 			{error && (

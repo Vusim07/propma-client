@@ -25,10 +25,10 @@ export const AuthStep = ({ authStep, onToggleAuthStep }: AuthStepProps) => (
 			{authStep === 'login' ? (
 				<>
 					<Login />
-					<p className='text-center mt-4'>
+					<p className='text-center mt-2'>
 						<button
 							onClick={onToggleAuthStep}
-							className='text-blue-600 hover:text-blue-800 underline text-sm md:text-base px-4 py-2'
+							className='text-blue-600 hover:text-blue-800 underline text-sm  px-4 py-2'
 						>
 							Don't have an account? Register here
 						</button>
@@ -40,7 +40,7 @@ export const AuthStep = ({ authStep, onToggleAuthStep }: AuthStepProps) => (
 					<p className='text-center mt-4'>
 						<button
 							onClick={onToggleAuthStep}
-							className='text-blue-600 hover:text-blue-800 underline text-sm md:text-base px-4 py-2'
+							className='text-blue-600 hover:text-blue-800 underline text-sm  px-4 py-2'
 						>
 							Already have an account? Sign in
 						</button>
