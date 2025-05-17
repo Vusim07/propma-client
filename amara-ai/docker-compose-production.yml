@@ -1,0 +1,62 @@
+services:
+  amara-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: vusim07/amara:latest
+    expose:  # Changed from `ports` to only expose internally
+      - "8000"
+    volumes:
+      - ./.env:/app/.env
+      - ./nginx:/app/nginx  # Only mount nginx configs
+    working_dir: /app  # Explicitly set working directory
+    environment:
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
+      - AZURE_OPENAI_API_VERSION=${AZURE_OPENAI_API_VERSION}
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
+      - AZURE_OPENAI_DEPLOYMENT_NAME=${AZURE_OPENAI_DEPLOYMENT_NAME}
+      - LLM_PROVIDER=${LLM_PROVIDER}
+      - AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME=${AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME}
+      - AZURE_OPENAI_EMBEDDING_ENDPOINT=${AZURE_OPENAI_EMBEDDING_ENDPOINT}
+      - AZURE_OPENAI_EMBEDDING_API_VERSION=${AZURE_OPENAI_EMBEDDING_API_VERSION}
+      - EMBEDDING_PROVIDER=${EMBEDDING_PROVIDER}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/certbot/www:/usr/share/nginx/html  # For Certbot challenges
+      - ./nginx/certbot/conf:/etc/letsencrypt     # SSL certificate storage
+    depends_on:
+      - amara-agent
+    restart: unless-stopped
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./nginx/certbot/www:/var/www/certbot
+      - ./nginx/certbot/conf:/etc/letsencrypt
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    depends_on:
+      - nginx
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_POLL_INTERVAL=300  # Check every hour (optional)
+      - WATCHTOWER_CLEANUP=true        # Remove old images
+      - WATCHTOWER_DEBUG=true          # Enable logs (optional)
+    command: --label-enable  # Only watch containers with a specific label (recommended)
+    restart: unless-stopped

@@ -27,7 +27,11 @@ except Exception as e:
     # We'll continue and let individual API endpoints handle the errors
 
 # Initialize FastAPI app
-app = FastAPI(title="Propma AI Agents")
+app = FastAPI(
+    title="Amara AI API",
+    description="AI-powered tenant screening & viewing appointment scheduling platform",
+    version="1.0.0",
+)
 
 # Configure CORS for South African client domains
 app.add_middleware(

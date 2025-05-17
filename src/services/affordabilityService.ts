@@ -102,7 +102,7 @@ export interface AffordabilityResponse {
 class AffordabilityService {
 	private readonly API_URL =
 		process.env.NODE_ENV === 'production'
-			? 'https://api.tryamara.com/analyze-affordability'
+			? 'https://ai.agentamara.com/analyze-affordability'
 			: 'http://localhost:8000/analyze-affordability';
 
 	/**

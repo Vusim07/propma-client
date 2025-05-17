@@ -1,5 +1,3 @@
-
-
 services:
   amara-agent:
     build:
@@ -8,9 +6,9 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - .:/app
       - ./.env:/app/.env
-      
+      - ./src:/app/src  # Keep source mounting for development
+    working_dir: /app
     environment:
       - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
       - AZURE_OPENAI_API_VERSION=${AZURE_OPENAI_API_VERSION}
