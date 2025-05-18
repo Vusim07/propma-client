@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -20,7 +19,6 @@ import {
 	XCircle,
 	AlertCircle,
 	ArrowLeft,
-	Home,
 	Eye,
 } from 'lucide-react';
 import DocumentViewerSheet from '@/components/agent/DocumentViewerSheet';
@@ -89,8 +87,7 @@ const DetailedScreening: React.FC = () => {
 						`
 						*,
 						tenant_profiles:applications!inner(tenant_profiles(*)),
-						applications:applications!inner(property_id, properties!inner(monthly_rent)),
-						documents:applications!inner(documents(*)),
+						applications:applications!inner(property_id, tenant_id, properties!inner(monthly_rent)),
 						credit_reports(*)
 					`,
 					)
@@ -107,13 +104,30 @@ const DetailedScreening: React.FC = () => {
 					setScreeningData(null);
 					setMonthlyRent(null); // Reset rent on error
 				} else if (data) {
-					// Extract monthly rent - adjust path based on the new query structure
 					const fetchedRent =
 						(data as any).applications?.properties?.monthly_rent ?? null;
 					setMonthlyRent(fetchedRent);
 
-					// Access credit_score directly from data, assuming the main query succeeds
 					const creditScoreFromData = (data as any).credit_score;
+
+					// --- NEW: Fetch all tenant documents by tenant profile id ---
+					const tenantProfile =
+						(data as any).tenant_profiles?.tenant_profiles ??
+						(data as any).tenant_profiles ??
+						null;
+					const tenantUserId = tenantProfile?.tenant_id;
+					let tenantDocuments: any[] = [];
+					if (tenantUserId) {
+						const { data: docs, error: docsError } = await supabase
+							.from('documents')
+							.select('*')
+							.eq('user_id', tenantUserId)
+							.order('created_at', { ascending: false });
+						if (!docsError && docs) {
+							tenantDocuments = docs;
+						}
+					}
+					// --- END NEW ---
 
 					const combinedData: ScreeningReportWithDetails = {
 						...(data as any),
@@ -143,10 +157,8 @@ const DetailedScreening: React.FC = () => {
 								reason_for_leaving: 'Relocated for work',
 							},
 						],
-						tenant_profiles:
-							(data as any).tenant_profiles?.tenant_profiles ?? null,
-						applications: (data as any).applications, // Assign potentially updated applications structure
-						documents: (data as any).documents?.documents ?? [],
+						tenant_profiles: tenantProfile,
+						documents: tenantDocuments,
 					};
 					setScreeningData(combinedData);
 				} else {
@@ -177,9 +189,6 @@ const DetailedScreening: React.FC = () => {
 			}
 		};
 
-		console.log(
-			`Fetching screening data for application ID: ${id} and agent ID: ${user?.id}`,
-		); // Log IDs
 		fetchScreeningData();
 	}, [id, user]);
 
@@ -206,6 +215,23 @@ const DetailedScreening: React.FC = () => {
 		if (score <= 0.43) return { label: 'Fair', color: 'warning' };
 		return { label: 'Poor', color: 'danger' };
 	};
+
+	// Helper function to get Tailwind width class for a percent value
+	function getWidthClass(percent: number) {
+		if (percent >= 100) return 'w-full';
+		if (percent >= 90) return 'w-11/12';
+		if (percent >= 83) return 'w-10/12';
+		if (percent >= 75) return 'w-9/12';
+		if (percent >= 67) return 'w-8/12';
+		if (percent >= 58) return 'w-7/12';
+		if (percent >= 50) return 'w-6/12';
+		if (percent >= 42) return 'w-5/12';
+		if (percent >= 33) return 'w-4/12';
+		if (percent >= 25) return 'w-3/12';
+		if (percent >= 17) return 'w-2/12';
+		if (percent >= 8) return 'w-1/12';
+		return 'w-0';
+	}
 
 	if (isLoading) {
 		return (
@@ -260,7 +286,6 @@ const DetailedScreening: React.FC = () => {
 
 	const creditReportDetails = screeningData.credit_report;
 	const backgroundCheckDetails = screeningData.background_check;
-	const rentalHistoryDetails = screeningData.rental_history;
 
 	return (
 		<div>
@@ -376,17 +401,15 @@ const DetailedScreening: React.FC = () => {
 							</div>
 							{creditScore !== null && creditReportDetails && (
 								<div
-									className='w-16 h-16 rounded-full border-4 flex items-center justify-center'
-									style={{
-										borderColor:
-											creditCategory.color === 'success'
-												? '#10b981'
-												: creditCategory.color === 'warning'
-												? '#f59e0b'
-												: creditCategory.color === 'danger'
-												? '#ef4444'
-												: '#6b7280',
-									}}
+									className={`w-16 h-16 rounded-full border-4 flex items-center justify-center ${
+										creditCategory.color === 'success'
+											? 'border-green-500'
+											: creditCategory.color === 'warning'
+											? 'border-yellow-500'
+											: creditCategory.color === 'danger'
+											? 'border-red-500'
+											: 'border-gray-400'
+									}`}
 								>
 									<span className='text-lg font-bold'>
 										{Math.round((creditScore / 850) * 100)}%
@@ -395,21 +418,19 @@ const DetailedScreening: React.FC = () => {
 							)}
 						</div>
 
+						{/* Progress bar for credit score */}
 						{creditScore !== null && creditReportDetails && (
 							<div className='w-full bg-gray-200 rounded-full h-2.5 mb-4'>
 								<div
-									className='h-2.5 rounded-full'
-									style={{
-										width: `${(creditScore / 850) * 100}%`,
-										backgroundColor:
-											creditCategory.color === 'success'
-												? '#10b981'
-												: creditCategory.color === 'warning'
-												? '#f59e0b'
-												: creditCategory.color === 'danger'
-												? '#ef4444'
-												: '#6b7280',
-									}}
+									className={`h-2.5 rounded-full ${
+										creditCategory.color === 'success'
+											? 'bg-green-500'
+											: creditCategory.color === 'warning'
+											? 'bg-yellow-500'
+											: creditCategory.color === 'danger'
+											? 'bg-red-500'
+											: 'bg-gray-400'
+									} ${getWidthClass((creditScore / 850) * 100)}`}
 								></div>
 							</div>
 						)}
@@ -520,21 +541,20 @@ const DetailedScreening: React.FC = () => {
 							tenantProfile.monthly_income > 0 && (
 								<div className='w-full bg-gray-200 rounded-full h-2.5 mb-4'>
 									<div
-										className='h-2.5 rounded-full'
-										style={{
-											width: `${Math.min(
+										className={`h-2.5 rounded-full ${
+											affordabilityCategory.color === 'success'
+												? 'bg-green-500'
+												: affordabilityCategory.color === 'warning'
+												? 'bg-yellow-500'
+												: affordabilityCategory.color === 'danger'
+												? 'bg-red-500'
+												: 'bg-gray-400'
+										} ${getWidthClass(
+											Math.min(
 												(monthlyRent / tenantProfile.monthly_income) * 100,
 												100,
-											)}%`,
-											backgroundColor:
-												affordabilityCategory.color === 'success'
-													? '#10b981'
-													: affordabilityCategory.color === 'warning'
-													? '#f59e0b'
-													: affordabilityCategory.color === 'danger'
-													? '#ef4444'
-													: '#6b7280',
-										}}
+											),
+										)}`}
 									></div>
 								</div>
 							)}
@@ -735,9 +755,16 @@ const DetailedScreening: React.FC = () => {
 					<h2 className='text-lg font-semibold flex items-center'>
 						<FileText className='h-5 w-5 text-blue-600 mr-2' />
 						Document Analysis
+						<span className='ml-2 text-xs text-gray-500 font-normal'>
+							({documents.length} document{documents.length === 1 ? '' : 's'})
+						</span>
 					</h2>
 				</CardHeader>
 				<CardContent>
+					{(() => {
+						console.log('Documents:', documents);
+						return null;
+					})()}
 					{documents && documents.length > 0 ? (
 						<div className='space-y-4'>
 							{documents.map((doc: Tables<'documents'>) => (
@@ -779,9 +806,7 @@ const DetailedScreening: React.FC = () => {
 							))}
 						</div>
 					) : (
-						<Alert variant='info'>
-							No documents found for this application.
-						</Alert>
+						<Alert variant='info'>No documents found for this tenant.</Alert>
 					)}
 				</CardContent>
 			</Card>
