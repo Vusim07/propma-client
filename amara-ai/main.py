@@ -173,7 +173,7 @@ async def debug_crew_config():
         sample_data = [
             {
                 "description": "SALARY PAYMENT",
-                "amount": "R 15000.00",
+                "amount": 15000.00,
                 "date": "01/10/2024",
                 "type": "credit",
             }

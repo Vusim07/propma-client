@@ -4,19 +4,25 @@
 
 **Status Key:** `Pending`, `In Progress`, `Done`, `Blocked`
 
-| Task ID    | Description                                               | Priority | Status    | Notes                                                                                                                                                      |
-| :--------- | :-------------------------------------------------------- | :------- | :-------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **IMP-01** | **Refine `financial_analyst` Task Prompt (`tasks.yaml`)** | High     | `Done`    | Added detailed steps for income verification (incl. fallback), transaction grouping, disposable income calc, and strict JSON output.                       |
-| **IMP-02** | **Test Refined Prompt with Original Data**                | High     | `Done`    | Agent output significantly improved, adhering to structure and calculations. Income verification failed _correctly_ due to incomplete bank statement data. |
-| **IMP-03** | **Implement Income Verification Fallback Logic**          | High     | `Done`    | Incorporated into the refined prompt (IMP-01). Agent correctly reported no match found based on logic.                                                     |
-| **IMP-04** | **Enforce Strict JSON Output Format**                     | High     | `Done`    | Added explicit instructions and a full JSON example in `tasks.yaml` `expected_output`.                                                                     |
-| **IMP-05** | **Prevent Data Hallucination**                            | High     | `Done`    | Added explicit instructions in `tasks.yaml` to _only_ use provided data and _not_ invent income/expenses.                                                  |
-| **IMP-06** | **Correct Disposable Income Calculation**                 | High     | `Done`    | Added the precise formula `monthly_income - (total_monthly_expenses - current_rent_payment) - monthly_debt_payments` to `tasks.yaml`.                      |
-| **IMP-07** | **Improve Transaction Categorization**                    | Medium   | `Done`    | Specified the required categories (Incoming/Outgoing -> Essential, Non-Essential, Debt, Savings, Current Rent) in `tasks.yaml`.                            |
-| **IMP-08** | **Test with Diverse Data Sets**                           | Medium   | `Pending` | Gather more examples (different banks, payslip formats, income levels) and test the agent's robustness.                                                    |
-| **IMP-09** | **Evaluate Multi-Agent QA Workflow**                      | Medium   | `Pending` | Less critical now after IMP-02 results, provided complete data is used. Re-evaluate after IMP-08.                                                          |
-| **IMP-10** | **(If Needed) Implement QA Agent**                        | Low      | `Pending` | Define and implement a `quality_assurance_analyst` agent and task to verify the primary analyst's output against source data.                              |
-| **IMP-11** | **(If Needed) Update Crew Structure for QA**              | Low      | `Pending` | Modify `crew.py` to incorporate the QA agent, potentially using a hierarchical process or sequential tasks with feedback loops.                            |
+| Task ID    | Description                                                | Priority | Status    | Notes                                                                                                                                                                                           |
+| :--------- | :--------------------------------------------------------- | :------- | :-------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **IMP-01** | **Refine `financial_analyst` Task Prompt (`tasks.yaml`)**  | High     | `Done`    | Added detailed steps for income verification (incl. fallback), transaction grouping, disposable income calc, and strict JSON output.                                                            |
+| **IMP-02** | **Test Refined Prompt with Original Data**                 | High     | `Done`    | Agent output significantly improved, adhering to structure and calculations. Income verification failed _correctly_ due to incomplete bank statement data.                                      |
+| **IMP-03** | **Implement Income Verification Fallback Logic**           | High     | `Done`    | Incorporated into the refined prompt (IMP-01). Agent correctly reported no match found based on logic.                                                                                          |
+| **IMP-04** | **Enforce Strict JSON Output Format**                      | High     | `Done`    | Added explicit instructions and a full JSON example in `tasks.yaml` `expected_output`.                                                                                                          |
+| **IMP-05** | **Prevent Data Hallucination**                             | High     | `Done`    | Added explicit instructions in `tasks.yaml` to _only_ use provided data and _not_ invent income/expenses.                                                                                       |
+| **IMP-06** | **Correct Disposable Income Calculation**                  | High     | `Done`    | Added the precise formula `monthly_income - (total_monthly_expenses - current_rent_payment) - monthly_debt_payments` to `tasks.yaml`.                                                           |
+| **IMP-07** | **Improve Transaction Categorization**                     | Medium   | `Done`    | Specified the required categories (Incoming/Outgoing -> Essential, Non-Essential, Debt, Savings, Current Rent) in `tasks.yaml`.                                                                 |
+| **IMP-08** | **Test with Diverse Data Sets**                            | Medium   | `Pending` | Gather more examples (different banks, payslip formats, income levels) and test the agent's robustness.                                                                                         |
+| **IMP-09** | **Evaluate Multi-Agent QA Workflow**                       | Medium   | `Pending` | Less critical now after IMP-02 results, provided complete data is used. Re-evaluate after IMP-08.                                                                                               |
+| **IMP-10** | **(If Needed) Implement QA Agent**                         | Low      | `Pending` | Define and implement a `quality_assurance_analyst` agent and task to verify the primary analyst's output against source data.                                                                   |
+| **IMP-11** | **(If Needed) Update Crew Structure for QA**               | Low      | `Pending` | Modify `crew.py` to incorporate the QA agent, potentially using a hierarchical process or sequential tasks with feedback loops.                                                                 |
+| **IMP-12** | **Add Preprocessing Layer for Deterministic Calculations** | High     | `Pending` | Implement explicit preprocessing to calculate total net income, total expenses, debts, and apply the 30% rule before LLM invocation. Output all intermediate values for auditability.           |
+| **IMP-13** | **Hybrid Logic Enforcement (LLM for Explanation Only)**    | High     | `Pending` | Enforce the 30% rule in code, pass result and calculations to LLM for explanation/recommendations only. LLM cannot override deterministic rule.                                                 |
+| **IMP-14** | **LLM Prompt: JSON Code Block & Function Calling**         | High     | `Pending` | Structure LLM prompt to include preprocessed JSON in a code block. If Azure function-calling is available, use a function signature for structured output. Always validate JSON before sending. |
+| **IMP-15** | **Integrate Observability & Audit Trail (AgentOps etc.)**  | Medium   | `Pending` | Integrate step-by-step logging and metrics for all calculations, decisions, and LLM outputs. Include all intermediate values and rule references in the final report.                           |
+| **IMP-16** | **Schema Validation & Optional Verifier Step**             | Medium   | `Pending` | Continue to validate LLM output against strict schema. Optionally add a verifier step (second agent or function) to check consistency and flag edge cases.                                      |
+| **IMP-17** | **Documentation & Expanded Testing**                       | Medium   | `Pending` | Update architecture diagrams, docstrings, and add/expand unit/integration tests for each pipeline step. Document the pipeline and audit trail for compliance.                                   |
 
 ---
 
@@ -46,3 +52,15 @@ Your thought process is sound:
 Let's first test the impact of the refined single-agent prompt (**IMP-02**). The detailed instructions might be enough to significantly improve accuracy. If inaccuracies or hallucinations persist (**IMP-08**), then implementing the multi-agent QA workflow (**IMP-09, IMP-10, IMP-11**) is the logical next step. We can start with just one QA agent verifying the final output before adding the extraction QA step if necessary.
 
 **Update after IMP-02:** The single agent with refined prompt performs well when instructions are clear. The primary issue now is ensuring complete input data (e.g., bank statements covering salary deposits) for accurate verification and meaningful results. Focus should be on data quality/completeness before adding QA agent complexity.
+
+---
+
+**Open Questions:**
+
+- Should the LLM always cite the 30% rule source in the output?
+- Is Azure function-calling available in the current deployment?
+- Any additional compliance/audit requirements for the logs?
+
+---
+
+_Review and approve or suggest changes before implementation._

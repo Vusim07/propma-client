@@ -1,0 +1,29 @@
+flowchart LR
+  subgraph Document_Intelligence
+    A[Azure Document Intelligence OCR] --> B[Extracted JSON]
+  end
+
+  subgraph Preprocessing
+    B --> C1[Calculate Total Income]
+    B --> C2[Compute Monthly Expenses & Debts]
+  end
+
+  subgraph Rule_Check
+    C1 --> D[Compute 30% of Net Income]
+    C2 --> D
+    D --> E{target_rent ≤ 30% income?}
+  end
+
+  subgraph Agent_Workflow
+    E -->|Yes| F[LLM Reasoning & Explanation]
+    E -->|No| F
+    F --> G[Generate Final Report JSON/Text]
+  end
+
+  subgraph Observability
+    subgraph Monitoring
+      style Observability fill:#eee,stroke:#666,stroke-dasharray: 5 5
+      H[Logging & Metrics AgentOps/Logs]
+    end
+    Monitoring --- C1 & C2 & D & F & G
+  end

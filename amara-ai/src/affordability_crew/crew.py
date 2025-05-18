@@ -1,11 +1,14 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from typing import List, Dict, Any, Optional
+import re
+import datetime
 import json
 import logging
-import os
 import sys
+import os
 import traceback
+from langfuse import Langfuse
 
 # Configure logging to be more detailed
 logger = logging.getLogger(__name__)
@@ -37,9 +40,236 @@ class AffordabilityAnalysisCrew:
         self.bank_statement_data = bank_statement_data
         self.tenant_income = tenant_income
         self.credit_report = credit_report
+        # Initialize Langfuse with debug logging
+        self.langfuse = None
+        logger.info("[Langfuse] Attempting to initialize Langfuse SDK...")
+        logger.info(f"[Langfuse] LANGFUSE_HOST: {os.getenv('LANGFUSE_HOST')}")
+        logger.info(
+            f"[Langfuse] LANGFUSE_PUBLIC_KEY exists: {bool(os.getenv('LANGFUSE_PUBLIC_KEY'))}"
+        )
+        logger.info(
+            f"[Langfuse] LANGFUSE_SECRET_KEY exists: {bool(os.getenv('LANGFUSE_SECRET_KEY'))}"
+        )
+        logger.info(f"[Langfuse] LANGFUSE_PROJECT: {os.getenv('LANGFUSE_PROJECT')}")
+        logger.info(f"[Langfuse] LANGFUSE_DEBUG: {os.getenv('LANGFUSE_DEBUG')}")
+        try:
+            self.langfuse = Langfuse(
+                public_key=os.getenv("LANGFUSE_PUBLIC_KEY"),
+                secret_key=os.getenv("LANGFUSE_SECRET_KEY"),
+                host=os.getenv("LANGFUSE_HOST", "http://localhost:3000"),
+                # Set debug to False to suppress verbose internal logs
+                debug=False,
+            )
+            logger.info("[Langfuse] Langfuse SDK initialized successfully.")
+        except Exception as e:
+            logger.error(f"[Langfuse] Langfuse initialization failed: {e}")
         # Prepare data for context immediately
         self.prepare_data()
         logger.info("AffordabilityAnalysisCrew initialized with comprehensive data")
+
+    # --- Observability/Monitoring Integration ---
+    def log_observability_event(self, step: str, data: dict, event_type: str = "info"):
+        """Log structured observability/monitoring events for AgentOps or future integrations."""
+        log_entry = {
+            "timestamp": datetime.datetime.utcnow().isoformat(),
+            "step": step,
+            "event_type": event_type,
+            "data": data,
+        }
+        logger.info(f"[OBSERVABILITY] {json.dumps(log_entry, default=str)}")
+        # Langfuse trace logging
+        if self.langfuse:
+            try:
+                trace = self.langfuse.trace(
+                    name=step,
+                    input=data,
+                    metadata={"event_type": event_type},
+                )
+                # Try the correct method for Langfuse SDK
+                if hasattr(trace, "flush"):
+                    logger.info("[Langfuse] Calling trace.flush() to finalize trace.")
+                    trace.flush(output=data)
+                elif hasattr(trace, "finalize"):
+                    logger.info(
+                        "[Langfuse] Calling trace.finalize() to finalize trace."
+                    )
+                    trace.finalize(output=data)
+                else:
+                    logger.warning(
+                        "[Langfuse] Trace object has no flush() or finalize() method. Trace may not be finalized."
+                    )
+            except Exception as e:
+                logger.warning(f"Langfuse trace logging failed: {e}")
+
+    def parse_net_income_from_payslip_text(self, payslip_text: str) -> float:
+        """Extract net income from payslip OCR text using regex heuristics."""
+        if not payslip_text:
+            return 0.0
+        # Try to find a line with 'Net Pay' and a number (robust to extra whitespace/newlines)
+        lines = payslip_text.splitlines()
+        for idx, line in enumerate(lines):
+            if "net pay" in line.lower():
+                # Look for a number on this line
+                nums = re.findall(r"([\d\s,]+\.\d{2})", line)
+                if nums:
+                    try:
+                        return float(nums[-1].replace(",", "").replace(" ", ""))
+                    except Exception:
+                        continue
+                # Look in the next 1-2 lines for a number
+                for offset in range(1, 3):
+                    if idx + offset < len(lines):
+                        nextline = lines[idx + offset]
+                        nums = re.findall(r"([\d\s,]+\.\d{2})", nextline)
+                        if nums:
+                            try:
+                                return float(nums[-1].replace(",", "").replace(" ", ""))
+                            except Exception:
+                                continue
+        # Fallback: search for 'Net Pay' or 'Net Income' followed by a number anywhere
+        patterns = [
+            r"Net Pay\s*[:\-\n]?\s*R?([\d\s,]+\.\d{2})",
+            r"Net Income\s*[:\-\n]?\s*R?([\d\s,]+\.\d{2})",
+        ]
+        for pat in patterns:
+            match = re.search(pat, payslip_text, re.IGNORECASE)
+            if match:
+                val = match.group(1).replace(",", "").replace(" ", "")
+                try:
+                    return float(val)
+                except Exception:
+                    continue
+        return 0.0
+
+    def parse_transactions_from_bank_statement_text(self, statement_text: str) -> list:
+        """Extract transactions from bank statement OCR text using regex heuristics."""
+        if not statement_text:
+            return []
+        # South African bank statements often have: date, description, amount (may be on separate lines)
+        # We'll look for a date, then scan forward for a negative/positive amount
+        lines = statement_text.splitlines()
+        transactions = []
+        date_regex = re.compile(r"(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4})")
+        amount_regex = re.compile(r"(-?\s*R?\s*[\d\s,]+\.\d{2})")
+        i = 0
+        while i < len(lines):
+            date_match = date_regex.search(lines[i])
+            if date_match:
+                date_str = date_match.group(1)
+                # Look ahead for amount and description
+                desc = []
+                amount = None
+                j = i + 1
+                while j < len(lines) and j < i + 6:
+                    amt_match = amount_regex.search(lines[j])
+                    if amt_match:
+                        amt_str = amt_match.group(1)
+                        amt_str = (
+                            amt_str.replace("R", "").replace(",", "").replace(" ", "")
+                        )
+                        try:
+                            amount = float(amt_str)
+                        except Exception:
+                            amount = 0.0
+                        break
+                    else:
+                        desc.append(lines[j].strip())
+                    j += 1
+                if amount is not None:
+                    # Try to parse date to DD/MM/YYYY
+                    try:
+                        dt = datetime.datetime.strptime(date_str.strip(), "%d %b %Y")
+                        date_fmt = dt.strftime("%d/%m/%Y")
+                    except Exception:
+                        date_fmt = date_str.strip()
+                    tx_type = "debit" if amount < 0 else "credit"
+                    transactions.append(
+                        {
+                            "date": date_fmt,
+                            "description": " ".join(desc).strip(),
+                            "amount": amount,
+                            "type": tx_type,
+                        }
+                    )
+                i = j
+            else:
+                i += 1
+        return transactions
+
+    def preprocess_financials(self):
+        """Deterministically compute total net income, total expenses, debts, and apply the 30% rule."""
+        logger.info("Preprocessing financial data for deterministic calculations")
+        transactions = self.transactions_data or []
+        payslip = self.payslip_data or {}
+        credit = self.credit_report or {}
+        # --- NEW: Parse from raw OCR text if structured data is missing ---
+        # Payslip net income
+        payslip_income = 0.0
+        if isinstance(payslip, dict):
+            payslip_income = float(
+                payslip.get("netIncome") or payslip.get("net_income") or 0
+            )
+            if payslip_income == 0 and "text" in payslip:
+                payslip_income = self.parse_net_income_from_payslip_text(
+                    payslip["text"]
+                )
+        # Bank statement transactions
+        if not transactions or len(transactions) == 0:
+            # Try to parse from bank_statement_data OCR text
+            bank_data = self.bank_statement_data
+            if isinstance(bank_data, list):
+                for doc in bank_data:
+                    if isinstance(doc, dict) and "text" in doc:
+                        parsed = self.parse_transactions_from_bank_statement_text(
+                            doc["text"]
+                        )
+                        if parsed:
+                            transactions.extend(parsed)
+            elif isinstance(bank_data, dict) and "text" in bank_data:
+                parsed = self.parse_transactions_from_bank_statement_text(
+                    bank_data["text"]
+                )
+                if parsed:
+                    transactions.extend(parsed)
+        # Aggregate income and expenses from transactions
+        total_income = 0.0
+        total_expenses = 0.0
+        for t in transactions:
+            amt = float(t.get("amount", 0))
+            # Outgoing: negative or type 'debit' or description with '-' or 'R' prefix
+            if (
+                str(t.get("type", "")).lower() == "debit"
+                or str(t.get("description", "")).strip().startswith("-")
+                or ("R" in str(t.get("description", "")) and amt < 0)
+            ):
+                total_expenses += abs(amt)
+            else:
+                total_income += amt
+        # Payslip fallback
+        if payslip_income > 0:
+            total_income = max(total_income, payslip_income)
+        # Credit report debts
+        total_debt = 0.0
+        if credit and "accountsSummary" in credit:
+            total_debt = float(credit["accountsSummary"].get("negativeAccounts", 0))
+        # 30% rule
+        max_affordable_rent = 0.3 * total_income if total_income > 0 else 0
+        can_afford = (
+            self.target_rent is not None and self.target_rent <= max_affordable_rent
+        )
+        # Prepare audit trail
+        audit = {
+            "total_income": total_income,
+            "total_expenses": total_expenses,
+            "total_debt": total_debt,
+            "max_affordable_rent": max_affordable_rent,
+            "target_rent": self.target_rent,
+            "can_afford": can_afford,
+            "rule": "target_rent <= 0.3 * total_income",
+        }
+        self.log_observability_event("preprocessing", audit)
+        logger.info(f"Preprocessing result: {audit}")
+        return audit
 
     def prepare_data(self):
         """Prepare data for task context as a dictionary"""
@@ -67,6 +297,10 @@ class AffordabilityAnalysisCrew:
             "credit_report": self.credit_report,
         }
 
+        # Preprocess financials and add to context
+        self.preprocessed = self.preprocess_financials()
+        self.context_data["preprocessed"] = self.preprocessed
+
         # Log the keys present in the context
         logger.info(f"Context created with keys: {list(self.context_data.keys())}")
 
@@ -76,6 +310,7 @@ class AffordabilityAnalysisCrew:
         if self.payslip_data:
             logger.info(f"Payslip data type: {type(self.payslip_data)}")
 
+        self.log_observability_event("prepare_data", self.context_data)
         return self.context_data
 
     @agent
@@ -116,15 +351,14 @@ class AffordabilityAnalysisCrew:
         # Create task with custom description that directly includes the data
         task_config = self.tasks_config["affordability_analysis"].copy()
 
-        # Update task description to be more general and request specific output format
-        # The agent should use the provided context dictionary
-        task_config["description"] = (
-            "Analyze the provided financial data context to assess rental affordability "
-            "for the target rent. The context includes formatted transactions, raw bank statement data, "
-            "raw payslip data, tenant income details, and a credit report. "
-            f"The target rent is ZAR {context.get('target_rent', 0.0):.2f}. "
-            "Focus on income verification, expense patterns, debt-to-income ratio, and overall financial health. "
-            "Use all available data sources (bank statements, payslips, income info) for a comprehensive assessment."
+        # Update task description to include preprocessed audit block and instruct LLM to only explain, not decide
+        audit = context.get("preprocessed", {})
+        audit_json = json.dumps(audit, indent=2)
+        task_config["description"] += (
+            "\n\nBelow is the result of deterministic preprocessing (do not override these values):\n"
+            f"```json\n{audit_json}\n```\n"
+            "You must use these values for your reasoning and recommendations. Do NOT change the can_afford value. "
+            "Explain the result, cite the 30% rule, and provide actionable recommendations."
         )
 
         # Add specific output expectations to ensure proper JSON format
@@ -430,6 +664,7 @@ class AffordabilityAnalysisCrew:
                 try:
                     # Try to parse the raw JSON string
                     analysis_data = json.loads(raw_json_string)
+                    self.log_observability_event("llm_output", analysis_data)
                     logger.info("Successfully parsed JSON from raw string")
                     logger.info(f"Parsed JSON keys: {list(analysis_data.keys())}")
 
@@ -556,6 +791,7 @@ class AffordabilityAnalysisCrew:
             final_data = self._validate_and_complete_output(final_data)
             logger.info(f"Final Processed Data being returned: {final_data}")
             logger.info(f"========== PROCESS RESULTS COMPLETED ==========")
+            self.log_observability_event("process_results_end", final_data)
             return final_data
 
         except Exception as e:

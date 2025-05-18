@@ -1,44 +1,36 @@
 {
-  "can_afford": false,
-  "confidence": 0.75,
+  "can_afford": true,
+  "confidence": 0.95,
   "risk_factors": [
-    "Debt-to-Income ratio exceeds recommended 30%",
-    "High discretionary spending observed",
-    "Insufficient savings for emergencies"
+    "Minimal debt payments",
+    "Savings rate is not identified"
   ],
   "recommendations": [
-    "Reduce discretionary spending by 20%",
-    "Increase income through side jobs or freelancing",
-    "Establish an emergency fund with at least ZAR 10,000"
+    "Maintain current expenses well below income levels",
+    "Consider setting aside a savings buffer for unforeseen expenses",
+    "Monitor discretionary spending to ensure financial stability"
   ],
   "metrics": {
-    "monthly_income": 22000,
-    "total_expenses": 8000,
-    "debt_service": 3500,
-    "debt_to_income_ratio": 31.8,
-    "target_rent": 6500,
-    "rent_to_income_ratio": 29.5
+    "monthly_income": 25000.0,
+    "total_monthly_expenses": 9456.9,
+    "monthly_debt_payments": 1.0,
+    "current_rent_payment": 0,
+    "disposable_income": 15542.1,
+    "rent_to_income_ratio": 0.28,
+    "debt_to_income_ratio": 0.00004,
+    "savings_rate": 0
   },
   "transaction_analysis": {
-    "income": {
-      "salary": 20000,
-      "side_income": 2000
+    "incoming": {
+      "verified_salary": 25000.0,
+      "other_income": 0
     },
-    "expenses": {
-      "fixed": {
-        "rent": 6500,
-        "utilities": 1500,
-        "insurance": 1000
-      },
-      "variable": {
-        "groceries": 3000,
-        "transport": 1000,
-        "entertainment": 2000
-      },
-      "debt_payments": {
-        "loan_repayment": 2500,
-        "credit_card_payment": 1000
-      }
+    "outgoing": {
+      "essential_expenses": 6000.0,
+      "non_essential_expenses": 3456.9,
+      "debt_payments": 1.0,
+      "savings_investments": 0,
+      "current_rent": 0
     }
   }
 }

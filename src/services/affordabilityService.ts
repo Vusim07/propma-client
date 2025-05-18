@@ -138,9 +138,19 @@ class AffordabilityService {
 				.eq('status', 'active')
 				.single();
 			if (subError || !subscription) {
+				console.error('No active subscription found for screening.', {
+					agentId,
+					subError,
+					subscription,
+				});
 				throw new Error('No active subscription found for screening.');
 			}
 			if (subscription.current_usage >= subscription.usage_limit) {
+				console.error('Subscription usage limit exceeded.', {
+					agentId,
+					current_usage: subscription.current_usage,
+					usage_limit: subscription.usage_limit,
+				});
 				throw new Error('Subscription usage limit exceeded.');
 			}
 
@@ -148,41 +158,63 @@ class AffordabilityService {
 			const documents = await fetchDocuments(
 				tenantId,
 				'bank_statement',
-				applicationId,
+				undefined, // Do not filter by applicationId, allow reuse of valid documents
 			);
+			console.log('[Affordability] fetchDocuments result:', {
+				tenantId,
+				applicationId,
+				documentType: 'bank_statement',
+				count: documents.length,
+				documents,
+			});
+
+			// Optionally: filter for most recent valid document(s) if needed
+			// (e.g., by created_at, verification_status, etc.)
+
 			const transactions = await getTransactionsFromDocuments(documents);
+			console.log('[Affordability] getTransactionsFromDocuments result:', {
+				transactionsCount: transactions.length,
+				transactions,
+			});
 			const rawBankStatementData =
 				documents.length > 0 ? documents.map((d) => d.extracted_data) : null;
+			console.log(
+				'[Affordability] rawBankStatementData:',
+				rawBankStatementData,
+			);
 
-			// 2. Get payslip data
-			const { data: payslipDocs } = await supabase
+			// 2. Get payslip data (also do not filter by applicationId)
+			const { data: payslipDocs, error: payslipError } = await supabase
 				.from('documents')
 				.select('*')
 				.eq('user_id', tenantId)
-				.eq('application_id', applicationId)
 				.eq('document_type', 'payslip')
 				.order('created_at', { ascending: false })
 				.limit(1)
 				.maybeSingle();
-
+			console.log('[Affordability] payslipDocs:', payslipDocs, payslipError);
 			const rawPayslipData = payslipDocs?.extracted_data || null;
+			console.log('[Affordability] rawPayslipData:', rawPayslipData);
 
 			// 3. Get tenant income information
 			const tenantIncome = await this.getTenantIncomeData(
 				tenantId,
 				applicationId,
 			);
+			console.log('Tenant income data:', tenantIncome);
 
 			// 4. Generate credit report using the tenant profile ID
 			const creditReport = await this.generateCreditReport(
 				application.tenant_id,
 			);
+			console.log('Credit report data:', creditReport);
 
 			// 5. Get target rent amount
 			const targetRent = await this.getTargetRent(propertyId);
+			console.log('Target rent:', targetRent);
 
 			// 6. Analyze affordability with all data
-			const affordabilityResponse = await this.analyzeAffordability({
+			const affordabilityRequest: AffordabilityRequest = {
 				transactions,
 				target_rent: targetRent,
 				payslip_data: rawPayslipData,
@@ -190,7 +222,13 @@ class AffordabilityService {
 				tenant_income: tenantIncome || undefined,
 				credit_report: creditReport,
 				analysis_type: 'comprehensive',
-			});
+			};
+			console.log('Affordability request payload:', affordabilityRequest);
+
+			const affordabilityResponse = await this.analyzeAffordability(
+				affordabilityRequest,
+			);
+			console.log('Affordability response:', affordabilityResponse);
 
 			// Ensure credit score is in metrics
 			if (!affordabilityResponse.metrics.credit_score && creditReport) {
@@ -225,6 +263,7 @@ class AffordabilityService {
 		requestData: AffordabilityRequest,
 	): Promise<AffordabilityResponse> {
 		try {
+			// Log the full payload for debugging (including raw text fields)
 			console.log('Sending data to CrewAI:', {
 				transactions_count: requestData.transactions.length,
 				target_rent: requestData.target_rent,
@@ -233,6 +272,8 @@ class AffordabilityService {
 				has_credit_report: !!requestData.credit_report,
 				has_tenant_income: !!requestData.tenant_income,
 				analysis_type: requestData.analysis_type,
+				payslip_data: requestData.payslip_data,
+				bank_statement_data: requestData.bank_statement_data,
 			});
 
 			const response = await fetch(this.API_URL, {
@@ -245,6 +286,7 @@ class AffordabilityService {
 
 			if (!response.ok) {
 				const errorText = await response.text();
+				console.error('CrewAI API error:', errorText);
 				throw new Error(`API error: ${response.status} - ${errorText}`);
 			}
 
@@ -254,6 +296,8 @@ class AffordabilityService {
 				confidence: data.confidence,
 				risk_factors_count: data.risk_factors?.length,
 				recommendations_count: data.recommendations?.length,
+				metrics: data.metrics,
+				transaction_analysis: data.transaction_analysis,
 			});
 
 			return data as AffordabilityResponse;
