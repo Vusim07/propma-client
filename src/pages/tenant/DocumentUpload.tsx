@@ -374,7 +374,7 @@ const DocumentUpload: React.FC = () => {
 			showToast.dismiss(toastId as any);
 			showToast.success('Application processed successfully!');
 
-			// Refresh session and navigate to dashboard first
+			// Refresh session and navigate to screening results
 			const refreshAndNavigate = async () => {
 				try {
 					// Refresh auth session to ensure JWT is current
@@ -384,15 +384,15 @@ const DocumentUpload: React.FC = () => {
 					console.log(
 						'[DocumentUpload] Auth state refreshed before navigation',
 					);
-					// Use window.location for a full reload to ensure fresh state
-					window.location.href = '/tenant';
+					// Navigate to screening results with application ID
+					window.location.href = `/tenant/screening?application=${applicationId}`;
 				} catch (err) {
 					console.error(
 						'[DocumentUpload] Error refreshing state before navigation:',
 						err,
 					);
 					// Fallback to regular navigation if refresh fails
-					navigate('/tenant');
+					navigate(`/tenant/screening?application=${applicationId}`);
 				}
 			};
 

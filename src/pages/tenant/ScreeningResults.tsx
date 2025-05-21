@@ -27,14 +27,14 @@ import {
 import { supabase } from '../../services/supabase';
 
 const ScreeningResults: React.FC = () => {
-	const { user } = useAuthStore();
+	const { user, isLoading: isAuthLoading } = useAuthStore();
 	const { setPageTitle } = usePageTitle();
 	const {
 		screeningReport,
 		profile,
 		fetchScreeningReport,
 		fetchProfile,
-		isLoading,
+		isLoading: isTenantLoading,
 	} = useTenantStore();
 
 	const location = useLocation();
@@ -48,8 +48,56 @@ const ScreeningResults: React.FC = () => {
 	const [currentApplicationId, setCurrentApplicationId] = useState<
 		string | null
 	>(null);
+	const [isInitialized, setIsInitialized] = useState(false);
 
 	const navigate = useNavigate();
+
+	// Add auth state check
+	useEffect(() => {
+		if (!isAuthLoading && !user) {
+			console.log('No user found in ScreeningResults, redirecting to login');
+			navigate('/login');
+			return;
+		}
+	}, [isAuthLoading, user, navigate]);
+
+	// Initialize data fetching only after auth is confirmed
+	useEffect(() => {
+		const initializeData = async () => {
+			if (isAuthLoading || !user || isInitialized) return;
+
+			try {
+				setPageTitle('Screening');
+				console.log('Initializing screening data for user:', user.id);
+
+				// If we have an application ID from URL params, use that
+				if (applicationId) {
+					console.log('Using application ID from URL:', applicationId);
+					setCurrentApplicationId(applicationId);
+					await fetchSpecificScreeningReport(applicationId);
+				} else {
+					console.log('Fetching screening report for user:', user.id);
+					await fetchScreeningReport(user.id);
+				}
+
+				await fetchProfile(user.id);
+				setIsInitialized(true);
+			} catch (error) {
+				console.error('Error initializing screening data:', error);
+				setAnalysisError('Failed to load screening data. Please try again.');
+			}
+		};
+
+		initializeData();
+	}, [
+		user,
+		isAuthLoading,
+		applicationId,
+		fetchScreeningReport,
+		fetchProfile,
+		setPageTitle,
+		isInitialized,
+	]);
 
 	// Get recommendations from the analysisResult if available
 	const recommendations = useMemo(() => {
@@ -79,22 +127,6 @@ const ScreeningResults: React.FC = () => {
 		return [];
 	}, [analysisResult]);
 
-	useEffect(() => {
-		setPageTitle('Screening');
-		if (user) {
-			// If we have an application ID from URL params, use that
-			if (applicationId) {
-				setCurrentApplicationId(applicationId);
-				// Only fetch the specific screening report for this application
-				fetchSpecificScreeningReport(applicationId);
-			} else {
-				// Otherwise fetch using user ID as before
-				fetchScreeningReport(user.id);
-			}
-			fetchProfile(user.id);
-		}
-	}, [user, applicationId, fetchScreeningReport, fetchProfile, setPageTitle]);
-
 	// Function to fetch a specific screening report by application ID
 	const fetchSpecificScreeningReport = async (appId: string) => {
 		try {
@@ -114,8 +146,15 @@ const ScreeningResults: React.FC = () => {
 	// Fetch real affordability analysis if no screening report exists
 	useEffect(() => {
 		const fetchAffordabilityAnalysis = async () => {
-			// Skip if loading, or if we already have a screening report or analysis result
-			if (isLoading || screeningReport || analysisResult || isAnalyzing) {
+			// Skip if loading, not initialized, or if we already have data
+			if (
+				isAuthLoading ||
+				!isInitialized ||
+				isTenantLoading ||
+				screeningReport ||
+				analysisResult ||
+				isAnalyzing
+			) {
 				return;
 			}
 
@@ -207,7 +246,9 @@ const ScreeningResults: React.FC = () => {
 		user,
 		profile,
 		screeningReport,
-		isLoading,
+		isAuthLoading,
+		isInitialized,
+		isTenantLoading,
 		analysisResult,
 		isAnalyzing,
 		currentApplicationId,
@@ -240,7 +281,16 @@ const ScreeningResults: React.FC = () => {
 		return null;
 	}, [screeningReport, user?.id, analysisResult]);
 
-	if (isLoading || isAnalyzing) {
+	if (isAuthLoading || !isInitialized) {
+		return (
+			<div className='flex justify-center items-center h-64'>
+				<Spinner size='lg' />
+				<p className='ml-4 text-gray-600'>Initializing...</p>
+			</div>
+		);
+	}
+
+	if (isTenantLoading || isAnalyzing) {
 		return (
 			<div className='flex justify-center items-center h-64'>
 				<Spinner size='lg' />
