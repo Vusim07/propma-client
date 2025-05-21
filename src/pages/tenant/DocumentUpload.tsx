@@ -28,6 +28,7 @@ import {
 import { showToast } from '@/utils/toast';
 import { documentService } from '@/services/documentService';
 import { supabase } from '@/services/supabase';
+import { affordabilityService } from '@/services/affordabilityService';
 // import { getOcrProvider } from '@/services/ocr';
 
 // Interface for files in the upload queue
@@ -311,81 +312,104 @@ const DocumentUpload: React.FC = () => {
 		});
 	};
 
-	// Complete the application process
+	// Updated completeApplication function
 	const completeApplication = async (forceComplete = false) => {
 		if (!applicationId || !user) {
 			showToast.error('Missing application information');
 			return;
 		}
 
-		console.log('Attempting to complete application:', applicationId);
-		console.log('Document count:', documents.length);
-		console.log(
-			'Documents for this application:',
-			documents.filter((doc) => doc.application_id === applicationId),
-		);
-
-		// Skip document check if forcing completion
-		if (!forceComplete) {
-			// Check for missing documents before API call
-			const missingDocs = checkRequiredDocuments();
-			if (missingDocs.length > 0) {
-				showToast.error(
-					`Missing documents: ${missingDocs
-						.map((type) => getDocumentTypeLabel(type))
-						.join(', ')}`,
-				);
-				return;
-			}
-		}
-
 		setIsCompleting(true);
 		const toastId = showToast.loading(
 			forceComplete
 				? 'Force completing application...'
-				: 'Finalizing your application...',
+				: 'Processing your application, please wait...',
 		);
 
 		try {
-			// Check if we have all required document types
+			// Complete the application with documents
 			const result = await completeApplicationWithDocuments(
 				applicationId,
 				REQUIRED_DOCUMENT_TYPES,
 				forceComplete,
 			);
 
-			showToast.dismiss(toastId as any);
-
-			if (result) {
-				showToast.success(
-					'Application submitted successfully! Login to view results.',
-				);
-
-				// Verify session is still active before navigating
-				try {
-					// Check if we still have a valid session
-					const { data } = await supabase.auth.getSession();
-					if (!data.session) {
-						console.error('Session lost during application completion');
-						// Refresh auth state before redirecting
-						await useAuthStore.getState().checkAuth();
-					}
-				} catch (sessionError) {
-					console.error('Error checking session:', sessionError);
-				}
-
-				// Navigate to dashboard
-				navigate('/tenant/dashboard');
-			} else {
-				showToast.error(
-					'Please upload all required documents before completing your application.',
-				);
-				setIsCompleting(false);
+			if (!result) {
+				throw new Error('Failed to complete document upload');
 			}
+
+			// Get application details for affordability analysis
+			const { data: application } = await supabase
+				.from('applications')
+				.select('property_id')
+				.eq('id', applicationId)
+				.single();
+
+			if (!application?.property_id) {
+				throw new Error('Could not find property information');
+			}
+
+			// Trigger affordability analysis
+			await affordabilityService.createAffordabilityAnalysis(
+				applicationId,
+				user.id,
+				application.property_id,
+			);
+
+			// Log final session state before navigation
+			const { data: finalSessionData } = await supabase.auth.getSession();
+			console.log('[DocumentUpload] Final session state before navigation:', {
+				hasSession: !!finalSessionData.session,
+				expiresAt: finalSessionData.session?.expires_at,
+				userId: finalSessionData.session?.user?.id,
+				accessToken: finalSessionData.session?.access_token
+					? 'present'
+					: 'missing',
+				refreshToken: finalSessionData.session?.refresh_token
+					? 'present'
+					: 'missing',
+			});
+
+			// Show success message
+			showToast.dismiss(toastId as any);
+			showToast.success('Application processed successfully!');
+
+			// Refresh session and navigate to dashboard first
+			const refreshAndNavigate = async () => {
+				try {
+					// Refresh auth session to ensure JWT is current
+					await supabase.auth.refreshSession();
+					// Update auth store state
+					await useAuthStore.getState().getProfile();
+					console.log(
+						'[DocumentUpload] Auth state refreshed before navigation',
+					);
+					// Use window.location for a full reload to ensure fresh state
+					window.location.href = '/tenant';
+				} catch (err) {
+					console.error(
+						'[DocumentUpload] Error refreshing state before navigation:',
+						err,
+					);
+					// Fallback to regular navigation if refresh fails
+					navigate('/tenant');
+				}
+			};
+
+			await refreshAndNavigate();
 		} catch (err) {
 			console.error('Error completing application:', err);
 			showToast.dismiss(toastId as any);
-			showToast.error('Failed to complete application. Please try again.');
+
+			// Handle session expiry specifically
+			if (err instanceof Error && err.message.includes('JWT expired')) {
+				showToast.error('Your session has expired. Please log in again.');
+				// Let the auth store handle the logout
+				await useAuthStore.getState().logout();
+				navigate('/auth/login');
+			} else {
+				showToast.error('Failed to complete application. Please try again.');
+			}
 			setIsCompleting(false);
 		}
 	};

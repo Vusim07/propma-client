@@ -6,15 +6,15 @@ import App from './App.tsx';
 import './index.css';
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <PostHogProvider
-      apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY}
-      options={{
-        api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
-        debug: import.meta.env.MODE === 'development',
-      }}
-    >
-      <App />
-    </PostHogProvider>
-  </StrictMode>
+	<StrictMode>
+		<PostHogProvider
+			apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY}
+			options={{
+				api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+				debug: false,
+			}}
+		>
+			<App />
+		</PostHogProvider>
+	</StrictMode>,
 );

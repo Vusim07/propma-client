@@ -280,10 +280,7 @@ const AffordabilityCard = ({
 											</p>
 											<p className='font-medium'>
 												{formatCurrency(
-													reportData.transaction_analysis?.Incoming?.reduce(
-														(sum: number, inc: any) => sum + inc.amount,
-														0,
-													) || 0,
+													reportData?.metrics?.monthly_income || 0,
 												)}
 											</p>
 										</div>
@@ -293,10 +290,8 @@ const AffordabilityCard = ({
 											</p>
 											<p className='font-medium'>
 												{formatCurrency(
-													reportData.transaction_analysis?.Outgoing?.[
-														'Essential Expenses'
-													]?.reduce(
-														(sum: number, exp: any) => sum + exp.amount,
+													reportData?.transaction_analysis?.outgoing?.essential_expenses?.reduce(
+														(sum: number, exp: any) => sum + (exp.amount || 0),
 														0,
 													) || 0,
 												)}
@@ -308,10 +303,8 @@ const AffordabilityCard = ({
 											</p>
 											<p className='font-medium'>
 												{formatCurrency(
-													reportData.transaction_analysis?.Outgoing?.[
-														'Non-Essential Expenses'
-													]?.reduce(
-														(sum: number, exp: any) => sum + exp.amount,
+													reportData?.transaction_analysis?.outgoing?.non_essential_expenses?.reduce(
+														(sum: number, exp: any) => sum + (exp.amount || 0),
 														0,
 													) || 0,
 												)}

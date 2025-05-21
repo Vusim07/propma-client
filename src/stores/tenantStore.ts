@@ -647,54 +647,70 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 
 	completeApplicationWithDocuments: async (
 		applicationId: string,
-		requiredDocTypes: string[],
-		forceComplete: boolean = false,
+		requiredTypes: string[],
+		forceComplete = false,
 	): Promise<boolean> => {
 		try {
-			// Use get() to access current state
-			const validDocuments = get().documents.filter((doc: any) =>
-				isDocumentValid(doc.created_at),
-			);
+			// 1. Update application status first
+			const { error: updateError } = await supabase
+				.from('applications')
+				.update({ status: 'documents_uploaded' })
+				.eq('id', applicationId);
 
-			// Normalize the document_type strings for comparison.
-			const normalizedUploadedTypes = validDocuments.map((doc: any) =>
+			if (updateError) throw updateError;
+
+			// Return early if force completing
+			if (forceComplete) return true;
+
+			// 2. Get all documents for this user, not just for this application
+			const { data: userDocs, error: docsError } = await supabase
+				.from('documents')
+				.select('document_type, created_at')
+				.order('created_at', { ascending: false });
+
+			if (docsError) throw docsError;
+
+			// 3. Filter for valid documents (within last 30 days) and check required types
+			const validDocs =
+				userDocs?.filter((doc) => {
+					const createdAt = new Date(doc.created_at);
+					const now = new Date();
+					const diff = now.getTime() - createdAt.getTime();
+					const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+					return diff <= THIRTY_DAYS;
+				}) || [];
+
+			// 4. Check if all required document types are present
+			const uploadedTypes = validDocs.map((doc) =>
 				doc.document_type.toLowerCase().replace(/[_\s-]/g, ''),
 			);
 
-			// Check for any missing required document types.
-			const missingDocs = requiredDocTypes.filter((req) => {
-				const normRequired = req.toLowerCase().replace(/[_\s-]/g, '');
-				return !normalizedUploadedTypes.some(
-					(uploaded) =>
-						uploaded === normRequired ||
-						uploaded.includes(normRequired) ||
-						normRequired.includes(uploaded),
-				);
+			const missingTypes = requiredTypes.filter((type) => {
+				const normRequired = type.toLowerCase().replace(/[_\s-]/g, '');
+				return !uploadedTypes.includes(normRequired);
 			});
 
-			// If required docs are missing and forceComplete is not set, do not complete.
-			if (missingDocs.length > 0 && !forceComplete) {
-				return false;
+			// 5. If we have all required documents, associate them with this application
+			if (missingTypes.length === 0) {
+				// Optional: Link existing documents to this application if they're not already linked
+				const { error: linkError } = await supabase
+					.from('documents')
+					.update({ application_id: applicationId })
+					.is('application_id', null)
+					.in('document_type', requiredTypes);
+
+				if (linkError) {
+					console.warn('Error linking documents to application:', linkError);
+					// Don't throw error here, as it's not critical
+				}
+
+				return true;
 			}
 
-			// Otherwise, update the application record to complete the application.
-			const { error } = await supabase
-				.from('applications')
-				.update({
-					status: 'completed',
-					updated_at: new Date().toISOString(),
-				})
-				.eq('id', applicationId);
-
-			if (error) {
-				console.error('Error updating application:', error);
-				throw error;
-			}
-
-			return true;
-		} catch (err) {
-			console.error('Failed to complete application:', err);
 			return false;
+		} catch (error) {
+			console.error('Error completing application:', error);
+			throw error; // Re-throw to handle in the component
 		}
 	},
 }));

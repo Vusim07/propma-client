@@ -1,0 +1,190 @@
+{
+	"id": "e22b8732-e6b8-467e-8f8b-6b7edc627386",
+	"application_id": "70ae8e53-f97c-488f-b543-c7bc8bdb003f",
+	"agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a",
+	"affordability_score": 0.258453,
+	"affordability_notes": "Tenant can likely afford this property based on income and expense patterns.",
+	"id_verification_status": null,
+	"credit_score": null,
+	"recommendation": "Maintain a budget to reduce non-essential spending",
+	"report_data": {
+		"metrics": {
+			"total_debt": 0,
+			"target_rent": 8250,
+			"savings_rate": 0,
+			"monthly_income": 31920.71,
+			"disposable_income": 19473.87,
+			"current_rent_payment": 0,
+			"debt_to_income_ratio": 0,
+			"rent_to_income_ratio": 0.2584528978208818,
+			"monthly_debt_payments": 0,
+			"total_monthly_expenses": 12446.84
+		},
+		"can_afford": true,
+		"confidence": 0.85,
+		"risk_factors": ["No savings buffer", "High non-essential spending"],
+		"recommendations": [
+			"Maintain a budget to reduce non-essential spending",
+			"Consider building a savings buffer for unexpected expenses",
+			"Ensure consistent income verification in future applications"
+		],
+		"transaction_analysis": {
+			"incoming": {
+				"other_income": [],
+				"salary_wages": []
+			},
+			"outgoing": {
+				"current_rent": [],
+				"debt_payments": [],
+				"essential_expenses": [
+					{
+						"amount": 5000,
+						"description": "Groceries"
+					},
+					{
+						"amount": 2000,
+						"description": "Utilities"
+					}
+				],
+				"savings_investments": [],
+				"non_essential_expenses": [
+					{
+						"amount": 3000,
+						"description": "Dining Out"
+					},
+					{
+						"amount": 200,
+						"description": "Subscriptions"
+					}
+				]
+			}
+		}
+	},
+	"created_at": "2025-05-20T20:52:11.441183+00:00",
+	"updated_at": "2025-05-20T20:52:11.441183+00:00",
+	"income_verification": true,
+	"background_check_status": "passed",
+	"pre_approval_status": "approved",
+	"tenant_id": "1b957bb5-4c6e-4191-93a1-56cfd2de2942",
+	"credit_report_id": null,
+	"monthly_income": 31920.71,
+	"team_id": null,
+	"tenant_profiles": {
+		"id": "1b957bb5-4c6e-4191-93a1-56cfd2de2942",
+		"email": "vusim@reaply.africa",
+		"phone": "+27642868610",
+		"employer": "Arda Analytics",
+		"id_number": "1234567891235",
+		"last_name": "Doe",
+		"tenant_id": "7c546318-5b76-4e83-9f27-c1c98b2d9275",
+		"created_at": "2025-04-08T23:41:00.770944+00:00",
+		"first_name": "Jane",
+		"updated_at": "2025-04-17T23:38:35.252183+00:00",
+		"monthly_income": 27436,
+		"current_address": "30 main street",
+		"employment_status": "full-time",
+		"employment_duration": 28
+	},
+	"applications": {
+		"tenant_id": "1b957bb5-4c6e-4191-93a1-56cfd2de2942",
+		"properties": {
+			"monthly_rent": 8250
+		},
+		"property_id": "dc11889a-e21e-42a7-8c17-cc7b3a395131"
+	},
+	"credit_reports": null,
+	"credit_report": {
+		"score": 720,
+		"payment_history": "Good",
+		"derogatory_marks": 0,
+		"accounts": 5,
+		"hard_inquiries": 2,
+		"credit_age": "5 years",
+		"credit_utilization": "15%"
+	},
+	"background_check": {
+		"criminal_record": false,
+		"eviction_history": false,
+		"verification_date": "2025-05-20T21:04:27.162Z"
+	},
+	"rental_history": [
+		{
+			"address": "456 Elm St, Anytown, South Africa",
+			"start_date": "2020-01-01",
+			"end_date": "2022-12-31",
+			"landlord_name": "Jane Smith",
+			"landlord_contact": "555-987-6543",
+			"rent_amount": 1800,
+			"payment_history": "On-time payments",
+			"reason_for_leaving": "Relocated for work"
+		}
+	],
+	"documents": [
+		{
+			"id": "0a98de9e-b60e-4266-bad8-eddd10370c1a",
+			"application_id": "078b926d-14e8-48ae-a612-0977502608d3",
+			"document_type": "payslip",
+			"file_path": "a3d65e52-ca4f-4e9e-816e-57b37f780efc/1747098346340.pdf",
+			"verification_status": "pending",
+			"extracted_data": {
+				"text": "New Payslip\n\nEmp. Code\n\nE1417\n\nEmp. Name\n\nMr VW Mthimunye\n\nKnown As\n\nVusi\n\nID Number\n\n9304075234085\n\nEmp. Address\n\n30 Cloverdene Road\n\nRynfield Benoni\n\n1514\n\nIncome Tax No. 2702500154\n\nDate Engaged\n\nJob Title\n\nJob Grade\n\nRate Per Hour\n\n190.96\n\nHours Per Period\n\n173.36\n\n2022/09/01\n\nPay Period\n\n2023/10/31\n\nCo. Name\n\n006_IQBINS - IQBusiness\n\nInsights (Pty) Ltd\n\nCo. Address\n\n03 Third Avenue\n\nRivonia Johannesburg\n\n2000\n\nTermination Date\n\nPAYE Ref. No. 7350778397\n\nUIF Reg. No.\n\n2099294/3\n\nAccount No.\n\n19201792315\n\nBranch No.\n\n679000\n\nPayment Type\n\nACB\n\nEarnings\n\nDescription\n\nUnits\n\nAmount\n\nOpening Balance\n\nCash\n\n0.00\n\n33 104.00\n\n0.00\n\nIncentive Plan\n\n0.00\n\n7 000.00\n\n0.00\n\nTotal Earnings\n\n40 104.00\n\nDeductions\n\nDescription\n\nAmount\n\nOpening Balance\n\nPay as you Earn\n\n7 931.17\n\nUnemployment Insurance\n\n177.12\n\nFund\n\nSOCHILL\n\n75.00\n\nTotal Deductions\n\n8 183.29\n\nNet Pay\n\n31 920.71\n\nCompany Contributions\n\nYear To Date Totals\n\nDescription\n\nAmount\n\nOpening Balance\n\nSkills Development Levy\n\n401.04\n\n0.00\n\nUnemployment Insurance Fund CC\n\n177.12\n\n0.00\n\nSOCHILL CC\n\n75.00\n\n0.00\n\nTotal Company Contributions\n\n653.16\n\nDescription\n\nAmount\n\nTax Paid\n\n49 272.31\n\nTaxable Earnings\n\n276 637.56\n\nTaxable Company Contributions\n\n0.00\n\nFringe Benefits\n\n0.00\n\nTax Deductible Deductions\n\n0.00\n\nProvisions\n\n0.00\n\nPrivate Contributions\n\n0.00\n\nFringe Benefits\n\nCost To Company\n\nDescription\n\nAmount\n\nOpening Balance\n\nTotal Fringe Benefits\n\n0.00\n\nDescription\n\nAmount\n\nCash\n\n33 104.00\n\nTotal Cost To Company\n\n33 104.00\n\nAnnual Cost to Company\n\n397 248.00\n\nLeave Balances\n\nDescription\n\nEntitlement\n\nBalance B\\Fwd\n\nAccrued\n\nTaken\n\nBalance C\\Fwd\n\nAnnual leave\n\n15.0000\n\n6.2500\n\n1.2500\n\n0.0000\n\n7.5000\n\nPrinted on: 2023/10/30; 14:58",
+				"file_name": "Payslip_MAIN_31-Oct-2023.pdf",
+				"file_size": 72869,
+				"file_type": "application/pdf",
+				"processed_at": "2025-05-13T01:05:46.340Z",
+				"application_id": "a3d65e52-ca4f-4e9e-816e-57b37f780efc"
+			},
+			"notes": null,
+			"created_at": "2025-05-13T01:05:46.429198+00:00",
+			"updated_at": "2025-05-20T20:48:54.925922+00:00",
+			"user_id": "7c546318-5b76-4e83-9f27-c1c98b2d9275",
+			"file_name": "Payslip_MAIN_31-Oct-2023.pdf",
+			"file_size": 72869,
+			"team_id": null
+		},
+		{
+			"id": "6e9cfb57-8ac9-48ff-a72d-c98061f89e8b",
+			"application_id": "078b926d-14e8-48ae-a612-0977502608d3",
+			"document_type": "bank_statement",
+			"file_path": "a3d65e52-ca4f-4e9e-816e-57b37f780efc/1747098336465.pdf",
+			"verification_status": "pending",
+			"extracted_data": {
+				"text": "Bank L\n\nDiscovery\n\nV\n\nDiscovery Bank\n\n907\n\nDiscovery Platinum Transaction Account statement\n\nTAX INVOICE\n\n2023-10-31\n\nMr VW Mthimunye\n\n7089163 Certified Copy\n\nStatement number\n\n26\n\n306 Matwaitwai Street\n\nExtension 28\n\nStatement date\n\n26 October 2023\n\nVosloorus\n\nStatement period\n\n27 Sep 2023 - 26 Oct 2023\n\nJohannesburg\n\nOverdraft limit\n\nR0.00\n\n1475\n\nMinimum amount due\n\nR0.00\n\nYour account summary\n\nOpening balance on\n\n27 September 2023\n\nR6 334.74\n\nClosing balance on\n\n26 October 2023\n\nR10 546.52\n\nDiscovery Platinum Transaction Account\n\n19201792315\n\nTransaction timeline\n\nDate\n\nCard no.\n\nType\n\nDetails\n\nAmount\n\nOpening balance\n\nR6 334.74\n\n22 Sep 2023\n\n*** 9849\n\nOnline\n\nUber Eats\n\n- R256.90\n\n23 Sep 2023\n\n*** 5655\n\nOnline\n\nStash by Liberty\n\n- R200.00\n\n23 Sep 2023\n\n*** 5655\n\nPOS Purchase\n\nLIQUOR CITY RYNGT BENONI\n\n- R114.98\n\n23 Sep 2023\n\n*** 9849\n\nOnline\n\nUber Rides\n\n- R367.00\n\n24 Sep 2023\n\n*** 9849\n\nPOS Purchase\n\nShowMax RANDBURG\n\n- R349.00\n\n24 Sep 2023\n\n*** 9849\n\nOnline\n\nUber Eats\n\n- R135.99\n\n25 Sep 2023\n\n*** 9849\n\nOnline\n\nCheckers Sixty60\n\n- R156.97\n\n25 Sep 2023\n\n*** 5655\n\nOnline\n\nStash by Liberty\n\n- R100.00\n\n25 Sep 2023\n\n*** 9849\n\nOnline\n\nPayflex\n\n- R136.50\n\n25 Sep 2023\n\n*** 5655\n\nPOS Purchase\n\nIdentity 1373 BOKSBURG\n\n- R345.00\n\n26 Sep 2023\n\n*** 5655\n\nATM Cash\n\nSHELL CRYSTAL PARK card ... 5655 BENONI\n\n- R250.00\n\n26 Sep 2023\n\nFee\n\nIntl payment fee SpotifyZA\n\n- R1.20\n\n26 Sep 2023\n\n*** 5655\n\nOnline\n\nWOOLWORTHS ONLINE\n\n- R289.98\n\n26 Sep 2023\n\n*** 9849\n\nOnline\n\nhttp://www.rcs.co.za\n\n- R150.00\n\n26 Sep 2023\n\n*** 4066\n\nPOS Purchase\n\nTJ ROOTS BAYPORT * JOHANNESBURG\n\n- R10.00\n\n26 Sep 2023\n\n*** 9849\n\nOnline\n\nSpotifyZA 59.99 ZAR\n\n- R59.99\n\n1 Discovery Place, Sandhurst, Sandton, PO Box 786722, Sandton, 2196 | 0800 07 96 97 Discovery Bank Limited. Registration number 2015/408745/06. An authorised financial services and registered credit provider. FSP number 48657. NCR registration number NCRCP9997. VAT registration number 4590272730. Limits, terms and conditions apply.\n\nBank L\n\nDiscovery\n\n>\n\nDiscovery Bank\n\nDate\n\nCard no.\n\nType 20 015/4087\n\n37\n\nAmount\n\n26 Sep 2023\n\n*** 5655\n\nPOS Purchase)\n\n23SHELL CRYSTAL PARK Benoni 7089163\n\n- R23.50\n\n26 Sep 2023\n\n*** 5655\n\nOnline\n\nCertified Stash by Liberty\n\n- R50.00\n\n26 Sep 2023\n\nAdjustment\n\nInterest Earned at 3.50%\n\n- R0.46\n\n27 Sep 2023\n\nDebit order\n\nVOXTELECOMR16863044\n\n- R849.00\n\n28 Sep 2023\n\n*** 5655\n\nPOS Purchase\n\nRefund Stash by Liberty JOHANNESBURG\n\nR22.00\n\n28 Sep 2023\n\n*** 9849\n\nOnline\n\nCIPC\n\n- R150.00\n\n29 Sep 2023\n\n*** 9849\n\nOnline\n\niPay\n\n- R100.00\n\n29 Sep 2023\n\n*** 9849\n\nOnline\n\nPP *Amazon Services\n\n- R79.00\n\n29 Sep 2023\n\n*** 4066\n\nPOS Purchase\n\nBolt BRYANSTON\n\n- R26.00\n\n29 Sep 2023\n\n*** 4066\n\nPOS Purchase\n\nDJS LIQUOR Springs\n\n- R282.00\n\n29 Sep 2023\n\n*** 9849\n\nOnline\n\nUber Eats\n\n- R95.89\n\n30 Sep 2023\n\nFee\n\nPayShap payment fee\n\n- R5.00\n\n30 Sep 2023\n\nRPP\n\nPayShap Love of my life\n\n- R1 000.00\n\n30 Sep 2023\n\n*** 4066\n\nPOS Purchase\n\nSHELL GARDENVIEW Beaufort West\n\n- R150.45\n\n30 Sep 2023\n\n*** 5655\n\nPOS Purchase\n\nSHELL CRYSTAL PARK Benoni\n\n- R23.50\n\n1 Oct 2023\n\n*** 5655\n\nPOS Purchase\n\nElectronic and Hard1 CRYSTAL PARK\n\n- R130.00\n\n2 Oct 2023\n\n*** 9849\n\nPOS Purchase\n\nMR D FOOD CAPE TOWN\n\n- R79.00\n\n3 Oct 2023\n\nTransfer\n\nInter account transfer from account ... 6950 Beer\n\nR150.00\n\n3 Oct 2023\n\n*** 9849\n\nOnline\n\niPay\n\n- R250.00\n\n3 Oct 2023\n\n*** 9849\n\nPOS Purchase\n\nUBER EATS JOHANNESBURG\n\n- R103.60\n\n4 Oct 2023\n\n*** 9849\n\nOnline\n\nUber Rides\n\n- R68.00\n\n5 Oct 2023\n\nTransfer\n\nInter account transfer from account ... 6950 Driving\n\nR1 050.00\n\n5 Oct 2023\n\nRPP\n\nPayShap Driving school\n\n- R660.00\n\n5 Oct 2023\n\nFee\n\nPayShap payment fee\n\n- R5.00\n\n5 Oct 2023\n\n*** 5655\n\nPOS Purchase\n\nTops Crystal Gate CRYSTAL PARK\n\n- R165.48\n\n5 Oct 2023\n\n*** 5655\n\nPOS Purchase\n\nSpar Crystal Gate CRYSTAL PARK\n\n- R42.47\n\n5 Oct 2023\n\n*** 4066\n\nPOS Purchase\n\nTJ ROOTS BAYPORT * JOHANNESBURG\n\n- R10.00\n\n6 Oct 2023\n\nTransfer\n\nInter account transfer from account ... 6950 Eish\n\nR300.00\n\n6 Oct 2023\n\n*** 5655\n\nPOS Purchase\n\nYoco *Evo Events Johannesburg\n\n- R40.00\n\n6 Oct 2023\n\n*** 5655\n\nPOS Purchase\n\nSASOL RYNFIELD Benoni\n\n- R19.00\n\n1 Discovery Place, Sandhurst, Sandton, PO Box 786722, Sandton, 2196 | 0800 07 96 97 Discovery Bank Limited. Registration number 2015/408745/06. An authorised financial services and registered credit provider. FSP number 48657. NCR registration number NCRCP9997. VAT registration number 4590272730. Limits, terms and conditions apply.\n\nBank Li\n\nDiscovery\n\nV\n\nDiscovery Bank\n\nDate\n\nCard no.\n\nType 2015/4087\n\n37\n\nAmount\n\n6 Oct 2023\n\n*** 9849\n\nOnline\n\n2023Payflex 7089163\n\n- R325.66\n\n6 Oct 2023\n\n*** 9849\n\nOnline\n\nCertified CEats/\n\n- R84.65\n\n7 Oct 2023\n\nMiles transfer to cash\n\nR88.10\n\n7 Oct 2023\n\n*** 9849\n\nPOS Purchase\n\nUBER SA help.uber.com JOHANNESBURG\n\n- R56.70\n\n7 Oct 2023\n\n*** 5655\n\nPOS Purchase\n\nRefund Stash by Liberty JOHANNESBURG\n\nR500.00\n\n7 Oct 2023\n\n*** 5655\n\nPOS Purchase\n\nLIQUOR CITY RYNGT BENONI\n\n- R119.98\n\n11 Oct 2023\n\n*** 9849\n\nOnline\n\nPayflex\n\n- R136.50\n\n12 Oct 2023\n\nRPP\n\nPayShap Groceries\n\n- R70.00\n\n12 Oct 2023\n\nFee\n\nPayShap payment fee\n\n- R1.00\n\n12 Oct 2023\n\nFee\n\nIntl payment fee GOOGLE *Google Storage\n\n- R0.58\n\n12 Oct 2023\n\n*** 9849\n\nPOS Purchase\n\nGOOGLE *Google Storage g.co/helppay# 29.00 ZAR\n\n- R29.00\n\n13 Oct 2023\n\nEFT\n\nReal-time payment S NKOSI\n\nR200.00\n\n13 Oct 2023\n\n*** 5655\n\nPOS Purchase\n\nLiquorShop Cloverdene GAUTENG\n\n- R404.97\n\n16 Oct 2023\n\n*** 9849\n\nOnline\n\niPay\n\n- R80.00\n\n16 Oct 2023\n\n*** 5655\n\nPOS Purchase\n\nRefund Stash by Liberty JOHANNESBURG\n\nR60.00\n\n19 Oct 2023\n\n*** 4066\n\nPOS Purchase\n\nEASTVALE LIQUOR STORE Springs\n\n- R33.00\n\n20 Oct 2023\n\nPurchase\n\nPrepaid Airtime Purchase for 0642868610\n\n- R30.00\n\n20 Oct 2023\n\nRPP\n\nPayShap X SEDIBE\n\nR250.00\n\n20 Oct 2023\n\n*** 5655\n\nPOS Purchase\n\nTops Crystal Gate CRYSTAL PARK\n\n- R250.00\n\n22 Oct 2023\n\nTransfer\n\nInter account transfer to account ... 6950 Transport\n\n- R200.00\n\n22 Oct 2023\n\nEFT\n\nReal-time payment P LETLHAKU\n\nR200.00\n\n23 Oct 2023\n\nTransfer\n\nInter account transfer from account ... 6950 Transpo\n\nR200.00\n\n23 Oct 2023\n\n*** 4066\n\nATM Cash\n\nBOXER NOORD STREET card ... 4066 JOHANNESBURG\n\n- R200.00\n\n25 Oct 2023\n\nPurchase\n\nPrepaid Airtime Purchase for 0642868610\n\n- R100.00\n\n25 Oct 2023\n\nTransfer\n\nRecurring inter account transfer to acc ... 6950 Mon\n\n- R1 500.00\n\n25 Oct 2023\n\n*** 9849\n\nOnline\n\nNETFLIX.COM 199.00 ZAR\n\n- R199.00\n\n25 Oct 2023\n\nPurchase\n\nPrepaid Airtime Purchase for 0613625181\n\n- R200.00\n\n25 Oct 2023\n\nEFT\n\nLegal fees\n\n- R3 450.00\n\n25 Oct 2023\n\nEFT\n\nTCPS E1417\n\nR31 920.71\n\n25 Oct 2023\n\nFee\n\nIntl payment fee NETFLIX.COM\n\n- R3.98\n\n1 Discovery Place, Sandhurst, Sandton, PO Box 786722, Sandton, 2196 | 0800 07 96 97\n\nDiscovery Bank Limited. Registration number 2015/408745/06. An authorised financial services and registered credit provider. FSP number 48657. NCR registration number NCRCP9997. VAT registration number 4590272730. Limits, terms and conditions apply.\n\nBank Li\n\nDiscovery\n\nV\n\nDiscovery Bank\n\nDate\n\nCard no.\n\nType\n\n2015/4089 37\n\nAmount\n\n25 Oct 2023\n\nDebit order 2023DECOFURN FEVERTREE3970699 7089163 Debit order VITALGONT M8613075 -285285048 Certified'E\n\n- R590.49\n\n25 Oct 2023\n\n- R99.00\n\n25 Oct 2023\n\nDebit order MTN SP BA137206889 000001\n\n- R2 398.78\n\n25 Oct 2023\n\nDebit order CONNECT FS0024502505 PC2536\n\n- R1 873.70\n\n25 Oct 2023\n\nDebit order DHFLEXCAR M8613075 -285283266\n\n- R679.00\n\n25 Oct 2023\n\nDebit order INSTNTLIFE 2909347\n\n- R451.43\n\n25 Oct 2023\n\nFee Intl payment fee Google YouTubePremium\n\n- R1.44\n\n25 Oct 2023\n\nFee Intl payment fee SpotifyZA\n\n- R1.20\n\n25 Oct 2023\n\n*** 9849\n\nOnline\n\niPay\n\n- R500.00\n\n25 Oct 2023\n\n*** 9849\n\nOnline\n\niPay\n\n- R200.00\n\n25 Oct 2023\n\n*** 9849\n\nOnline\n\nSpotifyZA 59.99 ZAR\n\n- R59.99\n\n25 Oct 2023\n\n*** 5655\n\nPOS Purchase\n\nSMOKERS DEN JOHANNESBURG\n\n- R55.00\n\n25 Oct 2023\n\n*** 9849\n\nOnline\n\nGoogle YouTubePremium 71.99 ZAR\n\n- R71.99\n\n25 Oct 2023\n\n*** 5655\n\nPOS Purchase\n\nLiquorShop Cloverdene GAUTENG\n\n- R619.96\n\n26 Oct 2023\n\nFee\n\nPayShap payment fee\n\n- R5.00\n\n26 Oct 2023\n\nRPP\n\nPayShap EasyZero\n\n- R210.00\n\n26 Oct 2023\n\nDebit order\n\nMAKRO CARD5614750007001753730\n\n- R207.13\n\n26 Oct 2023\n\nDebit order\n\nVOXTELECOMR17136363\n\n- R849.00\n\n26 Oct 2023\n\nFee Vitality Money Premium :selected:\n\n- R30.00\n\n26 Oct 2023\n\nFee\n\nMonthly Account fee :selected:\n\n- R195.00\n\n26 Oct 2023\n\nInterest\n\nInterest Earned at 1.00%-3.50%\n\nR1.76\n\n26 Oct 2023\n\nFee\n\nPayShap payment fee\n\n- R5.00\n\n26 Oct 2023\n\nRPP\n\nPayShap EasyZero\n\n- R500.00\n\n26 Oct 2023\n\nEFT Rent\n\n- R6 241.80\n\n26 Oct 2023\n\nMonthly Fee Card fee .... 4066 :selected:\n\n- R40.00\n\n26 Oct 2023\n\nMonthly Fee Card fee .... 1044 :selected:\n\n- R40.00\n\nClosing balance\n\nR10546.52\n\nTotal VAT\n\n39.78 :selected: = fees charged (VAT incl.)\n\n*** 5655\n\nMr Vusimuzi Wellcome Mthimunye\n\n*** 9849\n\nMr Vusimuzi Wellcome Mthimunye\n\n*** 4066\n\nMs Motshedisi Jessica Leserwane\n\n1 Discovery Place, Sandhurst, Sandton, PO Box 786722, Sandton, 2196 | 0800 07 96 97 Discovery Bank Limited. Registration number 2015/408745/06. An authorised financial services and registered credit provider. FSP number 48657. NCR registration number NCRCP9997. VAT registration number 4590272730. Limits, terms and conditions apply.\n\nBank Li\n\nscovery\n\nmite\n\nDiscovery Bank\n\n2015\n\n45/\n\n4087\n\nYour interest rate\n\n2023-10-31\n\n7089163 Debit interest rate p.a.\nCopy\n\nACertified\nAccount balance up to\n\nCredit interest rate p.a.\n\nR0.00 +\n\n1.00%\n\n1 Discovery Place, Sandhurst, Sandton, PO Box 786722, Sandton, 2196 | 0800 07 96 97 Discovery Bank Limited. Registration number 2015/408745/06. An authorised financial services and registered credit provider. FSP number 48657. NCR registration number NCRCP9997. VAT registration number 4590272730. Limits, terms and conditions apply.",
+				"file_name": "October 2023.pdf",
+				"file_size": 224612,
+				"file_type": "application/pdf",
+				"processed_at": "2025-05-13T01:05:36.465Z",
+				"application_id": "a3d65e52-ca4f-4e9e-816e-57b37f780efc"
+			},
+			"notes": null,
+			"created_at": "2025-05-13T01:05:37.070752+00:00",
+			"updated_at": "2025-05-20T20:48:54.925922+00:00",
+			"user_id": "7c546318-5b76-4e83-9f27-c1c98b2d9275",
+			"file_name": "October 2023.pdf",
+			"file_size": 224612,
+			"team_id": null
+		},
+		{
+			"id": "151e78b0-fb37-4413-ad98-63dd6ef18d67",
+			"application_id": "078b926d-14e8-48ae-a612-0977502608d3",
+			"document_type": "id_document",
+			"file_path": "a3d65e52-ca4f-4e9e-816e-57b37f780efc/1747098325415.pdf",
+			"verification_status": "pending",
+			"extracted_data": {
+				"text": "REPUBLIC OF SOUTH AFRICA NATIONAL IDENTITY CARD\n\nSurname:\n\nMTHIMUNYE Names:\n\nVUSIMUZI WELLCOME Sex:\n\nM Nationality:\n\nRSA\n\nIdentity Number:\n\n9304075234085 Date of Birth:\n\n07 APR 1993\n\nCountry of Birth:\n\nSignature:\n\nRSA Status:\n\nCITIZEN\n\nConditions:\n\nThis card has been issued by the Department of Home Affairs in terms of the Identification Act, Act 68 of 1997 RSA\n\nIf found please return to the Department of Home Affairs For enquiry or verification purposes contact 0800 60 11 90\n\nDate of Issue: 26 MAR 2023\n\n120201425",
+				"file_name": "vusi_mthimunye-id-copy.pdf",
+				"file_size": 169534,
+				"file_type": "application/pdf",
+				"processed_at": "2025-05-13T01:05:25.414Z",
+				"application_id": "a3d65e52-ca4f-4e9e-816e-57b37f780efc"
+			},
+			"notes": null,
+			"created_at": "2025-05-13T01:05:26.365565+00:00",
+			"updated_at": "2025-05-20T20:48:54.925922+00:00",
+			"user_id": "7c546318-5b76-4e83-9f27-c1c98b2d9275",
+			"file_name": "vusi_mthimunye-id-copy.pdf",
+			"file_size": 169534,
+			"team_id": null
+		}
+	]
+}

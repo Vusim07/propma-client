@@ -104,7 +104,6 @@ const DetailedScreening: React.FC = () => {
 						(data as any).applications?.properties?.monthly_rent ?? null;
 					setMonthlyRent(fetchedRent);
 
-					const creditScoreFromData = (data as any).credit_score;
 					const tenantProfile =
 						(data as any).tenant_profiles?.tenant_profiles ??
 						(data as any).tenant_profiles ??
@@ -125,25 +124,29 @@ const DetailedScreening: React.FC = () => {
 
 					const reportData = (() => {
 						try {
-							return typeof (data as any).report_data === 'string'
-								? JSON.parse((data as any).report_data)
-								: (data as any).report_data;
-						} catch {
+							const rawData = (data as any).report_data;
+							if (!rawData) return null;
+
+							if (typeof rawData === 'string') {
+								return JSON.parse(rawData);
+							}
+
+							if (typeof rawData === 'object') {
+								return rawData;
+							}
+
+							return null;
+						} catch (error) {
+							console.error('Error parsing report data:', error);
 							return null;
 						}
 					})();
 
+					const rootCreditReport = (data as any).credit_report || null;
+
 					const combinedData: ScreeningReportWithDetails = {
 						...(data as any),
-						credit_report: {
-							score: creditScoreFromData ?? 720,
-							payment_history: 'Good',
-							derogatory_marks: 0,
-							accounts: 5,
-							hard_inquiries: 2,
-							credit_age: '5 years',
-							credit_utilization: '15%',
-						},
+						credit_report: rootCreditReport,
 						background_check: {
 							criminal_record: false,
 							eviction_history: false,
@@ -165,6 +168,10 @@ const DetailedScreening: React.FC = () => {
 						documents: tenantDocuments,
 						report_data: reportData,
 					};
+
+					console.log('Fetched data:', data);
+					console.log('Combined data:', combinedData);
+
 					setScreeningData(combinedData);
 				} else {
 					setError(`Screening report not found for application ID: ${id}`);
@@ -273,7 +280,7 @@ const DetailedScreening: React.FC = () => {
 			{/* Credit Report and Background Check - Side by side */}
 			<div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-6'>
 				<CreditReportCard
-					creditScore={screeningData.credit_score}
+					creditScore={screeningData.credit_report?.score ?? null}
 					creditReport={screeningData.credit_report}
 					creditReports={screeningData.credit_reports as any}
 				/>

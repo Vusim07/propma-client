@@ -109,7 +109,10 @@ const CreditReportCard = ({
 					</div>
 				)}
 
-				{creditReport ? (
+				{/* Check if creditReport exists and has a score before rendering details */}
+				{creditReport &&
+				creditReport.score !== undefined &&
+				creditReport.score !== null ? (
 					<div className='grid grid-cols-2 gap-4 mt-6'>
 						<div>
 							<p className='text-sm text-gray-500'>Payment History</p>
@@ -135,7 +138,7 @@ const CreditReportCard = ({
 							<p className='text-sm text-gray-500'>Credit Utilization</p>
 							<p className='font-medium'>{creditReport.credit_utilization}</p>
 						</div>
-						<div>
+						<div className='col-span-2'>
 							{creditReports && creditReports.length > 0 && (
 								<DocumentViewerSheet
 									document={{

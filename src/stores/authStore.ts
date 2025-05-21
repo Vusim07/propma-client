@@ -12,6 +12,7 @@ interface AuthState {
 	activeTeam: Tables<'teams'> | null;
 	isAuthChecked: boolean;
 	hasSubmittedApplication: boolean;
+	sessionExpiryTimeout: NodeJS.Timeout | null;
 
 	// Actions
 	login: (email: string, password: string) => Promise<Tables<'users'> | null>;
@@ -36,6 +37,9 @@ interface AuthState {
 	checkAuth: () => Promise<void>; // Restored for backward compatibility
 	initialize: () => Promise<boolean>;
 	setHasSubmittedApplication: (value: boolean) => void;
+	refreshSession: () => Promise<void>;
+	handleSessionExpiry: () => Promise<void>;
+	setupSessionExpiryTimeout: (expiresAt: number | undefined) => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -47,6 +51,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 	activeTeam: null,
 	isAuthChecked: false,
 	hasSubmittedApplication: false,
+	sessionExpiryTimeout: null,
 
 	login: async (email, password) => {
 		try {
@@ -61,8 +66,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 			if (error) throw error;
 			console.log('Auth store: auth success, fetching profile');
 
-			// Store session first
-			set({ session: data.session });
+			// Set up session expiry handling
+			if (data.session?.expires_at) {
+				set({ session: data.session });
+				get().setupSessionExpiryTimeout(data.session.expires_at);
+			}
 
 			// Get user profile data
 			const { data: profileData, error: profileError } = await supabase
@@ -214,11 +222,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 	logout: async () => {
 		try {
 			set({ loading: true, isLoading: true, error: null });
-			const { error } = await supabase.auth.signOut();
 
+			// Clear session expiry timeout
+			const currentTimeout = get().sessionExpiryTimeout;
+			if (currentTimeout) {
+				clearTimeout(currentTimeout);
+			}
+
+			const { error } = await supabase.auth.signOut();
 			if (error) throw error;
 
-			set({ user: null, session: null, activeTeam: null });
+			set({
+				user: null,
+				session: null,
+				activeTeam: null,
+				sessionExpiryTimeout: null,
+			});
 		} catch (error: any) {
 			set({ error: error.message });
 		} finally {
@@ -487,7 +506,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
 			console.log('Initializing auth store...');
 
-			// Get existing session if any
 			const { data: sessionData, error: sessionError } =
 				await supabase.auth.getSession();
 
@@ -504,6 +522,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
 			console.log('Existing session found');
 			set({ session: sessionData.session });
+
+			// Set up session expiry handling
+			if (sessionData.session.expires_at) {
+				get().setupSessionExpiryTimeout(sessionData.session.expires_at);
+			}
 
 			// Fetch the profile and team data for this session
 			const { data: profileData, error: profileError } = await supabase
@@ -543,12 +566,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 			return true;
 		} catch (error: any) {
 			console.error('Auth initialization error:', error);
-			set({
-				error: error.message,
-				user: null,
-				session: null,
-				activeTeam: null,
-			});
+			await get().handleSessionExpiry();
 			return false;
 		} finally {
 			set({ loading: false, isLoading: false });
@@ -569,5 +587,113 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
 	setHasSubmittedApplication: (value: boolean) => {
 		set({ hasSubmittedApplication: value });
+	},
+
+	refreshSession: async () => {
+		console.log('[AuthStore] Attempting to refresh session...');
+		try {
+			const { data, error } = await supabase.auth.refreshSession();
+			if (error) {
+				console.error('[AuthStore] Session refresh failed:', error);
+				await get().handleSessionExpiry();
+				return;
+			}
+
+			if (!data.session?.expires_at) {
+				console.error('[AuthStore] No valid session data after refresh');
+				await get().handleSessionExpiry();
+				return;
+			}
+
+			console.log('[AuthStore] Session refreshed successfully:', {
+				expiresAt: data.session.expires_at,
+				userId: data.session.user.id,
+			});
+
+			// Update session expiry timeout
+			get().setupSessionExpiryTimeout(data.session.expires_at * 1000);
+		} catch (error) {
+			console.error('[AuthStore] Error refreshing session:', error);
+			await get().handleSessionExpiry();
+		}
+	},
+
+	handleSessionExpiry: async () => {
+		console.log('[AuthStore] Handling session expiry...');
+		try {
+			// Clear session expiry timeout
+			const currentTimeout = get().sessionExpiryTimeout;
+			if (currentTimeout) {
+				console.log('[AuthStore] Clearing session expiry timeout');
+				clearTimeout(currentTimeout);
+				get().sessionExpiryTimeout = null;
+			}
+
+			// Clear session state
+			console.log('[AuthStore] Clearing session state');
+			set({
+				user: null,
+				session: null,
+				activeTeam: null,
+				loading: false,
+				isLoading: false,
+				error: null,
+			});
+
+			// Sign out from Supabase
+			console.log('[AuthStore] Signing out from Supabase');
+			const { error } = await supabase.auth.signOut();
+			if (error) {
+				console.error('[AuthStore] Error signing out:', error);
+			}
+
+			// Navigate to login
+			console.log('[AuthStore] Navigating to login page');
+			window.location.href = '/login';
+		} catch (error) {
+			console.error('[AuthStore] Error handling session expiry:', error);
+		}
+	},
+
+	setupSessionExpiryTimeout: (expiresAt: number | undefined) => {
+		console.log('[AuthStore] Setting up session expiry timeout:', {
+			expiresAt,
+			currentTime: Date.now(),
+			timeUntilExpiry: expiresAt ? (expiresAt - Date.now()) / 1000 : undefined,
+		});
+
+		// Clear any existing timeout
+		const currentTimeout = get().sessionExpiryTimeout;
+		if (currentTimeout) {
+			console.log('[AuthStore] Clearing existing session expiry timeout');
+			clearTimeout(currentTimeout);
+		}
+
+		// Calculate time until expiry (in milliseconds)
+		const timeUntilExpiry = expiresAt ? expiresAt - Date.now() : undefined;
+		console.log('[AuthStore] Time until session expiry:', {
+			milliseconds: timeUntilExpiry,
+			minutes: timeUntilExpiry
+				? Math.floor(timeUntilExpiry / (60 * 1000))
+				: undefined,
+		});
+
+		// Set timeout to refresh session 5 minutes before expiry
+		const refreshTime = timeUntilExpiry
+			? Math.max(0, timeUntilExpiry - 5 * 60)
+			: undefined;
+		console.log('[AuthStore] Will refresh session in:', {
+			milliseconds: refreshTime,
+			minutes: refreshTime ? Math.floor(refreshTime / (60 * 1000)) : undefined,
+		});
+
+		if (refreshTime) {
+			const timeout = setTimeout(async () => {
+				console.log('[AuthStore] Session refresh timeout triggered');
+				await get().refreshSession();
+			}, refreshTime * 1000);
+
+			set({ sessionExpiryTimeout: timeout });
+		}
 	},
 }));

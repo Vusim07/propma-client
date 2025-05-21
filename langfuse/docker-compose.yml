@@ -19,7 +19,7 @@ services:
     ports:
       - 127.0.0.1:3030:3030
     environment: &langfuse-worker-env
-      DATABASE_URL: postgresql://postgres:newPostgresPass!@postgres:5432/postgres # Updated secret
+      DATABASE_URL: postgresql://postgres:newPostgresDBPass!@postgres:5432/postgres
       SALT: "4f8c9e2a" # Updated secret
       ENCRYPTION_KEY: "a3dcb4d229de6fde0db5686dee47145a35e12042d76c5e90daccaaef692d3ffe" # Updated secret
       TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-true}
@@ -89,7 +89,7 @@ services:
     environment:
       CLICKHOUSE_DB: default
       CLICKHOUSE_USER: clickhouse
-      CLICKHOUSE_PASSWORD: newClickhouseDBSecret # Updated secret
+      CLICKHOUSE_PASSWORD: newClickhouse123 # Updated secret
     volumes:
       - langfuse_clickhouse_data:/var/lib/clickhouse
       - langfuse_clickhouse_logs:/var/log/clickhouse-server
@@ -129,7 +129,7 @@ services:
     restart: always
     # CHANGEME: row below to secure redis password
     command: >
-      --requirepass ${REDIS_AUTH:-myredissecret}
+      --requirepass newRedisSecretPass!
     ports:
       - 127.0.0.1:6379:6379
     healthcheck:

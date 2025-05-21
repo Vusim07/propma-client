@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { supabase } from '../services/supabase';
 import { Tables, Json } from './database.types';
 import {
@@ -114,6 +115,23 @@ class AffordabilityService {
 		propertyId: string,
 	): Promise<AffordabilityResponse> {
 		try {
+			// Enhanced session state logging
+			const { data: initialSessionData } = await supabase.auth.getSession();
+			console.log('[Affordability] Initial session state:', {
+				hasSession: !!initialSessionData.session,
+				expiresAt: initialSessionData.session?.expires_at,
+				userId: initialSessionData.session?.user?.id,
+				accessToken: initialSessionData.session?.access_token
+					? 'present'
+					: 'missing',
+				refreshToken: initialSessionData.session?.refresh_token
+					? 'present'
+					: 'missing',
+			});
+
+			const originalAccessToken = initialSessionData.session?.access_token;
+			const originalRefreshToken = initialSessionData.session?.refresh_token;
+
 			console.log(
 				`Creating affordability analysis for application ${applicationId}`,
 			);
@@ -225,10 +243,37 @@ class AffordabilityService {
 			};
 			console.log('Affordability request payload:', affordabilityRequest);
 
+			// Log session state before API call
+			const { data: preApiSessionData } = await supabase.auth.getSession();
+			console.log('[Affordability] Pre-API session state:', {
+				hasSession: !!preApiSessionData.session,
+				expiresAt: preApiSessionData.session?.expires_at,
+				userId: preApiSessionData.session?.user?.id,
+				accessToken: preApiSessionData.session?.access_token
+					? 'present'
+					: 'missing',
+				refreshToken: preApiSessionData.session?.refresh_token
+					? 'present'
+					: 'missing',
+			});
+
 			const affordabilityResponse = await this.analyzeAffordability(
 				affordabilityRequest,
 			);
-			console.log('Affordability response:', affordabilityResponse);
+
+			// Log session state after API call
+			const { data: postApiSessionData } = await supabase.auth.getSession();
+			console.log('[Affordability] Post-API session state:', {
+				hasSession: !!postApiSessionData.session,
+				expiresAt: postApiSessionData.session?.expires_at,
+				userId: postApiSessionData.session?.user?.id,
+				accessToken: postApiSessionData.session?.access_token
+					? 'present'
+					: 'missing',
+				refreshToken: postApiSessionData.session?.refresh_token
+					? 'present'
+					: 'missing',
+			});
 
 			// Ensure credit score is in metrics
 			if (!affordabilityResponse.metrics.credit_score && creditReport) {
@@ -241,16 +286,103 @@ class AffordabilityService {
 			}
 
 			// 7. Save results to database
+			// Log session state before saving results
+			const { data: preSaveSessionData } = await supabase.auth.getSession();
+			console.log('[Affordability] Pre-save session state:', {
+				hasSession: !!preSaveSessionData.session,
+				expiresAt: preSaveSessionData.session?.expires_at,
+				userId: preSaveSessionData.session?.user?.id,
+				accessToken: preSaveSessionData.session?.access_token
+					? 'present'
+					: 'missing',
+				refreshToken: preSaveSessionData.session?.refresh_token
+					? 'present'
+					: 'missing',
+			});
+
 			await this.saveAnalysisResultsViaRpc(
 				applicationId,
 				affordabilityResponse,
 			);
+
+			// Log session state after saving results
+			const { data: postSaveSessionData } = await supabase.auth.getSession();
+			console.log('[Affordability] Post-save session state:', {
+				hasSession: !!postSaveSessionData.session,
+				expiresAt: postSaveSessionData.session?.expires_at,
+				userId: postSaveSessionData.session?.user?.id,
+				accessToken: postSaveSessionData.session?.access_token
+					? 'present'
+					: 'missing',
+				refreshToken: postSaveSessionData.session?.refresh_token
+					? 'present'
+					: 'missing',
+			});
+
+			// Enhanced session restoration
+			if (originalAccessToken && originalRefreshToken) {
+				console.log(
+					'[Affordability] Attempting to restore original session...',
+				);
+				try {
+					const { data: restoreData, error: restoreError } =
+						await supabase.auth.setSession({
+							access_token: originalAccessToken,
+							refresh_token: originalRefreshToken as any,
+						});
+
+					if (restoreError) {
+						console.error(
+							'[Affordability] Session restore error:',
+							restoreError,
+						);
+					} else {
+						console.log('[Affordability] Session restored successfully:', {
+							hasSession: !!restoreData.session,
+							expiresAt: restoreData.session?.expires_at,
+							userId: restoreData.session?.user?.id,
+						});
+					}
+				} catch (restoreError) {
+					console.error(
+						'[Affordability] Session restore failed:',
+						restoreError,
+					);
+				}
+			}
+
+			// Final session state check
+			const { data: finalSessionData } = await supabase.auth.getSession();
+			console.log('[Affordability] Final session state:', {
+				hasSession: !!finalSessionData.session,
+				expiresAt: finalSessionData.session?.expires_at,
+				userId: finalSessionData.session?.user?.id,
+				accessToken: finalSessionData.session?.access_token
+					? 'present'
+					: 'missing',
+				refreshToken: finalSessionData.session?.refresh_token
+					? 'present'
+					: 'missing',
+			});
 
 			// New: Increment subscription usage after a successful screening
 			await supabase.rpc('increment_screening_usage', { p_agent_id: agentId });
 
 			return affordabilityResponse;
 		} catch (error) {
+			// Log session state on error
+			const { data: errorSessionData } = await supabase.auth.getSession();
+			console.error('[Affordability] Error occurred. Session state:', {
+				hasSession: !!errorSessionData.session,
+				expiresAt: errorSessionData.session?.expires_at,
+				userId: errorSessionData.session?.user?.id,
+				accessToken: errorSessionData.session?.access_token
+					? 'present'
+					: 'missing',
+				refreshToken: errorSessionData.session?.refresh_token
+					? 'present'
+					: 'missing',
+			});
 			console.error('Error creating affordability analysis:', error);
 			throw error;
 		}
