@@ -26,13 +26,9 @@ const PaymentCallback: React.FC = () => {
 					throw new Error('No payment reference found in URL');
 				}
 
-				console.log(`Processing payment callback for reference: ${reference}`);
-
 				// First, ensure we have a valid session
 				const { data: sessionData } = await supabase.auth.getSession();
 				if (!sessionData.session) {
-					console.log('No session detected, attempting to recover...');
-
 					// Try to restore session from localStorage
 					await supabase.auth.refreshSession();
 
@@ -48,24 +44,13 @@ const PaymentCallback: React.FC = () => {
 				// Check if this is a regular subscription payment or upgrade
 				const isUpgrade =
 					sessionStorage.getItem('paystack_upgrade_reference') === reference;
-				console.log(
-					`Payment type: ${isUpgrade ? 'Upgrade' : 'New subscription'}`,
-				);
 
 				if (isUpgrade) {
 					sessionStorage.removeItem('paystack_upgrade_reference');
 				}
 
 				// Now handle the payment
-				const updatedSubscription = await paystackService.handlePaymentCallback(
-					reference,
-				);
-
-				// Log subscription details for debugging
-				console.log(
-					'Payment verified, subscription updated:',
-					updatedSubscription?.id,
-				);
+				await paystackService.handlePaymentCallback(reference);
 
 				// Explicit auth refresh to ensure JWT claims are updated
 				await supabase.auth.refreshSession();

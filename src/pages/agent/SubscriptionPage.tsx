@@ -79,9 +79,6 @@ const SubscriptionPage: React.FC = () => {
 		// Only refresh team data when the subscription.id changes and we're not in a processing state
 		if (subscription?.team_id && !isProcessing) {
 			const teamId = subscription.team_id;
-			console.log(
-				`Refreshing team data for subscription id: ${subscription.id}`,
-			);
 			refreshTeamData(teamId);
 		}
 	}, [subscription?.id, refreshTeamData, isProcessing]);
@@ -90,7 +87,6 @@ const SubscriptionPage: React.FC = () => {
 		if (!user || isProcessing) return;
 
 		try {
-			console.log('Fetching subscription data');
 			const subscriptionData = await fetchSubscriptions(user.id);
 			setSubscription(subscriptionData);
 
@@ -106,7 +102,6 @@ const SubscriptionPage: React.FC = () => {
 					const planId = `${planPrefix}-${planSuffix}`;
 
 					setSelectedPlanId(planId);
-					console.log(`Pre-selected plan: ${planId} from onboarding flow`);
 				} else {
 					setSelectedPlanId('starter-individual');
 				}
@@ -144,14 +139,12 @@ const SubscriptionPage: React.FC = () => {
 		async (reference: string, isUpgrade = false) => {
 			setIsProcessing(true);
 			try {
-				console.log(`Processing payment callback for reference: ${reference}`);
 				const updatedSubscription = await paystackService.handlePaymentCallback(
 					reference,
 				);
 				setSubscription(updatedSubscription);
 
 				if (updatedSubscription.team_id) {
-					console.log('Refreshing team data after subscription update');
 					try {
 						await refreshTeamData(updatedSubscription.team_id);
 					} catch (teamError) {
@@ -160,7 +153,7 @@ const SubscriptionPage: React.FC = () => {
 				}
 
 				// Refresh the user's auth session to ensure JWT claims are updated
-				console.log('Refreshing auth session after payment');
+
 				await supabase.auth.refreshSession();
 
 				// Explicitly refresh the user profile in the auth store to ensure state is current
@@ -190,7 +183,6 @@ const SubscriptionPage: React.FC = () => {
 		// Skip if we've already initialized or we don't have a user
 		if (hasInitialized.current || !user) return;
 
-		console.log('Initializing subscription component');
 		hasInitialized.current = true;
 
 		// Check if this is part of the onboarding flow
@@ -219,16 +211,10 @@ const SubscriptionPage: React.FC = () => {
 			!currentTeam &&
 			user.active_team_id
 		) {
-			console.log(
-				`Fetching team data for user's active team: ${user.active_team_id}`,
-			);
 			const fetchTeamData = async () => {
 				try {
 					// Fetch all teams and let fetchTeams set currentTeam based on active_team_id
 					await useTeamStore.getState().fetchTeams();
-					console.log(
-						'Team data refreshed and currentTeam set from user profile',
-					);
 				} catch (teamError) {
 					console.error(
 						'Error fetching teams during initialization:',
@@ -357,10 +343,8 @@ const SubscriptionPage: React.FC = () => {
 				if (currentTeam) {
 					// Use current team if available
 					effectiveTeamId = currentTeam.id;
-					console.log(`Using current team ID: ${effectiveTeamId}`);
 				} else if (isTeamOnboarding) {
 					// For onboarding, we need to get the user's active_team_id directly
-					console.log('Team context not loaded yet, fetching active team ID');
 					try {
 						const { data: userData, error: userError } = await supabase
 							.from('users')
@@ -372,7 +356,6 @@ const SubscriptionPage: React.FC = () => {
 
 						if (userData?.active_team_id) {
 							effectiveTeamId = userData.active_team_id;
-							console.log(`Retrieved active team ID: ${effectiveTeamId}`);
 						} else {
 							console.error(
 								'No active team ID found for user during onboarding',
@@ -438,7 +421,7 @@ const SubscriptionPage: React.FC = () => {
 					await supabase.auth.refreshSession();
 					// Update auth store state
 					await useAuthStore.getState().getProfile();
-					console.log('Auth state refreshed before dashboard navigation');
+
 					// Use window.location for a full reload to ensure fresh state
 					window.location.href = '/agent';
 				} catch (err) {

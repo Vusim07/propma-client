@@ -176,7 +176,6 @@ const PropertyApplication: React.FC = () => {
 				);
 
 				if (existingApplication) {
-					console.log('Existing application found, moving to documents step');
 					setState((prev) => ({
 						...prev,
 						loading: false,
@@ -207,7 +206,6 @@ const PropertyApplication: React.FC = () => {
 					profile?.employment_duration &&
 					!hasSubmittedApplication // Prevent duplicate submission
 				) {
-					console.log('Complete profile found, auto-submitting application');
 					setHasSubmittedApplication(true); // Set the flag to prevent re-submission
 
 					try {
@@ -244,7 +242,6 @@ const PropertyApplication: React.FC = () => {
 					}
 				} else {
 					// Incomplete profile, show application form
-					console.log('Incomplete profile, showing application form');
 					setState((prev) => ({
 						...prev,
 						loading: false,
@@ -503,9 +500,6 @@ const PropertyApplication: React.FC = () => {
 		}
 
 		if (submitting) {
-			console.log(
-				'Preventing duplicate submission - form is already submitting',
-			);
 			return;
 		}
 
@@ -530,7 +524,6 @@ const PropertyApplication: React.FC = () => {
 			);
 
 			if (existingApp) {
-				console.log('Found existing application:', existingApp);
 				showToast.info('You already have an application for this property');
 				setState((prev) => ({
 					...prev,

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAuthStore } from '../../stores/authStore';
@@ -55,7 +56,6 @@ const ScreeningResults: React.FC = () => {
 	// Add auth state check
 	useEffect(() => {
 		if (!isAuthLoading && !user) {
-			console.log('No user found in ScreeningResults, redirecting to login');
 			navigate('/login');
 			return;
 		}
@@ -68,15 +68,12 @@ const ScreeningResults: React.FC = () => {
 
 			try {
 				setPageTitle('Screening');
-				console.log('Initializing screening data for user:', user.id);
 
 				// If we have an application ID from URL params, use that
 				if (applicationId) {
-					console.log('Using application ID from URL:', applicationId);
 					setCurrentApplicationId(applicationId);
 					await fetchSpecificScreeningReport(applicationId);
 				} else {
-					console.log('Fetching screening report for user:', user.id);
 					await fetchScreeningReport(user.id);
 				}
 

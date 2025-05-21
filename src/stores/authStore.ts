@@ -56,7 +56,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 	login: async (email, password) => {
 		try {
 			set({ loading: true, isLoading: true, error: null });
-			console.log('Auth store: login attempt started');
 
 			const { data, error } = await supabase.auth.signInWithPassword({
 				email,
@@ -64,7 +63,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 			});
 
 			if (error) throw error;
-			console.log('Auth store: auth success, fetching profile');
 
 			// Set up session expiry handling
 			if (data.session?.expires_at) {
@@ -83,11 +81,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 				console.error('Error fetching profile:', profileError);
 				throw new Error('Could not retrieve user profile');
 			}
-
-			console.log(
-				'Auth store: profile fetched successfully:',
-				profileData.role,
-			);
 
 			// Set the user in state
 			set({ user: profileData });
@@ -109,7 +102,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 				console.warn('Failed to persist state to localStorage', e);
 			}
 
-			console.log('Auth store: login complete, returning profile');
 			return profileData; // Return the profile data for navigation
 		} catch (error: any) {
 			console.error('Login error:', error);
@@ -141,9 +133,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
 			// Configure the redirect URL with the correct path
 			const redirectTo = `${window.location.origin}/auth/callback`;
-
-			console.log('Starting social login with:', provider);
-			console.log('Redirect URL:', redirectTo);
 
 			// Save the provider to local storage for debugging
 			localStorage.setItem('socialLoginProvider', provider);
@@ -177,7 +166,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 				throw error;
 			}
 
-			console.log('OAuth flow started, redirecting to provider');
 			// The user will be redirected to the OAuth provider
 		} catch (error: any) {
 			console.error('Social login error:', error);
@@ -304,8 +292,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 				}
 			}
 
-			console.log('Updating profile with data:', normalizedUpdates);
-
 			const { error } = await supabase
 				.from('users')
 				.update(normalizedUpdates)
@@ -402,13 +388,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 			// Normalize email to ensure consistency
 			const normalizedEmail = email.trim().toLowerCase();
 
-			console.log(
-				'Starting registration for:',
-				normalizedEmail,
-				'with temporary role:',
-				normalizedRole,
-			);
-
 			// Create auth user with proper metadata to ensure profile creation works
 			const { data, error } = await supabase.auth.signUp({
 				email: normalizedEmail,
@@ -431,11 +410,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
 			// If no user object was returned, handle gracefully
 			if (!data.user) {
-				console.log('No user data returned, but no error occurred');
 				throw new Error('User creation failed - no user data returned');
 			}
-
-			console.log('User created successfully with ID:', data.user.id);
 
 			// Store session in the store
 			set({ session: data.session });
@@ -459,7 +435,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 				// Check if the error is just that the profile wasn't found
 				if (profileError.code === 'PGRST116') {
 					// Try creating the profile manually as fallback
-					console.log('Profile not found, creating manually');
 					const { error: insertError } = await supabase.from('users').insert({
 						id: data.user.id,
 						email: normalizedEmail,
@@ -504,8 +479,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 		try {
 			set({ loading: true, isLoading: true, error: null });
 
-			console.log('Initializing auth store...');
-
 			const { data: sessionData, error: sessionError } =
 				await supabase.auth.getSession();
 
@@ -515,12 +488,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 			}
 
 			if (!sessionData.session) {
-				console.log('No existing session found');
 				set({ user: null, session: null, activeTeam: null });
 				return false;
 			}
 
-			console.log('Existing session found');
 			set({ session: sessionData.session });
 
 			// Set up session expiry handling
@@ -562,7 +533,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 			}
 
 			set({ user: profileData, activeTeam });
-			console.log('Auth initialization complete');
 			return true;
 		} catch (error: any) {
 			console.error('Auth initialization error:', error);
@@ -590,7 +560,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 	},
 
 	refreshSession: async () => {
-		console.log('[AuthStore] Attempting to refresh session...');
 		try {
 			const { data, error } = await supabase.auth.refreshSession();
 			if (error) {
@@ -605,11 +574,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 				return;
 			}
 
-			console.log('[AuthStore] Session refreshed successfully:', {
-				expiresAt: data.session.expires_at,
-				userId: data.session.user.id,
-			});
-
 			// Update session expiry timeout
 			get().setupSessionExpiryTimeout(data.session.expires_at * 1000);
 		} catch (error) {
@@ -619,18 +583,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 	},
 
 	handleSessionExpiry: async () => {
-		console.log('[AuthStore] Handling session expiry...');
 		try {
 			// Clear session expiry timeout
 			const currentTimeout = get().sessionExpiryTimeout;
 			if (currentTimeout) {
-				console.log('[AuthStore] Clearing session expiry timeout');
 				clearTimeout(currentTimeout);
 				get().sessionExpiryTimeout = null;
 			}
 
 			// Clear session state
-			console.log('[AuthStore] Clearing session state');
 			set({
 				user: null,
 				session: null,
@@ -641,14 +602,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 			});
 
 			// Sign out from Supabase
-			console.log('[AuthStore] Signing out from Supabase');
 			const { error } = await supabase.auth.signOut();
 			if (error) {
 				console.error('[AuthStore] Error signing out:', error);
 			}
 
 			// Navigate to login
-			console.log('[AuthStore] Navigating to login page');
 			window.location.href = '/login';
 		} catch (error) {
 			console.error('[AuthStore] Error handling session expiry:', error);
@@ -656,40 +615,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 	},
 
 	setupSessionExpiryTimeout: (expiresAt: number | undefined) => {
-		console.log('[AuthStore] Setting up session expiry timeout:', {
-			expiresAt,
-			currentTime: Date.now(),
-			timeUntilExpiry: expiresAt ? (expiresAt - Date.now()) / 1000 : undefined,
-		});
-
 		// Clear any existing timeout
 		const currentTimeout = get().sessionExpiryTimeout;
 		if (currentTimeout) {
-			console.log('[AuthStore] Clearing existing session expiry timeout');
 			clearTimeout(currentTimeout);
 		}
 
 		// Calculate time until expiry (in milliseconds)
 		const timeUntilExpiry = expiresAt ? expiresAt - Date.now() : undefined;
-		console.log('[AuthStore] Time until session expiry:', {
-			milliseconds: timeUntilExpiry,
-			minutes: timeUntilExpiry
-				? Math.floor(timeUntilExpiry / (60 * 1000))
-				: undefined,
-		});
 
 		// Set timeout to refresh session 5 minutes before expiry
 		const refreshTime = timeUntilExpiry
 			? Math.max(0, timeUntilExpiry - 5 * 60)
 			: undefined;
-		console.log('[AuthStore] Will refresh session in:', {
-			milliseconds: refreshTime,
-			minutes: refreshTime ? Math.floor(refreshTime / (60 * 1000)) : undefined,
-		});
 
 		if (refreshTime) {
 			const timeout = setTimeout(async () => {
-				console.log('[AuthStore] Session refresh timeout triggered');
 				await get().refreshSession();
 			}, refreshTime * 1000);
 

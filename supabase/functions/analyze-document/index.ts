@@ -8,11 +8,6 @@ const AZURE_ENDPOINT =
 	Deno.env.get('AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT') || '';
 const AZURE_API_KEY = Deno.env.get('AZURE_DOCUMENT_INTELLIGENCE_KEY') || '';
 
-// Add proper logging for debugging
-console.log(
-	`Function initialized. Endpoint configured: ${AZURE_ENDPOINT ? 'Yes' : 'No'}`,
-);
-
 serve(async (req) => {
 	// Handle CORS preflight requests
 	if (req.method === 'OPTIONS') {
@@ -38,18 +33,13 @@ serve(async (req) => {
 		// Parse request body
 		let requestData;
 		try {
-			console.log('Request headers:', req.headers);
-			console.log('Request method:', req.method);
-
 			const bodyText = await req.text(); // Read the raw body as text
-			console.log('Raw request body:', bodyText);
 
 			if (!bodyText) {
 				throw new Error('Request body is empty');
 			}
 
 			requestData = JSON.parse(bodyText); // Parse the JSON
-			console.log('Parsed request data:', requestData);
 		} catch (e) {
 			console.error('Failed to parse request JSON:', e.message);
 			return new Response(JSON.stringify({ error: 'Invalid request format' }), {
@@ -67,8 +57,6 @@ serve(async (req) => {
 				status: 400,
 			});
 		}
-
-		console.log(`Processing document from URL: ${fileUrl}`);
 
 		// Call Azure Document Intelligence API
 		const response = await fetch(
@@ -143,7 +131,6 @@ serve(async (req) => {
 		// Format the data following SA context requirements (POPI Act compliance)
 		const sanitizedResult = sanitizeDocumentData(result);
 
-		console.log('Document processing completed successfully');
 		return new Response(JSON.stringify(sanitizedResult), {
 			headers: { ...corsHeaders, 'Content-Type': 'application/json' },
 		});

@@ -241,7 +241,6 @@ const AppointmentScheduling: React.FC = () => {
 							);
 						}
 					} else if (applicationData) {
-						console.log('Fetched approved application:', applicationData);
 						setApprovedApplication(applicationData as ApprovedApplication);
 
 						// After getting the approved application, fetch available slots
@@ -249,7 +248,6 @@ const AppointmentScheduling: React.FC = () => {
 							fetchAvailableSlots(date as Date, applicationData.agent_id);
 						}
 					} else {
-						console.log('No approved application found for this user.');
 						setError(
 							'No approved application found. You can only schedule viewings for approved applications.',
 						);

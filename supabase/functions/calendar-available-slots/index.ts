@@ -108,10 +108,6 @@ serve(async (req) => {
 	try {
 		// Extract and log auth headers for debugging
 		const authHeader = req.headers.get('Authorization');
-		const apiKey = req.headers.get('apikey');
-
-		console.log('Auth header present:', !!authHeader);
-		console.log('API key present:', !!apiKey);
 
 		if (!authHeader) {
 			return new Response(
@@ -170,12 +166,7 @@ serve(async (req) => {
 
 		// Get environment variables
 		const supabaseUrl = Deno.env.get('SUPABASE_URL');
-		const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
 		const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-
-		console.log('Supabase URL available:', !!supabaseUrl);
-		console.log('Anon key available:', !!supabaseAnonKey);
-		console.log('Service role key available:', !!supabaseServiceRoleKey);
 
 		if (!supabaseUrl || !supabaseServiceRoleKey) {
 			return new Response(
@@ -231,8 +222,6 @@ serve(async (req) => {
 			);
 		}
 
-		console.log('Authenticated user:', user.id);
-
 		// Get calendar integration for the agent (not the authenticated user)
 		const { data: integration, error: integrationError } = await supabaseAdmin
 			.from('calendar_integrations')
@@ -281,8 +270,6 @@ serve(async (req) => {
 		let accessToken = integration.access_token;
 		if (new Date(integration.token_expiry) < new Date()) {
 			try {
-				console.log('Token expired, refreshing...');
-
 				const refreshResponse = await fetch(
 					'https://oauth2.googleapis.com/token',
 					{
@@ -307,7 +294,6 @@ serve(async (req) => {
 				}
 
 				const tokens = await refreshResponse.json();
-				console.log('Token refreshed successfully');
 
 				// Update access token for this request
 				accessToken = tokens.access_token;
@@ -365,7 +351,6 @@ serve(async (req) => {
 		const calendarId = integration.calendar_id || 'primary';
 
 		// Use direct API call instead of googleapis
-		console.log('Fetching freebusy information for calendar:', calendarId);
 		const freeBusyResponse = await fetch(
 			'https://www.googleapis.com/calendar/v3/freeBusy',
 			{

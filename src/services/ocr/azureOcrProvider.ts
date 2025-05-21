@@ -31,8 +31,6 @@ export class AzureOcrProvider implements OcrProvider {
 			const fileName = `${userId}_${Date.now()}_${operationId}.${fileExt}`;
 			const filePath = `${userId}/${fileName}`;
 
-			console.log('Uploading file to storage with unique path:', filePath);
-
 			// Upload file - using upsert to prevent conflicts
 			const { data: uploadData, error: uploadError } = await supabase.storage
 				.from('tenant_documents')
@@ -41,8 +39,6 @@ export class AzureOcrProvider implements OcrProvider {
 					upsert: true,
 					contentType: file.type,
 				});
-
-			console.log('Upload data:', uploadData);
 
 			if (uploadError) {
 				console.error('Upload error:', uploadError);
@@ -59,7 +55,6 @@ export class AzureOcrProvider implements OcrProvider {
 			}
 
 			const fileUrl = publicUrlData.signedUrl;
-			console.log('Processing document from URL:', fileUrl);
 
 			// 2. Use Azure Document Analysis SDK directly
 			const client = new DocumentAnalysisClient(
@@ -75,7 +70,6 @@ export class AzureOcrProvider implements OcrProvider {
 
 			const result =
 				(await poller.pollUntilDone()) as AzureDocumentAnalysisResult;
-			console.log('Document analysis completed:', result);
 
 			// Format current date in South African format (DD/MM/YYYY)
 			const currentDate = new Date().toLocaleDateString('en-ZA', {

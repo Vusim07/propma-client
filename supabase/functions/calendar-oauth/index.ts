@@ -34,13 +34,6 @@ const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID') || '';
 const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET') || '';
 const GOOGLE_REDIRECT_URI = Deno.env.get('GOOGLE_REDIRECT_URI') || '';
 
-// Log configuration info for debugging
-console.log('OAuth Configuration:', {
-	clientIdExists: !!GOOGLE_CLIENT_ID,
-	clientSecretExists: !!GOOGLE_CLIENT_SECRET,
-	redirectUri: GOOGLE_REDIRECT_URI,
-});
-
 serve(async (req) => {
 	// Process CORS first, before any other logic
 	const corsResult = handleCors(req);
@@ -53,9 +46,6 @@ serve(async (req) => {
 	// Get environment variables
 	const supabaseUrl = Deno.env.get('SUPABASE_URL');
 	const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-
-	console.log('Supabase URL available:', !!supabaseUrl);
-	console.log('Service role key available:', !!supabaseServiceRoleKey);
 
 	if (!supabaseUrl || !supabaseServiceRoleKey) {
 		return new Response(
@@ -160,7 +150,6 @@ serve(async (req) => {
 	// Authenticate the user if we have an Authorization header
 	const authHeader = req.headers.get('Authorization');
 	if (authHeader) {
-		console.log('Auth header present, validating user...');
 		const token = authHeader.replace('Bearer ', '');
 
 		// Verify the JWT token directly
@@ -170,7 +159,6 @@ serve(async (req) => {
 		} = await supabaseAdmin.auth.getUser(token);
 
 		if (!jwtError && user) {
-			console.log('Authenticated user:', user.id);
 			// Make sure user ID in the URL matches the authenticated user
 			if (user.id !== userId) {
 				return new Response(

@@ -26,10 +26,6 @@ export const getTransactionsFromDocuments = async (
 						type: String(t.type || 'unknown'),
 					})),
 				);
-			} else {
-				console.log(
-					`No standard 'transactions' array found in document ${doc.id}`,
-				);
 			}
 		}
 	}

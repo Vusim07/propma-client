@@ -55,19 +55,11 @@ const Register: React.FC = () => {
 			// Show loading feedback message
 			showToast.info('Creating your account... This may take a moment.');
 
-			console.log(
-				'Submitting registration with email:',
-				values.email.trim().toLowerCase(),
-			);
-
-			// Pass 'pending' as default role - user will choose actual role during profile completion
 			const result = await registerUser(
 				values.email.trim().toLowerCase(),
 				values.password,
 				'pending', // Changed from 'agent' to 'pending' to follow our auth flow
 			);
-
-			console.log('Registration result:', result);
 
 			// Ensure we have a valid user before proceeding
 			if (!result || !result.user) {

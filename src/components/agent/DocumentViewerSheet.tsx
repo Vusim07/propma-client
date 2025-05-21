@@ -54,7 +54,7 @@ const DocumentViewerSheet: React.FC<DocumentViewerSheetProps> = ({
 				setDocumentUrl(null);
 				try {
 					// Use createSignedUrl for private buckets
-					console.log(`Creating signed URL for path: ${document.file_path}`);
+
 					const expiresIn = 60; // URL valid for 60 seconds
 					const { data, error: signedUrlError } = await supabase.storage
 						.from('tenant_documents')
@@ -77,7 +77,6 @@ const DocumentViewerSheet: React.FC<DocumentViewerSheetProps> = ({
 						throw new Error('Signed URL could not be generated.');
 					}
 
-					console.log(`Signed URL created: ${data.signedUrl}`);
 					setDocumentUrl(data.signedUrl);
 				} catch (err: unknown) {
 					console.error('Error in fetchUrl:', err);

@@ -16,7 +16,6 @@ async function checkAuthHooks() {
 			return;
 		}
 
-		console.log('Auth-related triggers:');
 		const authTriggers = triggers.filter(
 			(t) =>
 				t.trigger_name.includes('auth') ||
@@ -36,7 +35,6 @@ async function checkAuthHooks() {
 			return;
 		}
 
-		console.log('User-related tables:');
 		console.table(
 			tables.filter(
 				(t) =>

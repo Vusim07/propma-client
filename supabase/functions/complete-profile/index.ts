@@ -43,7 +43,6 @@ serve(async (req) => {
 		let requestData;
 		try {
 			requestData = await req.json();
-			console.log('Received request data:', JSON.stringify(requestData));
 		} catch (parseError) {
 			console.error('Failed to parse request JSON:', parseError);
 			return new Response(
@@ -188,9 +187,6 @@ serve(async (req) => {
 		}
 
 		const normalizedEmail = email.trim().toLowerCase();
-		console.log(
-			`Processing profile update for user ${id} with email ${normalizedEmail}`,
-		);
 
 		// Update the profile (it should already exist from the auth trigger)
 		const { data, error } = await supabaseAdmin
@@ -260,7 +256,6 @@ serve(async (req) => {
 			}
 		}
 
-		console.log('Profile updated successfully');
 		return new Response(JSON.stringify(data), {
 			status: 200,
 			headers: { ...corsHeaders, 'Content-Type': 'application/json' },

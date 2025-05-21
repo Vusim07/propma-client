@@ -25,13 +25,6 @@ const GOOGLE_GMAIL_REDIRECT_URI =
 	Deno.env.get('GOOGLE_GMAIL_REDIRECT_URI') || '';
 const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || '';
 
-// Add logging for debugging
-console.log('Gmail OAuth Configuration:', {
-	clientIdExists: !!GOOGLE_CLIENT_ID,
-	clientSecretExists: !!GOOGLE_CLIENT_SECRET,
-	redirectUri: GOOGLE_GMAIL_REDIRECT_URI,
-});
-
 serve(async (req) => {
 	const corsResult = handleCors(req);
 	if (req.method === 'OPTIONS') return corsResult;

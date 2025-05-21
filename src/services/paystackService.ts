@@ -49,8 +49,6 @@ class PaystackService {
 		endpoint: string,
 		data?: unknown,
 	): Promise<T> {
-		console.log(`Making request to Paystack: ${method} ${endpoint}`);
-		console.log('Request data:', JSON.stringify(data, null, 2));
 		try {
 			const response = await axios({
 				method,
@@ -61,10 +59,6 @@ class PaystackService {
 				},
 				data,
 			});
-			console.log(
-				'Paystack API response:',
-				JSON.stringify(response.data, null, 2),
-			);
 			return response.data;
 		} catch (error) {
 			const axiosError = error as AxiosError<PaystackErrorResponse>;
@@ -111,10 +105,9 @@ class PaystackService {
 						price: params.planPrice,
 						interval: 'monthly', // Set to monthly recurring
 					});
-					console.log(`Created new plan with code: ${planCode}`);
 				} catch (error) {
 					// Plan might already exist, so fetch plans and find matching one
-					console.log(
+					console.error(
 						`Plan creation failed, checking if plan already exists: ${error}`,
 					);
 					const plansResponse = await this.makeRequest<{
@@ -129,7 +122,6 @@ class PaystackService {
 					}
 
 					planCode = existingPlan.plan_code;
-					console.log(`Using existing plan with code: ${planCode}`);
 				}
 			}
 
@@ -246,10 +238,6 @@ class PaystackService {
 					code: paystackSubscriptionId,
 					token: paystackSubscriptionId,
 				});
-			} else {
-				console.log(
-					`Subscription ${paystackSubscriptionId} is already ${subscriptionStatus}`,
-				);
 			}
 
 			// Update the database record regardless of Paystack's response
@@ -308,17 +296,9 @@ class PaystackService {
 	}
 
 	async handlePaymentCallback(reference: string): Promise<Subscription> {
-		console.log(
-			`Starting payment callback handling for reference: ${reference}`,
-		);
 		try {
 			// Verify the transaction with Paystack
-			console.log(`Verifying transaction with Paystack...`);
 			const transactionData = await this.verifyTransaction(reference);
-			console.log(
-				'Verification response:',
-				JSON.stringify(transactionData, null, 2),
-			);
 
 			if (transactionData.status !== 'success') {
 				const errorMessage = `Payment failed: ${String(
@@ -328,10 +308,6 @@ class PaystackService {
 				throw new Error(errorMessage);
 			}
 
-			console.log(
-				'Payment verification successful, looking for subscription record',
-			);
-
 			// Try to find subscription by reference
 			const { data: subscriptionsByRef } = await supabase
 				.from('subscriptions')
@@ -340,9 +316,6 @@ class PaystackService {
 
 			if (subscriptionsByRef && subscriptionsByRef.length > 0) {
 				// Found subscription by reference
-				console.log(
-					`Found subscription with reference: ${subscriptionsByRef[0].id}`,
-				);
 
 				// Update the subscription
 				const { data: updatedSub, error: updateError } = await supabase
@@ -357,23 +330,13 @@ class PaystackService {
 					throw new Error('Failed to update subscription status');
 				}
 
-				console.log('Subscription successfully updated:', updatedSub);
 				return updatedSub;
 			}
-
-			// If we're here, we couldn't find the subscription by reference
-			console.log(
-				'Subscription not found by reference, trying metadata lookup',
-			);
 
 			// Check if we have user ID in metadata
 			const userId = transactionData.metadata?.userId as string | undefined;
 
 			if (userId) {
-				console.log(
-					`Found userId in metadata: ${userId}, searching by user_id`,
-				);
-
 				// Try to find by user ID
 				const { data: subscriptionsByUser } = await supabase
 					.from('subscriptions')
@@ -384,10 +347,6 @@ class PaystackService {
 					.limit(1);
 
 				if (subscriptionsByUser && subscriptionsByUser.length > 0) {
-					console.log(
-						`Found subscription by user_id: ${subscriptionsByUser[0].id}`,
-					);
-
 					// Update the subscription with the correct reference and status
 					const { data: updatedSub, error: updateError } = await supabase
 						.from('subscriptions')
@@ -404,13 +363,11 @@ class PaystackService {
 						throw new Error('Failed to update subscription status');
 					}
 
-					console.log('Subscription successfully updated:', updatedSub);
 					return updatedSub;
 				}
 			}
 
 			// Last resort: find the most recent inactive subscription
-			console.log('Trying last resort: most recent inactive subscription');
 
 			const { data: recentSubs, error: recentError } = await supabase
 				.from('subscriptions')
@@ -428,11 +385,6 @@ class PaystackService {
 				throw new Error('No inactive subscriptions found to update');
 			}
 
-			// Update the most recent subscription
-			console.log(
-				`Using most recent subscription as fallback: ${recentSubs[0].id}`,
-			);
-
 			const { data: updatedSub, error: updateError } = await supabase
 				.from('subscriptions')
 				.update({
@@ -448,7 +400,6 @@ class PaystackService {
 				throw new Error('Failed to update subscription');
 			}
 
-			console.log('Fallback subscription successfully updated:', updatedSub);
 			return updatedSub;
 		} catch (error) {
 			console.error('Error in handlePaymentCallback:', error);

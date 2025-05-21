@@ -25,7 +25,6 @@ export const useTenantProfile = () => {
 			}
 
 			if (data?.length) {
-				console.log(`Found profile for user ID: ${userId}`);
 				const profile = data[0] as TenantProfile;
 				// Update cache
 				profileCache.current.set(userId, profile);

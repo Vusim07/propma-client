@@ -289,10 +289,7 @@ serve(async (req) => {
 
 			status: 'scheduled',
 		};
-		console.log(
-			'Attempting to insert appointment:',
-			JSON.stringify(appointmentInsert, null, 2),
-		);
+
 		const { data: appointment, error: appointmentError } = await supabaseAdmin
 			.from('appointments')
 			.insert(appointmentInsert)
@@ -319,7 +316,6 @@ serve(async (req) => {
 				},
 			);
 		}
-		console.log('Appointment insert response:', appointment);
 
 		return new Response(
 			JSON.stringify({

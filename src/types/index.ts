@@ -33,6 +33,15 @@ export type Application = Tables<'applications'>;
 export type InsertApplication = InsertTables<'applications'>;
 export type UpdateApplication = UpdateTables<'applications'>;
 
+// Add ApplicationWithRelations type
+export interface ApplicationWithRelations extends Application {
+	tenant_profiles?: TenantProfile;
+	properties?: {
+		properties?: Property;
+	};
+	submitted_at_formatted?: string;
+}
+
 // Screening report types
 export type ScreeningReport = Tables<'screening_reports'>;
 export type InsertScreeningReport = InsertTables<'screening_reports'>;
@@ -47,6 +56,15 @@ export type UpdateCreditReport = UpdateTables<'credit_reports'>;
 export type Appointment = Tables<'appointments'>;
 export type InsertAppointment = InsertTables<'appointments'>;
 export type UpdateAppointment = UpdateTables<'appointments'>;
+
+// Add AppointmentWithRelations type
+export interface AppointmentWithRelations extends Appointment {
+	tenant_name?: string;
+	tenant_phone?: string | null;
+	property_address?: string;
+	property_type?: string;
+	monthly_rent?: number;
+}
 
 // Subscription types
 export type Subscription = Tables<'subscriptions'>;

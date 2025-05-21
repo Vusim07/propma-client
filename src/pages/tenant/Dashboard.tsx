@@ -73,7 +73,6 @@ const TenantDashboard: React.FC = () => {
 
 	const loadTenantData = async () => {
 		if (!user) return;
-		console.log(user);
 
 		try {
 			// First fetch profile to check if it exists
@@ -99,9 +98,6 @@ const TenantDashboard: React.FC = () => {
 		}
 
 		if (!profile?.id) {
-			console.log(
-				'Profile not loaded yet or not found - skipping application fetch',
-			);
 			return;
 		}
 

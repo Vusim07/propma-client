@@ -12,15 +12,10 @@ export class TesseractOcrProvider implements OcrProvider {
 				file.name.toLowerCase().endsWith('.pdf');
 
 			if (isPdf) {
-				console.log('PDF detected. Tesseract cannot process PDFs directly.');
-
 				// Fall back to Azure for PDFs
-				console.log('Falling back to Azure OCR for PDF processing');
 				const azureProvider = new AzureOcrProvider();
 				return await azureProvider.analyzeDocument(file, userId);
 			}
-
-			console.log('Processing document with Tesseract OCR');
 
 			// Generate a unique ID for this document operation
 			const operationId = crypto.randomUUID();
@@ -31,11 +26,6 @@ export class TesseractOcrProvider implements OcrProvider {
 			// Include operation ID in the file path to ensure uniqueness
 			const fileName = `${userId}_${Date.now()}_${operationId}.${fileExt}`;
 			const filePath = `${userId}/${fileName}`;
-
-			console.log(
-				'Uploading file to permanent storage with unique path:',
-				filePath,
-			);
 
 			// Upload file - using upsert to prevent conflicts
 			const { data: uploadData, error: uploadError } = await supabase.storage
@@ -51,11 +41,9 @@ export class TesseractOcrProvider implements OcrProvider {
 				throw new Error(`Upload error: ${uploadError.message}`);
 			}
 
-			console.log('File uploaded successfully to storage:', uploadData);
-
 			// Check file size - Azure Document Intelligence has a 5MB limit for PDFs
 			if (file.size > 5 * 1024 * 1024) {
-				console.log('File exceeds 5MB, using Tesseract for processing');
+				console.error('File exceeds 5MB, using Tesseract for processing');
 			}
 
 			// Proceed with Tesseract OCR for image files

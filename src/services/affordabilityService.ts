@@ -117,24 +117,10 @@ class AffordabilityService {
 		try {
 			// Enhanced session state logging
 			const { data: initialSessionData } = await supabase.auth.getSession();
-			console.log('[Affordability] Initial session state:', {
-				hasSession: !!initialSessionData.session,
-				expiresAt: initialSessionData.session?.expires_at,
-				userId: initialSessionData.session?.user?.id,
-				accessToken: initialSessionData.session?.access_token
-					? 'present'
-					: 'missing',
-				refreshToken: initialSessionData.session?.refresh_token
-					? 'present'
-					: 'missing',
-			});
 
 			const originalAccessToken = initialSessionData.session?.access_token;
 			const originalRefreshToken = initialSessionData.session?.refresh_token;
 
-			console.log(
-				`Creating affordability analysis for application ${applicationId}`,
-			);
 			// Modified: Retrieve both tenant_id and agent_id from the application record
 			const { data: application, error: appError } = await supabase
 				.from('applications')
@@ -178,31 +164,17 @@ class AffordabilityService {
 				'bank_statement',
 				undefined, // Do not filter by applicationId, allow reuse of valid documents
 			);
-			console.log('[Affordability] fetchDocuments result:', {
-				tenantId,
-				applicationId,
-				documentType: 'bank_statement',
-				count: documents.length,
-				documents,
-			});
 
 			// Optionally: filter for most recent valid document(s) if needed
 			// (e.g., by created_at, verification_status, etc.)
 
 			const transactions = await getTransactionsFromDocuments(documents);
-			console.log('[Affordability] getTransactionsFromDocuments result:', {
-				transactionsCount: transactions.length,
-				transactions,
-			});
+
 			const rawBankStatementData =
 				documents.length > 0 ? documents.map((d) => d.extracted_data) : null;
-			console.log(
-				'[Affordability] rawBankStatementData:',
-				rawBankStatementData,
-			);
 
 			// 2. Get payslip data (also do not filter by applicationId)
-			const { data: payslipDocs, error: payslipError } = await supabase
+			const { data: payslipDocs } = await supabase
 				.from('documents')
 				.select('*')
 				.eq('user_id', tenantId)
@@ -210,26 +182,21 @@ class AffordabilityService {
 				.order('created_at', { ascending: false })
 				.limit(1)
 				.maybeSingle();
-			console.log('[Affordability] payslipDocs:', payslipDocs, payslipError);
 			const rawPayslipData = payslipDocs?.extracted_data || null;
-			console.log('[Affordability] rawPayslipData:', rawPayslipData);
 
 			// 3. Get tenant income information
 			const tenantIncome = await this.getTenantIncomeData(
 				tenantId,
 				applicationId,
 			);
-			console.log('Tenant income data:', tenantIncome);
 
 			// 4. Generate credit report using the tenant profile ID
 			const creditReport = await this.generateCreditReport(
 				application.tenant_id,
 			);
-			console.log('Credit report data:', creditReport);
 
 			// 5. Get target rent amount
 			const targetRent = await this.getTargetRent(propertyId);
-			console.log('Target rent:', targetRent);
 
 			// 6. Analyze affordability with all data
 			const affordabilityRequest: AffordabilityRequest = {
@@ -241,39 +208,10 @@ class AffordabilityService {
 				credit_report: creditReport,
 				analysis_type: 'comprehensive',
 			};
-			console.log('Affordability request payload:', affordabilityRequest);
-
-			// Log session state before API call
-			const { data: preApiSessionData } = await supabase.auth.getSession();
-			console.log('[Affordability] Pre-API session state:', {
-				hasSession: !!preApiSessionData.session,
-				expiresAt: preApiSessionData.session?.expires_at,
-				userId: preApiSessionData.session?.user?.id,
-				accessToken: preApiSessionData.session?.access_token
-					? 'present'
-					: 'missing',
-				refreshToken: preApiSessionData.session?.refresh_token
-					? 'present'
-					: 'missing',
-			});
 
 			const affordabilityResponse = await this.analyzeAffordability(
 				affordabilityRequest,
 			);
-
-			// Log session state after API call
-			const { data: postApiSessionData } = await supabase.auth.getSession();
-			console.log('[Affordability] Post-API session state:', {
-				hasSession: !!postApiSessionData.session,
-				expiresAt: postApiSessionData.session?.expires_at,
-				userId: postApiSessionData.session?.user?.id,
-				accessToken: postApiSessionData.session?.access_token
-					? 'present'
-					: 'missing',
-				refreshToken: postApiSessionData.session?.refresh_token
-					? 'present'
-					: 'missing',
-			});
 
 			// Ensure credit score is in metrics
 			if (!affordabilityResponse.metrics.credit_score && creditReport) {
@@ -285,63 +223,24 @@ class AffordabilityService {
 				affordabilityResponse.metrics.target_rent = targetRent;
 			}
 
-			// 7. Save results to database
-			// Log session state before saving results
-			const { data: preSaveSessionData } = await supabase.auth.getSession();
-			console.log('[Affordability] Pre-save session state:', {
-				hasSession: !!preSaveSessionData.session,
-				expiresAt: preSaveSessionData.session?.expires_at,
-				userId: preSaveSessionData.session?.user?.id,
-				accessToken: preSaveSessionData.session?.access_token
-					? 'present'
-					: 'missing',
-				refreshToken: preSaveSessionData.session?.refresh_token
-					? 'present'
-					: 'missing',
-			});
-
 			await this.saveAnalysisResultsViaRpc(
 				applicationId,
 				affordabilityResponse,
 			);
 
-			// Log session state after saving results
-			const { data: postSaveSessionData } = await supabase.auth.getSession();
-			console.log('[Affordability] Post-save session state:', {
-				hasSession: !!postSaveSessionData.session,
-				expiresAt: postSaveSessionData.session?.expires_at,
-				userId: postSaveSessionData.session?.user?.id,
-				accessToken: postSaveSessionData.session?.access_token
-					? 'present'
-					: 'missing',
-				refreshToken: postSaveSessionData.session?.refresh_token
-					? 'present'
-					: 'missing',
-			});
-
 			// Enhanced session restoration
 			if (originalAccessToken && originalRefreshToken) {
-				console.log(
-					'[Affordability] Attempting to restore original session...',
-				);
 				try {
-					const { data: restoreData, error: restoreError } =
-						await supabase.auth.setSession({
-							access_token: originalAccessToken,
-							refresh_token: originalRefreshToken as any,
-						});
+					const { error: restoreError } = await supabase.auth.setSession({
+						access_token: originalAccessToken,
+						refresh_token: originalRefreshToken as any,
+					});
 
 					if (restoreError) {
 						console.error(
 							'[Affordability] Session restore error:',
 							restoreError,
 						);
-					} else {
-						console.log('[Affordability] Session restored successfully:', {
-							hasSession: !!restoreData.session,
-							expiresAt: restoreData.session?.expires_at,
-							userId: restoreData.session?.user?.id,
-						});
 					}
 				} catch (restoreError) {
 					console.error(
@@ -350,20 +249,6 @@ class AffordabilityService {
 					);
 				}
 			}
-
-			// Final session state check
-			const { data: finalSessionData } = await supabase.auth.getSession();
-			console.log('[Affordability] Final session state:', {
-				hasSession: !!finalSessionData.session,
-				expiresAt: finalSessionData.session?.expires_at,
-				userId: finalSessionData.session?.user?.id,
-				accessToken: finalSessionData.session?.access_token
-					? 'present'
-					: 'missing',
-				refreshToken: finalSessionData.session?.refresh_token
-					? 'present'
-					: 'missing',
-			});
 
 			// New: Increment subscription usage after a successful screening
 			await supabase.rpc('increment_screening_usage', { p_agent_id: agentId });
@@ -395,19 +280,6 @@ class AffordabilityService {
 		requestData: AffordabilityRequest,
 	): Promise<AffordabilityResponse> {
 		try {
-			// Log the full payload for debugging (including raw text fields)
-			console.log('Sending data to CrewAI:', {
-				transactions_count: requestData.transactions.length,
-				target_rent: requestData.target_rent,
-				has_payslip: !!requestData.payslip_data,
-				has_bank_statement: !!requestData.bank_statement_data,
-				has_credit_report: !!requestData.credit_report,
-				has_tenant_income: !!requestData.tenant_income,
-				analysis_type: requestData.analysis_type,
-				payslip_data: requestData.payslip_data,
-				bank_statement_data: requestData.bank_statement_data,
-			});
-
 			const response = await fetch(this.API_URL, {
 				method: 'POST',
 				headers: {
@@ -423,14 +295,6 @@ class AffordabilityService {
 			}
 
 			const data = await response.json();
-			console.log('Received analysis from CrewAI:', {
-				can_afford: data.can_afford,
-				confidence: data.confidence,
-				risk_factors_count: data.risk_factors?.length,
-				recommendations_count: data.recommendations?.length,
-				metrics: data.metrics,
-				transaction_analysis: data.transaction_analysis,
-			});
 
 			return data as AffordabilityResponse;
 		} catch (error) {
@@ -481,9 +345,6 @@ class AffordabilityService {
 						application.monthly_income &&
 						application.monthly_income !== incomeData.statedMonthlyIncome
 					) {
-						console.log(
-							`Using monthly income from application (${application.monthly_income}) instead of profile (${incomeData.statedMonthlyIncome})`,
-						);
 						incomeData.statedMonthlyIncome = application.monthly_income;
 					}
 					if (!tenantProfileId) {
@@ -581,10 +442,10 @@ class AffordabilityService {
 					: null;
 
 			// Calculate rent-to-income ratio
-			const { ratio: rentToIncomeRatio, source: ratioSource } =
-				calculateRentToIncomeRatio(targetRent, monthlyIncome, analysis);
-			console.log(
-				`Using ${ratioSource} rent-to-income ratio: ${rentToIncomeRatio}`,
+			const { ratio: rentToIncomeRatio } = calculateRentToIncomeRatio(
+				targetRent,
+				monthlyIncome,
+				analysis,
 			);
 
 			// Update metrics if needed
@@ -660,14 +521,6 @@ class AffordabilityService {
 				p_credit_report_id: creditReport?.id || null,
 			};
 
-			// Add detailed logging
-			console.log('RPC Payload:', {
-				applicationId,
-				agentId: application.agent_id,
-				tenantId: tenantProfile.id,
-				// ... other fields
-			});
-
 			const { data, error } = await supabase.rpc(
 				'save_screening_report',
 				reportPayload,
@@ -685,7 +538,6 @@ class AffordabilityService {
 				throw error;
 			}
 
-			console.log('RPC save_screening_report successful, returned:', data);
 			return data as Tables<'screening_reports'>;
 		} catch (error) {
 			console.error('Error saving analysis results via RPC:', error);
@@ -807,7 +659,6 @@ class AffordabilityService {
 						console.error('Error uploading credit report PDF:', uploadError);
 					} else {
 						pdfPath = fileData?.path;
-						console.log('Credit report PDF stored at:', pdfPath);
 					}
 				} catch (uploadError) {
 					console.error('Error processing PDF file:', uploadError);

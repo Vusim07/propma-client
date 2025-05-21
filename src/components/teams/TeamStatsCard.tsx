@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { AlertCircle, BadgeCheck, Users, CreditCard } from 'lucide-react';
 import { Team } from '@/types';
@@ -16,16 +16,6 @@ export const TeamStatsCard: React.FC<TeamStatsCardProps> = ({
 	pendingInvites,
 	className = '',
 }) => {
-	// Add debugging useEffect to help diagnose subscription status rendering
-	useEffect(() => {
-		console.log(`TeamStatsCard for ${team.name}:`, {
-			id: team.id,
-			subscription_id: team.subscription_id,
-			subscription: team.subscription,
-			plan_type: team.plan_type,
-		});
-	}, [team]);
-
 	// Member counts and limits
 	const totalMembers = memberCount + pendingInvites;
 	const memberPercentage = (totalMembers / team.max_members) * 100;

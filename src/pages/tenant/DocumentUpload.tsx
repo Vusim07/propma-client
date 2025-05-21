@@ -95,8 +95,6 @@ const DocumentUpload: React.FC = () => {
 
 		// Handle application ID from query params
 		if (applicationId) {
-			console.log('Application ID from query params:', applicationId);
-
 			// Check if this is a placeholder ID (will be fixed server-side soon)
 			if (applicationId === 'placeholder') {
 				console.warn(
@@ -116,17 +114,6 @@ const DocumentUpload: React.FC = () => {
 			fetchDocuments(user.id);
 		}
 	}, [user, fetchDocuments, setPageTitle]);
-
-	useEffect(() => {
-		console.log('Documents state changed:', documents);
-	}, [documents]);
-
-	// Add this effect to log applicationId changes
-	useEffect(() => {
-		if (applicationId) {
-			console.log('Current application ID:', applicationId);
-		}
-	}, [applicationId]);
 
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		accept: {
@@ -186,8 +173,6 @@ const DocumentUpload: React.FC = () => {
 			return;
 		}
 
-		console.log('Processing document for application:', applicationId);
-
 		// Update queue item status
 		setFileQueue((prev) =>
 			prev.map((item, i) =>
@@ -222,12 +207,6 @@ const DocumentUpload: React.FC = () => {
 					application_id: applicationId, // Add applicationId here too
 				},
 			};
-
-			console.log('Uploading document with data:', {
-				type: documentData.document_type,
-				application_id: documentData.application_id,
-				file_name: documentData.file_name,
-			});
 
 			// Upload document to database
 			await uploadDocument(documentData as any);
@@ -356,20 +335,6 @@ const DocumentUpload: React.FC = () => {
 				application.property_id,
 			);
 
-			// Log final session state before navigation
-			const { data: finalSessionData } = await supabase.auth.getSession();
-			console.log('[DocumentUpload] Final session state before navigation:', {
-				hasSession: !!finalSessionData.session,
-				expiresAt: finalSessionData.session?.expires_at,
-				userId: finalSessionData.session?.user?.id,
-				accessToken: finalSessionData.session?.access_token
-					? 'present'
-					: 'missing',
-				refreshToken: finalSessionData.session?.refresh_token
-					? 'present'
-					: 'missing',
-			});
-
 			// Show success message
 			showToast.dismiss(toastId as any);
 			showToast.success('Application processed successfully!');
@@ -381,9 +346,7 @@ const DocumentUpload: React.FC = () => {
 					await supabase.auth.refreshSession();
 					// Update auth store state
 					await useAuthStore.getState().getProfile();
-					console.log(
-						'[DocumentUpload] Auth state refreshed before navigation',
-					);
+
 					// Navigate to screening results with application ID
 					window.location.href = `/tenant/screening?application=${applicationId}`;
 				} catch (err) {

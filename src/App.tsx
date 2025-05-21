@@ -64,17 +64,12 @@ const ProtectedRoute = ({
 	useEffect(() => {
 		// Extra check to ensure auth state is stable
 		const checkAuthState = async () => {
-			console.log('ProtectedRoute - Initial user state:', user?.role);
-
 			// Check if we're returning from a payment processor
 			const searchParams = new URLSearchParams(location.search);
 			const isReturningFromPayment =
 				searchParams.has('reference') || searchParams.has('trxref');
 
 			if (isReturningFromPayment) {
-				console.log(
-					'Detected return from payment processor, reinitializing auth',
-				);
 				// If coming back from payment provider, force a complete auth reinitialization
 				await initialize();
 				// Clean URL parameters to avoid multiple reinits
@@ -87,16 +82,9 @@ const ProtectedRoute = ({
 			await new Promise((r) => setTimeout(r, 100));
 
 			const currentUser = useAuthStore.getState().user;
-			console.log(
-				'ProtectedRoute - After delay, user state:',
-				currentUser?.role,
-			);
 
 			// Check if profile is complete enough
 			if (currentUser && isProfileIncomplete(currentUser)) {
-				console.log(
-					'User profile is incomplete, redirecting to profile completion',
-				);
 				navigate('/profile-completion');
 				return;
 			}
@@ -113,13 +101,6 @@ const ProtectedRoute = ({
 		const isMissingRequiredFields =
 			!profile.first_name || !profile.last_name || !profile.phone;
 
-		console.log('Profile completeness check:', {
-			first_name: profile.first_name ? 'present' : 'missing',
-			last_name: profile.last_name ? 'present' : 'missing',
-			phone: profile.phone ? 'present' : 'missing',
-			isIncomplete: isMissingRequiredFields,
-		});
-
 		return isMissingRequiredFields;
 	};
 
@@ -134,19 +115,11 @@ const ProtectedRoute = ({
 
 	// Get current user state directly from store
 	const currentUser = useAuthStore.getState().user;
-	console.log(
-		'ProtectedRoute - Current user check:',
-		currentUser?.role,
-		'Allowed:',
-		allowedRoles,
-	);
 
 	if (!currentUser || !allowedRoles.includes(currentUser.role)) {
-		console.log('Access denied, redirecting to login');
 		return <Navigate to='/login' replace />;
 	}
 
-	console.log('Access granted, rendering content');
 	return <>{children}</>;
 };
 
@@ -171,9 +144,6 @@ function App() {
 
 		initAuth();
 	}, [initialize]);
-
-	// Remove or update the existing checkAuth effect
-	// since it's redundant with our new initialization
 
 	if (initializing || loading || isLoading) {
 		return (

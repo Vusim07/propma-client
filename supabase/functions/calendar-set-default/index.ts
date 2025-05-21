@@ -41,10 +41,6 @@ serve(async (req) => {
 	try {
 		// Extract and log auth headers for debugging
 		const authHeader = req.headers.get('Authorization');
-		const apiKey = req.headers.get('apikey');
-
-		console.log('Auth header present:', !!authHeader);
-		console.log('API key present:', !!apiKey);
 
 		if (!authHeader) {
 			return new Response(
@@ -85,9 +81,6 @@ serve(async (req) => {
 		// Get environment variables
 		const supabaseUrl = Deno.env.get('SUPABASE_URL');
 		const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-
-		console.log('Supabase URL available:', !!supabaseUrl);
-		console.log('Service role key available:', !!supabaseServiceRoleKey);
 
 		if (!supabaseUrl || !supabaseServiceRoleKey) {
 			return new Response(
@@ -142,8 +135,6 @@ serve(async (req) => {
 				},
 			);
 		}
-
-		console.log('Authenticated user:', user.id);
 
 		// Get the calendar integration for the user
 		const { data: integration, error: integrationError } = await supabaseAdmin

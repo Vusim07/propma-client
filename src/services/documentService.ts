@@ -35,11 +35,9 @@ export const documentService = {
 		try {
 			// Use the OCR provider with file information for better selection
 			const ocrProvider = getOcrProvider('tesseract', file);
-			console.log(`Using OCR provider: ${ocrProvider.getName()}`);
 
 			// Process the document using the provider
 			const result = await ocrProvider.analyzeDocument(file, userId);
-			console.log('Document analysis result:', result);
 
 			return result;
 		} catch (error) {

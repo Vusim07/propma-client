@@ -84,10 +84,9 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 				.from('tenant_profiles')
 				.select('*')
 				.eq('tenant_id', tenantId)
-				.maybeSingle(); // Changed from single() to maybeSingle()
+				.maybeSingle();
 
 			if (tenantError) throw tenantError;
-			console.log('Tenant profile:', tenantData);
 
 			// If no tenant profile exists yet, create a default one
 			if (!tenantData) {
@@ -107,7 +106,6 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 			const profileData = tenantData as Tables<'tenant_profiles'>;
 
 			set({ profile: profileData, isLoading: false });
-			console.log('Tenant profile:', profileData);
 		} catch (error) {
 			console.error('Error fetching tenant profile:', error);
 			set({
@@ -168,28 +166,16 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 			verification_status?: string;
 		},
 	): Promise<Document> => {
-		console.log('Starting uploadDocument in store with:', {
-			documentType: document.document_type,
-			fileName: document.file_name,
-			userId: document.user_id,
-		});
-
 		set({ isLoading: true, error: null });
 
 		try {
-			console.log('Preparing document record:', document);
-
 			let filePath = document.file_path;
-			console.log('Initial file path:', filePath);
 
 			// If we have a file object, upload it to storage
 			if (document.file) {
-				console.log('File object present, uploading to storage');
 				const fileName = document.file.name;
 				const fileExt = fileName.split('.').pop();
 				filePath = `${document.application_id}/${Date.now()}.${fileExt}`;
-
-				console.log('Uploading to storage path:', filePath);
 
 				const { data: fileData, error: fileError } = await supabase.storage
 					.from('tenant_documents')
@@ -203,7 +189,6 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 					throw fileError;
 				}
 
-				console.log('File uploaded successfully:', fileData);
 				filePath = fileData?.path || filePath;
 			}
 
@@ -220,18 +205,10 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 				application_id: document.application_id || (null as any),
 			};
 
-			console.log(
-				'Attempting database insert with record:',
-				JSON.stringify(documentRecord, null, 2),
-			);
-
 			// Split the insert operation to debug
 			const insertResponse = await supabase
 				.from('documents')
 				.insert(documentRecord);
-
-			// Log the raw response
-			console.log('Raw insert response:', insertResponse);
 
 			if (insertResponse.error) {
 				console.error('Database insert error details:', {
@@ -255,8 +232,6 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 				console.error('Verification query error:', verifyError);
 				throw verifyError;
 			}
-
-			console.log('Document successfully inserted and verified:', verifyData);
 
 			set((state) => ({
 				documents: [...state.documents, verifyData],
@@ -291,7 +266,6 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 					.eq('application_id', id);
 
 				if (!appError && appData && appData.length > 0) {
-					console.log('Found screening report by application_id:', appData);
 					set({
 						screeningReport: appData[0],
 						isLoading: false,
@@ -312,10 +286,8 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 			}
 
 			const tenantProfileId = profileData?.id;
-			console.log('Tenant profile ID for auth user:', tenantProfileId);
 
 			if (!tenantProfileId) {
-				console.log('No tenant profile found for this user');
 				set({
 					screeningReport: null,
 					isLoading: false,
@@ -329,14 +301,10 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 				.select('*')
 				.eq('tenant_id', tenantProfileId);
 
-			console.log('Screening report data by tenant profile ID:', data);
-
 			if (error) throw error;
 
 			// If no reports found by tenant profile ID, try to find via applications
 			if (!data || data.length === 0) {
-				console.log('No reports found by tenant_id, trying applications...');
-
 				// Find the most recent application for this tenant
 				const { data: appData, error: appError } = await supabase
 					.from('applications')
@@ -355,7 +323,6 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 				}
 
 				if (!appData || appData.length === 0) {
-					console.log('No applications found for this tenant');
 					set({
 						screeningReport: null,
 						isLoading: false,
@@ -364,7 +331,6 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 				}
 
 				const applicationId = appData[0].id;
-				console.log('Found application ID:', applicationId);
 
 				// Try to find screening report for this application
 				const { data: reportData, error: reportError } = await supabase
@@ -385,15 +351,12 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 				}
 
 				if (!reportData || reportData.length === 0) {
-					console.log('No screening report found for application');
 					set({
 						screeningReport: null,
 						isLoading: false,
 					});
 					return;
 				}
-
-				console.log('Found screening report by application:', reportData);
 				set({
 					screeningReport: reportData[0],
 					isLoading: false,
@@ -401,8 +364,6 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 				return;
 			}
 
-			// We found screening reports by tenant profile ID
-			// Use the most recent one
 			const sortedReports = [...data].sort(
 				(a, b) =>
 					new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
@@ -451,7 +412,6 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 	): Promise<void> => {
 		set({ isLoading: true, error: null });
 		try {
-			console.log('Scheduling appointment with payload:', appointment);
 			// Ensure the payload matches the expected type for insertion
 			const appointmentPayload: InsertTables<'appointments'> = {
 				...appointment,
@@ -467,7 +427,6 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 				throw error;
 			}
 
-			console.log('Appointment inserted successfully');
 			set({ isLoading: false });
 
 			// Fetch updated appointments after successful scheduling
@@ -491,14 +450,6 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 			if (!rpcError && rpcData && rpcData.length > 0) {
 				set({ isLoading: false });
 				return rpcData[0];
-			}
-
-			// Fallback to direct query if RPC fails or returns empty
-			if (rpcError) {
-				console.log(
-					'RPC get_property_by_token failed, using fallback query:',
-					rpcError,
-				);
 			}
 
 			// Fallback to standard query
@@ -547,11 +498,6 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 			const employmentDuration = Number(application.employment_duration);
 			const monthlyIncome = Number(application.monthly_income);
 
-			console.log('Checking for existing application...', {
-				tenant_id: application.tenant_id,
-				property_id: application.property_id,
-			});
-
 			// First check for existing application using direct query as fallback
 			const { data: existingData } = await supabase
 				.from('applications')
@@ -561,13 +507,9 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 				.maybeSingle();
 
 			if (existingData) {
-				console.log('Found existing application:', existingData);
 				set({ isLoading: false });
 				return existingData;
 			}
-
-			// No existing application found, proceed with creation using safe insert
-			console.log('No existing application found, creating new one...');
 
 			// Try RPC insert first (with built-in duplicate check)
 			try {
@@ -620,8 +562,6 @@ export const useTenantStore = create<TenantState>((set, get) => ({
 				if (error) {
 					if (error.code === '23505') {
 						// Unique violation
-						console.log('Duplicate application detected:', error);
-						// Fetch and return the existing application
 						const { data: existingData } = await supabase
 							.from('applications')
 							.select('*')

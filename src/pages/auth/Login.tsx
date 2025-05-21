@@ -36,10 +36,7 @@ const Login: React.FC = () => {
 		try {
 			showToast.info('Signing you in...');
 
-			console.log('Login attempt with:', values.email);
-
 			const profile = await login(values.email, values.password);
-			console.log('Login successful, profile received:', profile?.role);
 
 			if (!profile) {
 				showToast.error('Failed to retrieve user data');
@@ -49,10 +46,7 @@ const Login: React.FC = () => {
 			// If we're in property application flow, handle redirect differently
 			if (isPropertyFlow) {
 				const redirectPath = window.location.pathname + window.location.search;
-				console.log(
-					'Property application flow detected, redirecting to:',
-					redirectPath,
-				);
+
 				window.location.href = redirectPath;
 				return;
 			}
@@ -67,14 +61,11 @@ const Login: React.FC = () => {
 				showToast.success(`Welcome to your ${profile.role} dashboard!`);
 			}
 
-			console.log('About to navigate to:', destination);
-
 			// Try immediate navigation first
 			navigate(destination);
 
 			// Set a fallback navigation with a slight delay to ensure it happens
 			setTimeout(() => {
-				console.log('Executing fallback navigation to:', destination);
 				window.location.href = destination;
 			}, 300);
 		} catch (err: any) {

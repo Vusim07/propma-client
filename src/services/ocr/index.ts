@@ -26,13 +26,11 @@ export function getOcrProvider(
 
 		// Use Azure for PDFs (if not too large)
 		if (isPdf && file.size <= MAX_AZURE_FILE_SIZE) {
-			console.log('PDF detected - using Azure provider for better PDF support');
 			return new AzureOcrProvider();
 		}
 
 		// For large files, use Tesseract
 		if (file.size > MAX_AZURE_FILE_SIZE) {
-			console.log('Large file detected - using Tesseract for better handling');
 			return new TesseractOcrProvider();
 		}
 	}

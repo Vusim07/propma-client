@@ -20,24 +20,14 @@ const AuthCallback: React.FC = () => {
 				);
 				const queryParams = new URLSearchParams(window.location.search);
 
-				console.log('URL hash:', window.location.hash);
-				console.log('URL search:', window.location.search);
-
 				// Check for stored return path
 				const returnTo = sessionStorage.getItem('auth_return_path');
-				console.log('Return path:', returnTo);
 
 				// If we have a access_token or code in the URL, exchange it
 				const hasAccessToken = hashParams.has('access_token');
 				const hasCode = queryParams.has('code');
 
-				console.log('Has access token:', hasAccessToken);
-				console.log('Has code:', hasCode);
-
 				if (hasAccessToken || hasCode) {
-					console.log('Attempting to set session from URL');
-					// The session should be set automatically by Supabase client
-					// We'll just wait a moment for it to process
 					await new Promise((resolve) => setTimeout(resolve, 500));
 				}
 
@@ -45,7 +35,6 @@ const AuthCallback: React.FC = () => {
 				const {
 					data: { session },
 				} = await supabase.auth.getSession();
-				console.log('Current session:', session ? 'exists' : 'none');
 
 				if (!session) {
 					console.error('No session after OAuth redirect');
@@ -54,21 +43,15 @@ const AuthCallback: React.FC = () => {
 					return;
 				}
 
-				// We have a valid session, now check for profile
-				console.log('Auth successful, checking profile');
-
 				// Check if profile exists for this user
-				const { data: profileData, error: profileError } = await supabase
+				const { data: profileData } = await supabase
 					.from('users')
 					.select('*')
 					.eq('id', session.user.id)
 					.maybeSingle();
 
-				console.log('Profile exists?', !!profileData);
-
 				// Create profile if it doesn't exist
 				if (!profileData) {
-					console.log('Creating profile using Edge Function');
 					try {
 						// Extract name data if available
 						const fullName = session.user.user_metadata?.full_name || '';
@@ -110,7 +93,6 @@ const AuthCallback: React.FC = () => {
 
 								// Check if we need to redirect to a specific path
 								if (returnTo) {
-									console.log('Redirecting to stored return path:', returnTo);
 									sessionStorage.removeItem('auth_return_path');
 									window.location.href = returnTo;
 									return;
@@ -174,13 +156,11 @@ const AuthCallback: React.FC = () => {
 
 					// Check if we need to redirect to a specific path after profile completion
 					if (returnTo) {
-						console.log('Redirecting to stored return path:', returnTo);
 						sessionStorage.removeItem('auth_return_path');
 						window.location.href = returnTo;
 						return;
 					}
 
-					console.log('Redirecting to profile completion');
 					window.location.href = '/profile-completion';
 					return;
 				}
@@ -191,16 +171,13 @@ const AuthCallback: React.FC = () => {
 					!profileData.first_name ||
 					!profileData.last_name
 				) {
-					console.log('Profile exists but needs completion');
 					await checkAuth();
 
 					// Check if we need to redirect to a specific path after profile completion
 					if (returnTo) {
-						console.log('Setting redirect path for after profile completion');
 						sessionStorage.setItem('post_profile_redirect', returnTo);
 					}
 
-					console.log('Redirecting to profile completion');
 					window.location.href = '/profile-completion';
 					return;
 				}
@@ -209,7 +186,6 @@ const AuthCallback: React.FC = () => {
 				await checkAuth();
 
 				if (returnTo) {
-					console.log('Redirecting to stored return path:', returnTo);
 					sessionStorage.removeItem('auth_return_path');
 					window.location.href = returnTo;
 					return;
@@ -217,16 +193,13 @@ const AuthCallback: React.FC = () => {
 
 				// No return path, proceed to the appropriate dashboard
 				if (profileData.role === 'tenant') {
-					console.log('Redirecting to tenant dashboard');
 					window.location.href = '/tenant';
 				} else if (
 					profileData.role === 'agent' ||
 					profileData.role === 'landlord'
 				) {
-					console.log('Redirecting to agent dashboard');
 					window.location.href = '/agent';
 				} else {
-					console.log('Redirecting to home');
 					window.location.href = '/';
 				}
 			} catch (error) {

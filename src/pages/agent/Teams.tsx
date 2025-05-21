@@ -113,15 +113,12 @@ const Teams: React.FC = () => {
 
 		try {
 			setIsRefreshing(true);
-			console.log('Starting team data refresh...');
 
 			// Fetch all teams first
 			await fetchTeams();
-			console.log('Teams fetched:', teams.length, 'teams');
 
 			// If we have a current team, refresh its data and also members/invitations
 			if (currentTeam?.id) {
-				console.log(`Refreshing current team ${currentTeam.id} data...`);
 				try {
 					// Run these operations in parallel
 					await Promise.all([
@@ -129,7 +126,6 @@ const Teams: React.FC = () => {
 						fetchTeamMembers(currentTeam.id),
 						fetchInvitations(currentTeam.id),
 					]);
-					console.log(`Current team ${currentTeam.id} refresh completed`);
 				} catch (err) {
 					console.error(
 						`Error refreshing current team ${currentTeam.id}:`,
@@ -139,21 +135,15 @@ const Teams: React.FC = () => {
 			}
 
 			if (teams.length > 0) {
-				console.log(`Refreshing all ${teams.length} teams data...`);
-
 				// Process teams one at a time to avoid overwhelming the server
 				for (const team of teams) {
 					try {
-						console.log(`Refreshing team ${team.id} (${team.name}) data...`);
 						await refreshTeamData(team.id);
 					} catch (err) {
 						console.error(`Error refreshing team ${team.id}:`, err);
 					}
 				}
-				console.log('All teams refresh completed');
 			}
-
-			console.log('Team data refresh completed successfully');
 		} catch (error) {
 			console.error('Error in main refresh process:', error);
 		} finally {

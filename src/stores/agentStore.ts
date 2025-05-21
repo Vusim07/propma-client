@@ -8,8 +8,8 @@ import {
 	EmailWorkflow,
 	WorkflowLog,
 	InsertEmailWorkflow,
-	Appointment, // Import Appointment type
-	Subscription, // Add Subscription type import
+	AppointmentWithRelations,
+	Subscription,
 } from '../types';
 
 // Define CalendarIntegration type
@@ -72,19 +72,12 @@ const logTableSchema = async (
 		| 'workflow_logs'
 		| 'calendar_integrations',
 ) => {
-	console.log(`Checking schema for table: ${tableName}`);
 	try {
-		const { data, error } = await supabase.from(tableName).select('*').limit(1);
+		const { error } = await supabase.from(tableName).select('*').limit(1);
 
 		if (error) {
 			console.error(`Error querying ${tableName}:`, error);
 			return;
-		}
-
-		if (data && data.length > 0) {
-			console.log(`${tableName} schema fields:`, Object.keys(data[0]));
-		} else {
-			console.log(`${tableName} has no data to inspect schema`);
 		}
 	} catch (err) {
 		console.error(`Failed to inspect ${tableName} schema:`, err);
@@ -96,12 +89,12 @@ interface AgentState {
 	properties: Property[];
 	workflows: EmailWorkflow[];
 	workflowLogs: WorkflowLog[];
-	appointments: Appointment[]; // Add appointments state
-	subscriptions: Subscription[]; // Add subscriptions state
-	calendarIntegration: CalendarIntegration | null; // Add calendar integration state
-	emailIntegration: EmailIntegration | null; // Add email integration state
+	appointments: AppointmentWithRelations[];
+	subscriptions: Subscription[];
+	calendarIntegration: CalendarIntegration | null;
+	emailIntegration: EmailIntegration | null;
 	isLoading: boolean;
-	loadingCount: number; // Add loadingCount to state
+	loadingCount: number;
 	error: string | null;
 	currentTeamId: string | null;
 	setCurrentTeamId: (teamId: string | null) => void;
@@ -115,7 +108,7 @@ interface AgentState {
 	fetchProperties: (
 		agentId: string,
 		teamId?: string | null,
-	) => Promise<Property[]>; // Changed return type
+	) => Promise<Property[]>;
 	addProperty: (
 		property: Omit<Property, 'id' | 'created_at' | 'application_link'>,
 	) => Promise<void>;
@@ -129,12 +122,12 @@ interface AgentState {
 	updateWorkflow: (
 		id: string,
 		updates: Partial<EmailWorkflow>,
-	) => Promise<void>; // Changed type
+	) => Promise<void>;
 	deleteWorkflow: (id: string) => Promise<void>;
 	fetchWorkflowLogs: (workflowId?: string) => Promise<void>;
-	fetchAppointments: (agentId: string) => Promise<void>; // Add fetchAppointments function signature
-	fetchSubscriptions: (userId: string) => Promise<Subscription | null>; // Add fetchSubscriptions function signature
-	fetchEmailIntegration: (userId: string) => Promise<EmailIntegration | null>; // Add fetchEmailIntegration function signature
+	fetchAppointments: (agentId: string) => Promise<void>;
+	fetchSubscriptions: (userId: string) => Promise<Subscription | null>;
+	fetchEmailIntegration: (userId: string) => Promise<EmailIntegration | null>;
 	connectEmailIntegration: (
 		userId: string,
 		provider: string,
@@ -144,9 +137,9 @@ interface AgentState {
 			token_expiry?: string;
 			email_address?: string;
 		},
-	) => Promise<EmailIntegration>; // Add connectEmailIntegration function signature
-	disconnectEmailIntegration: (integrationId: string) => Promise<void>; // Add disconnectEmailIntegration function signature
-	diagnosticCheck: () => Promise<void>; // New diagnostic function
+	) => Promise<EmailIntegration>;
+	disconnectEmailIntegration: (integrationId: string) => Promise<void>;
+	diagnosticCheck: () => Promise<void>;
 
 	// Calendar integration functions
 	fetchCalendarIntegration: (
@@ -172,12 +165,12 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 	properties: [],
 	workflows: [],
 	workflowLogs: [],
-	appointments: [], // Initialize appointments state
-	subscriptions: [], // Initialize subscriptions state
-	calendarIntegration: null, // Initialize calendar integration state
-	emailIntegration: null, // Initialize email integration state
+	appointments: [],
+	subscriptions: [],
+	calendarIntegration: null,
+	emailIntegration: null,
 	isLoading: false,
-	loadingCount: 0, // Initialize loadingCount
+	loadingCount: 0,
 	error: null,
 	currentTeamId: null,
 
@@ -221,10 +214,6 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 				};
 			});
 
-			console.log(
-				'Applications fetched successfully:',
-				formattedApplications?.length || 0,
-			);
 			set({ applications: formattedApplications || [] });
 		} catch (error) {
 			// Enhanced error logging
@@ -581,7 +570,6 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 	fetchAppointments: async (agentId) => {
 		set({ isLoading: true, error: null });
 		try {
-			console.log('Fetching appointments for agent:', agentId);
 			const { data, error } = await supabase
 				.from('appointments')
 				.select(
@@ -613,10 +601,6 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 				end_time: appointment.end_time ? String(appointment.end_time) : null,
 			}));
 
-			console.log(
-				'Appointments fetched successfully:',
-				formattedAppointments.length,
-			);
 			set({ appointments: formattedAppointments as any, isLoading: false });
 		} catch (error) {
 			console.error('Failed to fetch appointments:', {
@@ -633,8 +617,7 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 		set({ isLoading: true, error: null });
 		try {
 			// First, check if the table exists and is accessible
-			console.log('Checking subscriptions table access...');
-			const { count, error: countError } = await supabase
+			const { error: countError } = await supabase
 				.from('subscriptions')
 				.select('*', { count: 'exact', head: true });
 
@@ -643,10 +626,7 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 				throw new Error(`Database error: ${countError.message}`);
 			}
 
-			console.log(`Found ${count} total subscription records`);
-
 			// Then proceed with the actual query
-			console.log(`Fetching active subscription for user ${userId}...`);
 			const { data, error } = await supabase
 				.from('subscriptions')
 				.select('*')
@@ -660,10 +640,7 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 				throw error;
 			}
 
-			// Instead of using single(), which can throw 406 errors,
-			// manually get the first item if available
 			const subscription = data && data.length > 0 ? data[0] : null;
-			console.log('Subscription data:', subscription);
 
 			set({
 				subscriptions: subscription ? [subscription] : [],
@@ -743,7 +720,6 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 	// Add a diagnostic function to help troubleshoot database issues
 	diagnosticCheck: async () => {
 		try {
-			console.log('Running diagnostic checks on database schema...');
 			await logTableSchema('applications');
 			await logTableSchema('properties');
 			await logTableSchema('tenant_profiles');
@@ -753,16 +729,13 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 			await logTableSchema('workflow_logs');
 
 			// Test a simple query to check RLS policies
-			const { data, error } = await supabase
+			const { error } = await supabase
 				.from('applications')
 				.select('count')
 				.single();
 			if (error) {
 				console.error('RLS policy test error:', error);
-			} else {
-				console.log('RLS policy test successful:', data);
 			}
-			console.log('Diagnostic check complete');
 		} catch (err) {
 			console.error('Diagnostic check failed:', err);
 		}

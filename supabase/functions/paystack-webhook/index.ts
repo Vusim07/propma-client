@@ -6,8 +6,6 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
-console.log('Hello from Functions!');
-
 const corsHeaders = {
 	'Access-Control-Allow-Origin': '*',
 	'Access-Control-Allow-Headers':
@@ -41,8 +39,6 @@ serve(async (req: Request) => {
 	}
 
 	try {
-		console.log('Received webhook request');
-
 		// Create Supabase client
 		const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 		const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
@@ -53,13 +49,8 @@ serve(async (req: Request) => {
 
 		const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-		// Verify Paystack signature
-		// In a production environment, you should verify the request signature
-		// using the Paystack signature header
-
 		// Parse the webhook payload
 		const payload: WebhookPayload = await req.json();
-		console.log('Received webhook event:', payload.event);
 
 		// Only process successful charge events
 		if (payload.event === 'charge.success') {
@@ -77,8 +68,6 @@ serve(async (req: Request) => {
 
 			// Handle plan upgrade payment
 			if (metadata?.isUpgrade) {
-				console.log('Processing plan upgrade payment');
-
 				const { subscriptionId, newPlanId, unusedCredits, proratedAmount } =
 					metadata;
 
@@ -146,8 +135,6 @@ serve(async (req: Request) => {
 				);
 			}
 
-			console.log(`Processing successful payment: ${reference}`);
-
 			// Try to find subscription by reference
 			const { data: subscriptionsByRef, error: refError } = await supabase
 				.from('subscriptions')
@@ -160,10 +147,6 @@ serve(async (req: Request) => {
 
 			// If found by reference, update status
 			if (subscriptionsByRef && subscriptionsByRef.length > 0) {
-				console.log(
-					`Found subscription by reference: ${subscriptionsByRef[0].id}`,
-				);
-
 				const { data: updatedSub, error: updateError } = await supabase
 					.from('subscriptions')
 					.update({ status: 'active' })
@@ -176,7 +159,6 @@ serve(async (req: Request) => {
 					throw new Error('Failed to update subscription status');
 				}
 
-				console.log('Successfully updated subscription:', updatedSub);
 				return new Response(
 					JSON.stringify({ success: true, subscription: updatedSub }),
 					{
@@ -188,8 +170,6 @@ serve(async (req: Request) => {
 
 			// If not found by reference but we have userId in metadata, try that
 			if (metadata && metadata.userId) {
-				console.log(`Finding subscription by user ID: ${metadata.userId}`);
-
 				// Find most recent inactive subscription for this user
 				const { data: userSubs, error: userError } = await supabase
 					.from('subscriptions')
@@ -204,8 +184,6 @@ serve(async (req: Request) => {
 				}
 
 				if (userSubs && userSubs.length > 0) {
-					console.log(`Found subscription by user ID: ${userSubs[0].id}`);
-
 					const { data: updatedSub, error: updateError } = await supabase
 						.from('subscriptions')
 						.update({
@@ -221,7 +199,6 @@ serve(async (req: Request) => {
 						throw new Error('Failed to update subscription status');
 					}
 
-					console.log('Successfully updated subscription:', updatedSub);
 					return new Response(
 						JSON.stringify({ success: true, subscription: updatedSub }),
 						{
@@ -233,7 +210,6 @@ serve(async (req: Request) => {
 			}
 
 			// Last resort: find the most recent inactive subscription
-			console.log('Trying fallback: most recent inactive subscription');
 
 			const { data: recentSubs, error: recentError } = await supabase
 				.from('subscriptions')
@@ -262,9 +238,6 @@ serve(async (req: Request) => {
 			}
 
 			// Update the most recent subscription
-			console.log(
-				`Using most recent subscription as fallback: ${recentSubs[0].id}`,
-			);
 
 			const { data: updatedSub, error: updateError } = await supabase
 				.from('subscriptions')
@@ -281,7 +254,6 @@ serve(async (req: Request) => {
 				throw new Error('Failed to update subscription');
 			}
 
-			console.log('Successfully updated fallback subscription:', updatedSub);
 			return new Response(
 				JSON.stringify({ success: true, subscription: updatedSub }),
 				{
@@ -308,15 +280,3 @@ serve(async (req: Request) => {
 		});
 	}
 });
-
-/* To invoke locally:
-
-  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
-  2. Make an HTTP request:
-
-  curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/paystack-webhook' \
-    --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
-    --header 'Content-Type: application/json' \
-    --data '{"name":"Functions"}'
-
-*/

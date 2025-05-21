@@ -582,8 +582,6 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 	refreshTeamData: async (teamId: string) => {
 		set({ isLoading: true, error: null });
 		try {
-			console.log(`Refreshing team data for team ${teamId}`);
-
 			// Fetch the specific team with its subscription data
 			const { data: team, error } = await supabase
 				.from('teams')
@@ -606,12 +604,6 @@ export const useTeamStore = create<TeamStore>((set, get) => ({
 				console.error(`Error fetching team ${teamId}:`, error);
 				throw error;
 			}
-
-			console.log(`Team ${teamId} data:`, {
-				name: team.name,
-				subscription_id: team.subscription_id,
-				subscription: team.subscription,
-			});
 
 			// Also refresh team stats
 			await get().fetchTeamStats(teamId);

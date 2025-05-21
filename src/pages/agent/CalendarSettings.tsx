@@ -61,7 +61,6 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 				// Check if we have a valid session
 				const { data } = await supabase.auth.getSession();
 				if (!data?.session?.access_token) {
-					console.log('No active session, refreshing...');
 					const { error } = await supabase.auth.refreshSession();
 					if (error) {
 						console.error('Session refresh error:', error);
@@ -125,9 +124,6 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 			}
 
 			if (!sessionData?.session?.access_token) {
-				console.log(
-					'No active session in fetchCalendarIntegration, attempting refresh...',
-				);
 				const { error: refreshError } = await supabase.auth.refreshSession();
 				if (refreshError) {
 					console.error('Session refresh error:', refreshError);
@@ -137,7 +133,6 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 				}
 			}
 
-			console.log('Fetching calendar integration for user:', user.id);
 			const { data, error } = await supabase
 				.from('calendar_integrations')
 				.select('*')
@@ -149,7 +144,6 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 				throw error;
 			}
 
-			console.log('Calendar integration found:', data ? 'Yes' : 'No');
 			setIntegration(data);
 			if (data?.calendar_id) {
 				setSelectedCalendarId(data.calendar_id);
@@ -180,8 +174,6 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 			}
 
 			if (!session?.session?.access_token) {
-				console.log('No session found, trying to refresh...');
-
 				// Try to refresh the session
 				const { data: refreshData, error: refreshError } =
 					await supabase.auth.refreshSession();
@@ -198,7 +190,6 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 			}
 
 			const accessToken = session.session.access_token;
-			console.log('Using access token:', accessToken.slice(0, 10) + '...');
 
 			// Make the API call with proper headers
 			const response = await fetch(
@@ -228,14 +219,11 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 			const data = await response.json();
 			if (data.calendars) {
 				setAvailableCalendars(data.calendars);
-				console.log(`Retrieved ${data.calendars.length} calendars`);
 			} else {
-				console.log('Received data without calendars:', data);
 				throw new Error('No calendars found in the response');
 			}
 		} catch (err: unknown) {
 			const apiError = err as ApiError;
-			console.error('Calendar fetch error:', apiError);
 			setError(`Failed to fetch available calendars: ${apiError.message}`);
 		} finally {
 			setLoadingCalendars(false);
@@ -254,7 +242,6 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 				await supabase.auth.getSession();
 
 			if (sessionError) {
-				console.error('Session error:', sessionError);
 				throw new Error(`Failed to get session: ${sessionError.message}`);
 			}
 
@@ -382,8 +369,7 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 			}
 
 			// Parse the response and check for success
-			const data = await response.json();
-			console.log('Calendar default updated:', data);
+			await response.json();
 			setSuccess('Default calendar updated successfully');
 
 			// Update the integration object

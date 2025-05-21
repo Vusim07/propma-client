@@ -14,7 +14,6 @@ export const useProfileCompletion = (session: any) => {
 
 	const onSubmit = async (values: ProfileCompletionValues) => {
 		try {
-			console.log('Starting profile completion with values:', values);
 			if (!session) {
 				showToast.error('No active session found');
 				navigate('/login');
@@ -32,16 +31,13 @@ export const useProfileCompletion = (session: any) => {
 				is_individual: !values.isTeamSetup,
 			};
 
-			console.log('Updating user profile with:', userData);
-			const updatedProfile = await updateProfile(userData);
-			console.log('Profile updated successfully:', updatedProfile);
+			await updateProfile(userData);
 
 			if (
 				(values.role === 'agent' || values.role === 'landlord') &&
 				values.isTeamSetup &&
 				values.teamName
 			) {
-				console.log('Creating team:', values.teamName);
 				try {
 					const team = await createTeam(
 						values.teamName,
@@ -50,7 +46,6 @@ export const useProfileCompletion = (session: any) => {
 					if (!team) {
 						throw new Error('Failed to create team');
 					}
-					console.log('Team created successfully:', team);
 					showToast.success('Team created successfully!');
 
 					const { data: userData, error: userError } = await supabase
@@ -73,11 +68,6 @@ export const useProfileCompletion = (session: any) => {
 								.eq('id', session.user.id);
 							await supabase.auth.refreshSession();
 						}
-					} else {
-						console.log(
-							'Team ID successfully set in user profile:',
-							userData.active_team_id,
-						);
 					}
 
 					await new Promise((resolve) => setTimeout(resolve, 800));
@@ -91,7 +81,6 @@ export const useProfileCompletion = (session: any) => {
 
 			let tenantProfileId: string | undefined;
 			if (values.role === 'tenant') {
-				console.log('Processing tenant profile creation/update');
 				const userEmail = session.user.email;
 				if (!userEmail) {
 					showToast.error('User email not found');
@@ -142,16 +131,12 @@ export const useProfileCompletion = (session: any) => {
 				},
 			}));
 
-			console.log('Refreshing auth state...');
 			await checkAuth();
 
 			const { data: sessionData } = await supabase.auth.getSession();
 			if (!sessionData.session) {
 				throw new Error('Session lost during profile completion');
 			}
-
-			const latestUser = useAuthStore.getState().user;
-			console.log('Latest user state after checkAuth:', latestUser);
 
 			if (values.role === 'agent' || values.role === 'landlord') {
 				if (values.isTeamSetup && values.teamPlanType) {
@@ -162,18 +147,13 @@ export const useProfileCompletion = (session: any) => {
 					localStorage.setItem('isTeamPlan', 'false');
 				}
 
-				console.log(
-					'Redirecting agent/landlord to subscription page with full reload',
-				);
 				window.location.href = '/agent/subscription?onboarding=true';
 				return;
 			}
 
-			console.log('Handling redirection for tenant role...');
 			const redirectPath = sessionStorage.getItem('post_profile_redirect');
 
 			if (redirectPath) {
-				console.log('Found stored redirect path:', redirectPath);
 				sessionStorage.removeItem('post_profile_redirect');
 				sessionStorage.removeItem('returning_from_profile_completion');
 

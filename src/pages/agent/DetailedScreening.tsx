@@ -169,9 +169,6 @@ const DetailedScreening: React.FC = () => {
 						report_data: reportData,
 					};
 
-					console.log('Fetched data:', data);
-					console.log('Combined data:', combinedData);
-
 					setScreeningData(combinedData);
 				} else {
 					setError(`Screening report not found for application ID: ${id}`);

@@ -25,8 +25,6 @@ export const uploadPropertyImage = async (
 		propertyId ? `${propertyId}/` : ''
 	}${fileName}`;
 
-	console.log(`Uploading image to path: ${filePath}`);
-
 	// Ensure the 'property_images' bucket exists and has appropriate policies
 	const { error: uploadError } = await supabase.storage
 		.from('property_images') // Bucket name
@@ -56,6 +54,5 @@ export const uploadPropertyImage = async (
 		throw new Error('Could not get public URL for uploaded image.');
 	}
 
-	console.log(`Image uploaded successfully: ${urlData.publicUrl}`);
 	return urlData.publicUrl;
 };

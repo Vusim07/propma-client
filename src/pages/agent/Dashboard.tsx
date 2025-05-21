@@ -25,7 +25,7 @@ import {
 	TableRow,
 } from '@/components/ui/Table';
 import { format } from 'date-fns';
-import { ApplicationWithRelations } from '../../types';
+import { ApplicationWithRelations } from '@/types';
 
 const AgentDashboard: React.FC = () => {
 	const { user } = useAuthStore();
@@ -102,7 +102,6 @@ const AgentDashboard: React.FC = () => {
 
 	// Get recent applications
 	const recentApplications = formattedApplications.slice(0, 5);
-	console.log('Recent Applications:', recentApplications);
 
 	return (
 		<div>
