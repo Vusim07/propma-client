@@ -107,20 +107,6 @@ const Login: React.FC = () => {
 					/>
 					<span>Continue with Google</span>
 				</Button>
-				<Button
-					type='button'
-					variant='outline'
-					onClick={() => loginWithSocial('facebook')}
-					disabled={isLoading}
-					className='w-full flex items-center justify-center bg-[#1877F2] text-neutral-800 hover:bg-[#166FE5]'
-				>
-					<img
-						src='/assets/icons8-facebook.svg'
-						alt='Facebook'
-						className='h-5 w-5 mr-2'
-					/>
-					<span>Continue with Facebook</span>
-				</Button>
 
 				<div className='relative my-6'>
 					<div className='absolute inset-0 flex items-center'>

@@ -31,7 +31,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
 			<div className={cn('sm:mx-auto sm:w-full sm:max-w-md', wrapperClassName)}>
 				<div
 					className={cn(
-						'bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 max-h-screen ',
+						'bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10  ',
 						contentClassName,
 					)}
 				>

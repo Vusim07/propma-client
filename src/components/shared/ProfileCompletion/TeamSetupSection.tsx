@@ -22,7 +22,7 @@ export const TeamSetupSection = () => {
 
 	return (
 		<div className='space-y-4 border p-4 rounded-lg bg-blue-50'>
-			<h3 className='font-medium text-blue-800'>Organization Setup</h3>
+			<h3 className='font-medium text-blue-800'>Organisation Setup</h3>
 			<p className='text-sm text-gray-600'>
 				Choose how you want to manage properties
 			</p>

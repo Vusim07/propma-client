@@ -29,7 +29,7 @@ const ProfileCompletion: React.FC = () => {
 		defaultValues: {
 			firstName: '',
 			lastName: '',
-			role: user?.role === 'pending' ? 'tenant' : user?.role || '',
+			role: user?.role === 'pending' ? 'agent' : user?.role || '',
 
 			phone: '',
 			companyName: '',
@@ -81,7 +81,7 @@ const ProfileCompletion: React.FC = () => {
 				className='h-6 w-auto items-center mx-auto'
 			/>
 			<div className='text-center'>
-				<h2 className='text-2xl font-bold text-gray-900'>
+				<h2 className='text-xl font-bold text-gray-900'>
 					Complete Your Profile
 				</h2>
 				<p className='text-gray-600 mt-2'>
