@@ -187,7 +187,8 @@ serve(async (req) => {
 			client_id: GOOGLE_CLIENT_ID,
 			redirect_uri: GOOGLE_REDIRECT_URI,
 			response_type: 'code',
-			scope: 'https://www.googleapis.com/auth/calendar',
+			scope:
+				'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly',
 			access_type: 'offline',
 			prompt: 'consent',
 			state,

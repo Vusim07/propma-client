@@ -35,6 +35,25 @@ export default {
 					DEFAULT: '#F8F5EF', // Cream background
 					card: '#FFFFFF',
 				},
+				dark_void: {
+					DEFAULT: '#151419',
+				},
+				liquid_lava: {
+					DEFAULT: '#F56E0F',
+				},
+				dusty_grey: {
+					DEFAULT: '#878787',
+				},
+				gluon_grey: {
+					DEFAULT: '#1B1B1E',
+				},
+				slate_grey: {
+					DEFAULT: '#262626',
+				},
+				snow: {
+					DEFAULT: '#FBFBFB',
+				},
+
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive))',
 					foreground: 'hsl(var(--destructive-foreground))',
