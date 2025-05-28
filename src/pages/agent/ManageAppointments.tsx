@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore';
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import Spinner from '@/components/ui/Spinner';
-import Badge from '@/components/ui/Badge';
-import Alert from '@/components/ui/Alert';
+import { Badge } from '@/components/ui/badge';
+import { Alert } from '@/components/ui/alert';
 import Calendar from 'react-calendar';
 import {
 	Sheet,
@@ -299,21 +299,14 @@ const ManageAppointments: React.FC = () => {
 	return (
 		<Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
 			<div>
-				<div className='mb-6'>
-					<h1 className='text-2xl font-bold text-gray-900'>Appointments</h1>
-					<p className='text-gray-600 mt-1'>
-						Manage your property viewing appointments
-					</p>
-				</div>
-
 				{error && (
-					<Alert variant='error' className='mb-6'>
+					<Alert variant='destructive' className='mb-6'>
 						{error}
 					</Alert>
 				)}
 
 				{success && (
-					<Alert variant='success' className='mb-6'>
+					<Alert variant='default' className='mb-6'>
 						{success}
 					</Alert>
 				)}
@@ -415,10 +408,10 @@ const ManageAppointments: React.FC = () => {
 														<Badge
 															variant={
 																appointment.status === 'scheduled'
-																	? 'info'
+																	? 'default'
 																	: appointment.status === 'completed'
-																	? 'success'
-																	: 'danger'
+																	? 'default'
+																	: 'destructive'
 															}
 														>
 															{appointment.status === 'scheduled'
@@ -572,10 +565,10 @@ const ManageAppointments: React.FC = () => {
 														<Badge
 															variant={
 																appointment.status === 'scheduled'
-																	? 'info'
+																	? 'default'
 																	: appointment.status === 'completed'
-																	? 'success'
-																	: 'warning'
+																	? 'default'
+																	: 'destructive'
 															}
 														>
 															{appointment.status.charAt(0).toUpperCase() +
@@ -718,7 +711,7 @@ const ManageAppointments: React.FC = () => {
 								{selectedAppointment.status === 'scheduled' && (
 									<>
 										<Button
-											variant='primary'
+											variant='default'
 											onClick={() =>
 												handleStatusChange(selectedAppointment.id, 'completed')
 											}
@@ -729,7 +722,7 @@ const ManageAppointments: React.FC = () => {
 											Mark as Completed
 										</Button>
 										<Button
-											variant='danger'
+											variant='destructive'
 											onClick={() =>
 												handleStatusChange(selectedAppointment.id, 'cancelled')
 											}
@@ -743,7 +736,7 @@ const ManageAppointments: React.FC = () => {
 								)}
 								{selectedAppointment.status === 'cancelled' && (
 									<Button
-										variant='primary'
+										variant='default'
 										onClick={() =>
 											handleStatusChange(selectedAppointment.id, 'scheduled')
 										}

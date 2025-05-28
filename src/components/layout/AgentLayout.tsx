@@ -12,10 +12,9 @@ import {
 	ChevronRight,
 	Menu,
 	LayoutDashboard,
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	Inbox,
 } from 'lucide-react';
-import Button from '../ui/Button';
+import { Button } from '@/components/ui/button';
 
 const AgentLayout: React.FC = () => {
 	const { user, logout } = useAuthStore();
@@ -54,11 +53,11 @@ const AgentLayout: React.FC = () => {
 			icon: <Calendar size={20} />,
 			label: 'Appointments',
 		},
-		// {
-		// 	to: '/agent/inbox',
-		// 	icon: <Inbox size={20} />,
-		// 	label: 'Inbox',
-		// },
+		{
+			to: '/agent/inbox',
+			icon: <Inbox size={20} />,
+			label: 'Inbox',
+		},
 		{
 			to: '/agent/settings',
 			icon: <User size={20} />,

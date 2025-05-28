@@ -1,6 +1,5 @@
-// PropertyApplicationComponents/DocumentsStep.tsx
 import { useNavigate } from 'react-router-dom';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
 
 interface DocumentsStepProps {

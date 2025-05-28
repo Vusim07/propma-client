@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import Badge from '@/components/ui/Badge';
+import { Badge } from '@/components/ui/badge';
 import {
 	DollarSign,
 	CheckCircle,
@@ -227,7 +227,7 @@ const AffordabilityCard = ({
 										</p>
 									</div>
 									{reportData.risk_factors_count > 0 && (
-										<Badge variant='danger'>
+										<Badge variant='destructive'>
 											{reportData.risk_factors_count} Risk Factors
 										</Badge>
 									)}

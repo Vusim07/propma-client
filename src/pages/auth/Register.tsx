@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuthStore } from '../../stores/authStore';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { showToast } from '../../utils/toast';
 import { registerSchema, RegisterFormValues } from '../../schemas/auth';
 import {

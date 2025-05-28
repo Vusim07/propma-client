@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import Alert from '@/components/ui/Alert';
-import Badge from '@/components/ui/Badge';
+import { Alert } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { User, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
 interface BackgroundCheckCardProps {
@@ -67,9 +67,9 @@ const BackgroundCheckCard = ({
 								<span className='font-medium'>Criminal Record</span>
 							</div>
 							{backgroundCheck.criminal_record ? (
-								<Badge variant='danger'>Found</Badge>
+								<Badge variant='destructive'>Found</Badge>
 							) : (
-								<Badge variant='success'>None</Badge>
+								<Badge variant='default'>None</Badge>
 							)}
 						</div>
 
@@ -78,9 +78,9 @@ const BackgroundCheckCard = ({
 								<span className='font-medium'>Eviction History</span>
 							</div>
 							{backgroundCheck.eviction_history ? (
-								<Badge variant='danger'>Found</Badge>
+								<Badge variant='destructive'>Found</Badge>
 							) : (
-								<Badge variant='success'>None</Badge>
+								<Badge variant='default'>None</Badge>
 							)}
 						</div>
 
@@ -91,10 +91,10 @@ const BackgroundCheckCard = ({
 							<Badge
 								variant={
 									idVerificationStatus === 'verified'
-										? 'success'
+										? 'default'
 										: idVerificationStatus === 'failed'
-										? 'danger'
-										: 'warning'
+										? 'destructive'
+										: 'default'
 								}
 							>
 								{idVerificationStatus?.toUpperCase() ?? 'PENDING'}
@@ -102,7 +102,7 @@ const BackgroundCheckCard = ({
 						</div>
 					</div>
 				) : (
-					<Alert variant='info'>
+					<Alert variant='default'>
 						Detailed background check information not available.
 					</Alert>
 				)}

@@ -6,10 +6,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { useTenantStore } from '@/stores/tenantStore';
 import { usePageTitle } from '@/context/PageTitleContext';
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import Spinner from '@/components/ui/Spinner';
-import Alert from '@/components/ui/Alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
 	Select,
 	SelectContent,
@@ -75,6 +75,7 @@ const DocumentUpload: React.FC = () => {
 	const [showProfileCompletionMessage, setShowProfileCompletionMessage] =
 		useState(false);
 	const [applicationId, setApplicationId] = useState<string | null>(null);
+	const [uploadSuccess, setUploadSuccess] = useState(false);
 
 	// Parse query parameters
 	useEffect(() => {
@@ -229,6 +230,8 @@ const DocumentUpload: React.FC = () => {
 
 			// Refresh documents list
 			await fetchDocuments(user.id);
+
+			setUploadSuccess(true);
 		} catch (err) {
 			console.error('Document processing error:', err);
 			// Update queue item with error
@@ -397,7 +400,7 @@ const DocumentUpload: React.FC = () => {
 			<div className='mb-6'></div>
 
 			{showProfileCompletionMessage && (
-				<Alert variant='success' className='mb-6'>
+				<Alert variant='default' className='mb-6'>
 					<CheckCircle className='h-5 w-5 mr-2' />
 					<div>
 						<p className='font-medium'>Profile completed successfully!</p>
@@ -410,8 +413,20 @@ const DocumentUpload: React.FC = () => {
 			)}
 
 			{error && (
-				<Alert variant='error' className='mb-6'>
-					{error}
+				<Alert variant='destructive' className='mb-6'>
+					<AlertTitle>Error</AlertTitle>
+					<AlertDescription>
+						{error || 'Failed to upload document. Please try again.'}
+					</AlertDescription>
+				</Alert>
+			)}
+
+			{uploadSuccess && (
+				<Alert variant='default' className='mb-4'>
+					<AlertTitle>Success!</AlertTitle>
+					<AlertDescription>
+						Your document has been uploaded successfully.
+					</AlertDescription>
 				</Alert>
 			)}
 
@@ -674,7 +689,7 @@ const DocumentUpload: React.FC = () => {
 							<div className='mt-6'>
 								<Button
 									onClick={() => completeApplication()}
-									variant='primary'
+									variant='default'
 									className='w-full'
 									isLoading={isCompleting}
 									disabled={isCompleting || checkRequiredDocuments().length > 0}

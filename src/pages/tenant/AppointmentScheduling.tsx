@@ -3,9 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useTenantStore } from '../../stores/tenantStore';
 import { usePageTitle } from '../../context/PageTitleContext';
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
-import Alert from '@/components/ui/Alert';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert } from '@/components/ui/alert';
 import Spinner from '@/components/ui/Spinner';
 import Calendar from 'react-calendar';
 import { format, parse, isPast, isBefore, addDays } from 'date-fns'; // Re-add isBefore and addDays
@@ -17,11 +17,11 @@ import {
 	Check,
 	CheckCircle,
 } from 'lucide-react';
-import Badge from '@/components/ui/Badge';
+import { Badge } from '@/components/ui/badge';
 import 'react-calendar/dist/Calendar.css';
 import { supabase } from '../../services/supabase';
 import { Tables } from '../../services/database.types';
-import { Textarea } from '@/components/ui/Textarea';
+import { Textarea } from '@/components/ui/textarea';
 
 type ValuePiece = Date | null;
 type Value = ValuePiece | [ValuePiece, ValuePiece];
@@ -424,7 +424,7 @@ const AppointmentScheduling: React.FC = () => {
 				<h1 className='text-2xl font-bold text-gray-900 mb-6'>
 					Schedule a Viewing
 				</h1>
-				<Alert variant='error'>{error}</Alert>
+				<Alert variant='destructive'>{error}</Alert>
 			</div>
 		);
 	}
@@ -455,7 +455,7 @@ const AppointmentScheduling: React.FC = () => {
 				</p>
 			</div>
 
-			<Alert variant='success' className='mb-6'>
+			<Alert variant='default' className='mb-6'>
 				<CheckCircle className='h-5 w-5 mr-2' />
 				<div>
 					<p className='font-medium'>Application Approved</p>
@@ -468,13 +468,13 @@ const AppointmentScheduling: React.FC = () => {
 			</Alert>
 
 			{error && (
-				<Alert variant='error' className='mb-6'>
+				<Alert variant='destructive' className='mb-6'>
 					{error}
 				</Alert>
 			)}
 
 			{success && (
-				<Alert variant='success' className='mb-6'>
+				<Alert variant='default' className='mb-6'>
 					{success}
 				</Alert>
 			)}
@@ -545,7 +545,7 @@ const AppointmentScheduling: React.FC = () => {
 																{slot}
 															</span>
 															{isBooked ? (
-																<Badge variant='danger'>Booked</Badge>
+																<Badge variant='destructive'>Booked</Badge>
 															) : timeSlot === slot ? (
 																<Check size={16} className='text-blue-600' />
 															) : null}
@@ -742,10 +742,10 @@ const AppointmentScheduling: React.FC = () => {
 												<Badge
 													variant={
 														appointment.status === 'scheduled'
-															? 'info'
+															? 'default'
 															: appointment.status === 'completed'
-															? 'success'
-															: 'warning'
+															? 'default'
+															: 'destructive'
 													}
 												>
 													{appointment.status.charAt(0).toUpperCase() +

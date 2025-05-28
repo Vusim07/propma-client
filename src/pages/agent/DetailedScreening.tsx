@@ -6,8 +6,8 @@ import { supabase } from '../../services/supabase';
 import { Tables } from '../../services/database.types';
 
 import Spinner from '@/components/ui/Spinner';
-import Alert from '@/components/ui/Alert';
-import Button from '@/components/ui/Button';
+import { Alert } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import AffordabilityCard from '@/components/agent/ScreeningReport/AffordabilityCard';
 import BackgroundCheckCard from '@/components/agent/ScreeningReport/BackgroundCheckCard';
@@ -215,7 +215,7 @@ const DetailedScreening: React.FC = () => {
 					<ArrowLeft size={16} className='mr-2' />
 					Back to Applications
 				</Button>
-				<Alert variant='error'>{error}</Alert>
+				<Alert variant='destructive'>{error}</Alert>
 			</div>
 		);
 	}
@@ -232,7 +232,7 @@ const DetailedScreening: React.FC = () => {
 					<ArrowLeft size={16} className='mr-2' />
 					Back to Applications
 				</Button>
-				<Alert variant='info'>
+				<Alert variant='default'>
 					Screening report not found or still processing.
 				</Alert>
 			</div>

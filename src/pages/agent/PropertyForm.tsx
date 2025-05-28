@@ -4,9 +4,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { useAgentStore } from '../../stores/agentStore';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/Textarea';
+import { Textarea } from '@/components/ui/textarea';
 import {
 	Select,
 	SelectContent,
@@ -15,7 +15,7 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 import Spinner from '@/components/ui/Spinner';
-import Alert from '@/components/ui/Alert';
+import { Alert } from '@/components/ui/alert';
 import { ArrowLeft, Plus, X, Upload } from 'lucide-react';
 import { Property } from '../../types';
 import { showToast } from '../../utils/toast';
@@ -339,7 +339,7 @@ const PropertyForm: React.FC = () => {
 			</div>
 
 			{(error || formError) && (
-				<Alert variant='error' className='mb-6'>
+				<Alert variant='destructive' className='mb-6'>
 					{formError || error}
 				</Alert>
 			)}

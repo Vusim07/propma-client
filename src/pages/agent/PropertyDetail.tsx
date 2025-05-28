@@ -3,10 +3,10 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { useAgentStore } from '../../stores/agentStore';
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
-import Badge from '@/components/ui/Badge';
-import Alert from '@/components/ui/Alert';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Alert } from '@/components/ui/alert';
 import Spinner from '@/components/ui/Spinner';
 import {
 	Home,
@@ -121,7 +121,7 @@ const PropertyDetail: React.FC = () => {
 					<ArrowLeft size={16} className='mr-2' />
 					Back to Properties
 				</Button>
-				<Alert variant='error'>{error || 'Property not found'}</Alert>
+				<Alert variant='destructive'>{error || 'Property not found'}</Alert>
 			</div>
 		);
 	}
@@ -151,12 +151,12 @@ const PropertyDetail: React.FC = () => {
 					<Badge
 						variant={
 							property.status === 'available'
-								? 'success'
+								? 'default'
 								: property.status === 'rented'
-								? 'info'
+								? 'default'
 								: property.status === 'maintenance'
-								? 'warning'
-								: 'danger'
+								? 'default'
+								: 'default'
 						}
 					>
 						{property.status.charAt(0).toUpperCase() + property.status.slice(1)}
@@ -343,7 +343,7 @@ const PropertyDetail: React.FC = () => {
 					Delete Property
 				</Button>
 				<Link to={`/agent/properties/${property.id}/edit`}>
-					<Button variant='primary'>
+					<Button variant='default'>
 						<Edit size={16} className='mr-2' />
 						Edit Property
 					</Button>

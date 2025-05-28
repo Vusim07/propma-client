@@ -14,7 +14,7 @@ import {
 	Loader2,
 	Star,
 } from 'lucide-react';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import SubscriptionHistory from '@/components/agent/SubscriptionHistory';
 import { showToast } from '../../utils/toast';
 import { supabase } from '../../services/supabase';
@@ -733,7 +733,7 @@ const SubscriptionPage: React.FC = () => {
 									</p>
 								)}
 								<Button
-									variant='primary'
+									variant='default'
 									className='w-full'
 									onClick={(e) => {
 										e.stopPropagation();
@@ -789,7 +789,7 @@ const SubscriptionPage: React.FC = () => {
 									</p>
 
 									<Button
-										variant='primary'
+										variant='default'
 										className='w-full'
 										onClick={(e) => {
 											e.stopPropagation();

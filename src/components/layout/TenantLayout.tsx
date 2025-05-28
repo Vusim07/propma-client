@@ -13,7 +13,7 @@ import {
 	Menu,
 	LayoutDashboard,
 } from 'lucide-react';
-import Button from '../ui/Button';
+import { Button } from '../ui/button';
 
 const TenantLayout: React.FC = () => {
 	const { user, logout } = useAuthStore();

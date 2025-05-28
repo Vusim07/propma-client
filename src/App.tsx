@@ -39,13 +39,14 @@ import PropertyForm from './pages/agent/PropertyForm';
 import SubscriptionPage from './pages/agent/SubscriptionPage';
 import CalendarSettings from './pages/agent/CalendarSettings';
 import Settings from './pages/agent/Settings';
-import Teams from './pages/agent/Teams'; // Add this import
+import Teams from './pages/agent/Teams';
+import Inbox from './pages/agent/Inbox';
 
 // Layout Components
 import TenantLayout from './components/layout/TenantLayout';
 import AgentLayout from './components/layout/AgentLayout';
 import Spinner from './components/ui/Spinner';
-import { Toaster } from './components/ui/Toaster';
+import { Toaster } from './components/ui/toaster';
 
 // Enhanced Protected Route Component with profile completion check
 const ProtectedRoute = ({
@@ -230,6 +231,7 @@ function App() {
 						<Route path='teams' element={<Teams />} />
 						<Route path='subscription' element={<SubscriptionPage />} />
 						<Route path='settings' element={<Settings />} />
+						<Route path='inbox' element={<Inbox />} />
 					</Route>
 
 					{/* Redirect root to appropriate dashboard based on role */}

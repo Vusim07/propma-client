@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import Alert from '@/components/ui/Alert';
-import Badge from '@/components/ui/Badge';
+import { Alert } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import DocumentViewerSheet from '@/components/agent/DocumentViewerSheet';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { CreditCard, Eye } from 'lucide-react';
 
 interface CreditReportCardProps {
@@ -162,7 +162,7 @@ const CreditReportCard = ({
 						</div>
 					</div>
 				) : (
-					<Alert variant='info'>
+					<Alert variant='default'>
 						Detailed credit report information not available.
 					</Alert>
 				)}

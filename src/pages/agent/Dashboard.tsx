@@ -2,10 +2,10 @@ import React, { useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useAgentStore } from '../../stores/agentStore';
 import { usePageTitle } from '../../context/PageTitleContext';
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import Spinner from '@/components/ui/Spinner';
-import Badge from '@/components/ui/Badge';
+import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import {
 	FileText,
@@ -23,7 +23,7 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from '@/components/ui/Table';
+} from '@/components/ui/table';
 import { format } from 'date-fns';
 import { ApplicationWithRelations } from '@/types';
 
@@ -105,9 +105,9 @@ const AgentDashboard: React.FC = () => {
 
 	return (
 		<div>
-			<div className='mb-6'>
+			{/* <div className='mb-6'>
 				<p className='text-gray-600 mt-1'>Welcome back, {user?.first_name}</p>
-			</div>
+			</div> */}
 
 			{/* Metrics */}
 			<div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8'>
@@ -199,11 +199,11 @@ const AgentDashboard: React.FC = () => {
 													<Badge
 														variant={
 															application.status === 'approved'
-																? 'success'
+																? 'default'
 																: application.status === 'rejected'
-																? 'danger'
+																? 'destructive'
 																: application.status === 'pending'
-																? 'warning'
+																? 'secondary'
 																: 'default'
 														}
 													>
@@ -318,7 +318,9 @@ const AgentDashboard: React.FC = () => {
 											</div>
 											<Badge
 												variant={
-													activity.status === 'success' ? 'success' : 'danger'
+													activity.status === 'success'
+														? 'default'
+														: 'destructive'
 												}
 											>
 												{activity.action_taken}
@@ -358,7 +360,7 @@ const AgentDashboard: React.FC = () => {
 						<div className='bg-gray-50 p-4 rounded-lg'>
 							<div className='flex items-center justify-between mb-2'>
 								<h3 className='font-medium'>Pending</h3>
-								<Badge variant='warning'>{pendingApplications}</Badge>
+								<Badge variant='secondary'>{pendingApplications}</Badge>
 							</div>
 							<div className='w-full bg-gray-200 rounded-full h-2.5'>
 								<div
@@ -372,7 +374,7 @@ const AgentDashboard: React.FC = () => {
 						<div className='bg-gray-50 p-4 rounded-lg'>
 							<div className='flex items-center justify-between mb-2'>
 								<h3 className='font-medium'>Approved</h3>
-								<Badge variant='success'>{approvedApplications}</Badge>
+								<Badge variant='default'>{approvedApplications}</Badge>
 							</div>
 							<div className='w-full bg-gray-200 rounded-full h-2.5'>
 								<div
@@ -386,7 +388,7 @@ const AgentDashboard: React.FC = () => {
 						<div className='bg-gray-50 p-4 rounded-lg'>
 							<div className='flex items-center justify-between mb-2'>
 								<h3 className='font-medium'>Rejected</h3>
-								<Badge variant='danger'>{rejectedApplications}</Badge>
+								<Badge variant='destructive'>{rejectedApplications}</Badge>
 							</div>
 							<div className='w-full bg-gray-200 rounded-full h-2.5'>
 								<div

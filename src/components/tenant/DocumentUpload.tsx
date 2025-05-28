@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/services/supabase';
 import { affordabilityService } from '@/services/affordabilityService';
 import { useAuthStore } from '@/stores/authStore';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface AffordabilityError extends Error {
 	message: string;

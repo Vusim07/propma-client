@@ -5,10 +5,10 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { useTenantStore } from '../../stores/tenantStore';
 import { usePageTitle } from '../../context/PageTitleContext';
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import Spinner from '@/components/ui/Spinner';
-import Badge from '@/components/ui/Badge';
+import { Badge } from '@/components/ui/badge';
 import {
 	FileText,
 	CheckSquare,
@@ -28,7 +28,7 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from '@/components/ui/Table';
+} from '@/components/ui/table';
 
 interface ApplicationInfo {
 	id: string;
@@ -78,8 +78,6 @@ const TenantDashboard: React.FC = () => {
 			// First fetch profile to check if it exists
 			await fetchProfile(user.id);
 
-			// Then fetch other data regardless of profile status
-			// Applications will be fetched by the profile effect when it's ready
 			await Promise.all([
 				fetchDocuments(user.id),
 				fetchScreeningReport(user.id),
@@ -93,7 +91,6 @@ const TenantDashboard: React.FC = () => {
 
 	const fetchApplications = async () => {
 		if (isLoading) {
-			// Still loading profile data, wait for it
 			return;
 		}
 
@@ -250,10 +247,10 @@ const TenantDashboard: React.FC = () => {
 									<Badge
 										variant={
 											screeningReport.pre_approval_status === 'approved'
-												? 'success'
+												? 'default'
 												: screeningReport.pre_approval_status === 'rejected'
-												? 'danger'
-												: 'warning'
+												? 'destructive'
+												: 'secondary'
 										}
 									>
 										{screeningReport.pre_approval_status.toUpperCase()}
@@ -339,10 +336,10 @@ const TenantDashboard: React.FC = () => {
 												<Badge
 													variant={
 														app.status === 'approved'
-															? 'success'
+															? 'default'
 															: app.status === 'rejected'
-															? 'danger'
-															: 'warning'
+															? 'destructive'
+															: 'secondary'
 													}
 												>
 													{app.status.toUpperCase()}
@@ -370,10 +367,10 @@ const TenantDashboard: React.FC = () => {
 												<Badge
 													variant={
 														app.status === 'approved'
-															? 'success'
+															? 'default'
 															: app.status === 'rejected'
-															? 'danger'
-															: 'warning'
+															? 'destructive'
+															: 'secondary'
 													}
 												>
 													{app.status.toUpperCase()}

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { usePageTitle } from '../../context/PageTitleContext';
 import { supabase } from '../../services/supabase';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import Alert from '@/components/ui/Alert';
+import { Alert } from '@/components/ui/Alert';
 import { Calendar, Check, RefreshCcw, X } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -400,13 +400,13 @@ const CalendarSettings: React.FC<CalendarSettingsProps> = ({
 			)}
 
 			{error && (
-				<Alert variant='error' className='mb-6'>
+				<Alert variant='destructive' className='mb-4'>
 					{error}
 				</Alert>
 			)}
 
 			{success && (
-				<Alert variant='success' className='mb-6'>
+				<Alert variant='default' className='mb-4'>
 					{success}
 				</Alert>
 			)}

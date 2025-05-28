@@ -9,9 +9,9 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from '@/components/ui/sheet';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import Spinner from '@/components/ui/Spinner';
-import Alert from '@/components/ui/Alert';
+import { Alert } from '@/components/ui/alert';
 import { supabase } from '@/services/supabase';
 import { Tables } from '@/services/database.types';
 import { ExternalLink } from 'lucide-react';
@@ -143,7 +143,7 @@ const DocumentViewerSheet: React.FC<DocumentViewerSheetProps> = ({
 							<span className='ml-2'>Loading document...</span>
 						</div>
 					)}
-					{error && <Alert variant='error'>{error}</Alert>}
+					{error && <Alert variant='destructive'>{error}</Alert>}
 					{!isLoadingUrl && !error && documentUrl && (
 						<div className='w-full h-full'>
 							{isPdf ? (
@@ -163,7 +163,7 @@ const DocumentViewerSheet: React.FC<DocumentViewerSheetProps> = ({
 									/>
 								</div>
 							) : (
-								<Alert variant='warning'>
+								<Alert variant='default'>
 									Cannot display preview for "
 									{document?.file_name ?? 'this file'}". Unsupported file type.
 									Try opening in a new tab.
@@ -172,7 +172,7 @@ const DocumentViewerSheet: React.FC<DocumentViewerSheetProps> = ({
 						</div>
 					)}
 					{!isLoadingUrl && !error && !documentUrl && isOpen && (
-						<Alert variant='info'>
+						<Alert variant='default'>
 							Waiting for document URL or no document selected.
 						</Alert>
 					)}

@@ -2,8 +2,8 @@
 import React, { useEffect } from 'react';
 import { useTeamStore } from '@/stores/teamStore';
 import { useAuthStore } from '@/stores/authStore';
-import Button from '@/components/ui/Button';
-import { Card, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
 	Dialog,
 	DialogContent,
@@ -296,7 +296,7 @@ const Teams: React.FC = () => {
 						/>
 						<div className='flex justify-end gap-2'>
 							<Button
-								variant={currentTeam?.id === team.id ? 'outline' : 'primary'}
+								variant={currentTeam?.id === team.id ? 'outline' : 'default'}
 								onClick={() =>
 									switchTeam(currentTeam?.id === team.id ? null : team.id)
 								}
@@ -305,7 +305,7 @@ const Teams: React.FC = () => {
 							</Button>
 							{!team.subscription?.status && (
 								<Button
-									variant='primary'
+									variant='default'
 									className='bg-green-600 hover:bg-green-700'
 									onClick={() => handleActivatePlan(team.id)}
 								>
@@ -451,7 +451,7 @@ const Teams: React.FC = () => {
 													</SelectContent>
 												</Select>
 												<Button
-													variant='danger'
+													variant='destructive'
 													onClick={() =>
 														removeMember(currentTeam.id, member.user_id)
 													}

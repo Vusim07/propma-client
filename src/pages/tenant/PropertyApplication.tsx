@@ -5,9 +5,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/services/supabase';
 import { useAuthStore } from '@/stores/authStore';
 import { useTenantStore } from '@/stores/tenantStore';
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import Spinner from '@/components/ui/Spinner';
-import Alert from '@/components/ui/Alert';
+import { Alert } from '@/components/ui/alert';
 import { Property, Application, TenantProfile } from '@/types';
 import { showToast } from '@/utils/toast';
 
@@ -581,7 +581,7 @@ const PropertyApplication: React.FC = () => {
 						</h1>
 					</CardHeader>
 					<CardContent className='p-4 md:p-6'>
-						<Alert variant='error' className='mb-6'>
+						<Alert variant='destructive' className='mb-6'>
 							{state.error}
 						</Alert>
 						<p className='mb-6 text-gray-600'>

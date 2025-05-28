@@ -1,5 +1,4 @@
-// PropertyApplicationComponents/WelcomeStep.tsx
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface WelcomeStepProps {
 	onContinue: () => void;

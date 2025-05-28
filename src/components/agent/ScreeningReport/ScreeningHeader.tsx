@@ -1,4 +1,4 @@
-import Badge from '@/components/ui/Badge';
+import { Badge } from '@/components/ui/badge';
 
 interface ScreeningHeaderProps {
 	screeningData: {
@@ -30,10 +30,10 @@ const ScreeningHeader = ({
 			<Badge
 				variant={
 					screeningData.pre_approval_status === 'approved'
-						? 'success'
+						? 'default'
 						: screeningData.pre_approval_status === 'rejected'
-						? 'danger'
-						: 'warning'
+						? 'destructive'
+						: 'default'
 				}
 				className='text-sm px-3 py-1'
 			>

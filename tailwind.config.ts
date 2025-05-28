@@ -1,8 +1,22 @@
-/** @type {import('tailwindcss').Config} */
+import type { Config } from 'tailwindcss';
+
 export default {
 	darkMode: ['class'],
-	content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+	content: [
+		'./pages/**/*.{ts,tsx}',
+		'./components/**/*.{ts,tsx}',
+		'./app/**/*.{ts,tsx}',
+		'./src/**/*.{ts,tsx}',
+	],
+	prefix: '',
 	theme: {
+		container: {
+			center: true,
+			padding: '2rem',
+			screens: {
+				'2xl': '1400px',
+			},
+		},
 		extend: {
 			colors: {
 				border: 'hsl(var(--border))',
@@ -28,32 +42,8 @@ export default {
 				},
 				success: {
 					DEFAULT: '#31C5B7', // Using teal for success color
-					foreground: '#FFFFFF',
+					foreground: 'hsl(var(--primary-foreground))',
 				},
-				text: '#222222', // Dark text
-				background: {
-					DEFAULT: '#F8F5EF', // Cream background
-					card: '#FFFFFF',
-				},
-				dark_void: {
-					DEFAULT: '#151419',
-				},
-				liquid_lava: {
-					DEFAULT: '#F56E0F',
-				},
-				dusty_grey: {
-					DEFAULT: '#878787',
-				},
-				gluon_grey: {
-					DEFAULT: '#1B1B1E',
-				},
-				slate_grey: {
-					DEFAULT: '#262626',
-				},
-				snow: {
-					DEFAULT: '#FBFBFB',
-				},
-
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive))',
 					foreground: 'hsl(var(--destructive-foreground))',
@@ -86,10 +76,29 @@ export default {
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)',
 			},
-			fontFamily: {
-				sans: ['Nunito Sans', 'sans-serif'],
+			keyframes: {
+				'accordion-down': {
+					from: {
+						height: '0',
+					},
+					to: {
+						height: 'var(--radix-accordion-content-height)',
+					},
+				},
+				'accordion-up': {
+					from: {
+						height: 'var(--radix-accordion-content-height)',
+					},
+					to: {
+						height: '0',
+					},
+				},
+			},
+			animation: {
+				'accordion-down': 'accordion-down 0.2s ease-out',
+				'accordion-up': 'accordion-up 0.2s ease-out',
 			},
 		},
 	},
 	plugins: [require('tailwindcss-animate')],
-};
+} satisfies Config;

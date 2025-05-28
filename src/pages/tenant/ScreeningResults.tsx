@@ -4,10 +4,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useTenantStore } from '../../stores/tenantStore';
 import { usePageTitle } from '../../context/PageTitleContext';
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import Spinner from '@/components/ui/Spinner';
-import Badge from '@/components/ui/Badge';
-import Alert from '@/components/ui/Alert';
+import { Badge } from '@/components/ui/badge';
+import { Alert } from '@/components/ui/alert';
 import {
 	CheckCircle,
 	AlertCircle,
@@ -20,7 +20,7 @@ import {
 	Calendar,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import {
 	affordabilityService,
 	AffordabilityResponse,
@@ -304,7 +304,7 @@ const ScreeningResults: React.FC = () => {
 				<h1 className='text-2xl font-bold text-gray-900 mb-6'>
 					Screening Results
 				</h1>
-				<Alert variant='error'>{analysisError}</Alert>
+				<Alert variant='destructive'>{analysisError}</Alert>
 			</div>
 		);
 	}
@@ -316,7 +316,7 @@ const ScreeningResults: React.FC = () => {
 				<h1 className='text-2xl font-bold text-gray-900 mb-6'>
 					Screening Results
 				</h1>
-				<Alert variant='info'>
+				<Alert variant='default'>
 					Your screening report is not available yet. Please check back later or
 					contact support for assistance.
 				</Alert>
@@ -428,7 +428,7 @@ const ScreeningResults: React.FC = () => {
 					{reportData.pre_approval_status === 'approved' && (
 						<div className='mt-6 flex justify-end'>
 							<Button
-								variant='primary'
+								variant='default'
 								onClick={() => navigate('/tenant/appointments')}
 							>
 								<Calendar className='mr-2 h-5 w-5' />

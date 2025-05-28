@@ -10,7 +10,7 @@ import {
 	TableHead,
 	TableHeader,
 	TableRow,
-} from '@/components/ui/Table';
+} from '@/components/ui/table';
 import {
 	Sheet,
 	SheetContent,
@@ -21,10 +21,10 @@ import {
 	SheetFooter, // Keep SheetFooter
 	SheetDescription,
 } from '@/components/ui/sheet';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import Spinner from '@/components/ui/Spinner';
-import Badge from '@/components/ui/Badge';
-import Alert from '@/components/ui/Alert';
+import { Badge } from '@/components/ui/badge';
+import { Alert } from '@/components/ui/alert';
 import { usePageTitle } from '../../context/PageTitleContext';
 
 import {
@@ -33,7 +33,7 @@ import {
 	XCircle,
 	Clock,
 	Search,
-	ArrowRight, // Keep ArrowRight for the link button
+	ArrowRight,
 	Home,
 	User,
 	Phone,
@@ -46,7 +46,6 @@ import {
 } from 'lucide-react';
 import { showToast } from '../../utils/toast';
 import { formatCurrency } from '../../utils/formatters';
-// Removed unused cn import
 
 interface TenantProfile {
 	first_name?: string;
@@ -221,18 +220,14 @@ const ReviewApplications: React.FC = () => {
 	return (
 		<Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
 			<div>
-				<div className='mb-6'>
-					<p className='text-gray-600'>Manage and review tenant applications</p>
-				</div>
-
 				{error && (
-					<Alert variant='error' className='mb-6'>
+					<Alert variant='destructive' className='mb-6'>
 						{error}
 					</Alert>
 				)}
 
 				{success && (
-					<Alert variant='success' className='mb-6'>
+					<Alert variant='default' className='mb-6'>
 						{success}
 					</Alert>
 				)}
@@ -241,14 +236,14 @@ const ReviewApplications: React.FC = () => {
 					<div className='flex flex-col md:flex-row justify-between gap-4'>
 						<div className='flex flex-wrap gap-2'>
 							<Button
-								variant={statusFilter === 'all' ? 'primary' : 'outline'}
+								variant={statusFilter === 'all' ? 'default' : 'outline'}
 								size='sm'
 								onClick={() => setStatusFilter('all')}
 							>
 								All Status
 							</Button>
 							<Button
-								variant={statusFilter === 'pending' ? 'primary' : 'outline'}
+								variant={statusFilter === 'pending' ? 'default' : 'outline'}
 								size='sm'
 								onClick={() => setStatusFilter('pending')}
 							>
@@ -256,7 +251,7 @@ const ReviewApplications: React.FC = () => {
 								Pending
 							</Button>
 							<Button
-								variant={statusFilter === 'approved' ? 'primary' : 'outline'}
+								variant={statusFilter === 'approved' ? 'default' : 'outline'}
 								size='sm'
 								onClick={() => setStatusFilter('approved')}
 							>
@@ -264,7 +259,7 @@ const ReviewApplications: React.FC = () => {
 								Approved
 							</Button>
 							<Button
-								variant={statusFilter === 'rejected' ? 'primary' : 'outline'}
+								variant={statusFilter === 'rejected' ? 'default' : 'outline'}
 								size='sm'
 								onClick={() => setStatusFilter('rejected')}
 							>
@@ -364,10 +359,10 @@ const ReviewApplications: React.FC = () => {
 													<Badge
 														variant={
 															application.status === 'approved'
-																? 'success'
+																? 'default'
 																: application.status === 'rejected'
-																? 'danger'
-																: 'warning'
+																? 'destructive'
+																: 'default'
 														}
 													>
 														{application.status.toUpperCase()}
@@ -435,10 +430,10 @@ const ReviewApplications: React.FC = () => {
 								<Badge
 									variant={
 										selectedApplication.status === 'approved'
-											? 'success'
+											? 'default'
 											: selectedApplication.status === 'rejected'
-											? 'danger'
-											: 'warning'
+											? 'destructive'
+											: 'default'
 									}
 								>
 									{selectedApplication.status.toUpperCase()}
@@ -587,7 +582,7 @@ const ReviewApplications: React.FC = () => {
 									{selectedApplication.status === 'pending' && (
 										<>
 											<Button
-												variant='primary'
+												variant='default'
 												size='sm'
 												onClick={() =>
 													handleStatusChange(
@@ -601,7 +596,7 @@ const ReviewApplications: React.FC = () => {
 												Approve
 											</Button>
 											<Button
-												variant='danger'
+												variant='destructive'
 												size='sm'
 												onClick={() =>
 													handleStatusChange(

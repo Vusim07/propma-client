@@ -1,5 +1,5 @@
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import Alert from '@/components/ui/Alert';
+import { Alert } from '@/components/ui/alert';
 import { User } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
 
@@ -67,7 +67,7 @@ const TenantInfoCard = ({ tenantProfile, createdAt }: TenantInfoCardProps) => {
 						</div>
 					</div>
 				) : (
-					<Alert variant='info'>
+					<Alert variant='default'>
 						Tenant profile information not available.
 					</Alert>
 				)}

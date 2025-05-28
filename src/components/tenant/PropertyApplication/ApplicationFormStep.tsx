@@ -1,7 +1,6 @@
-// PropertyApplicationComponents/ApplicationFormStep.tsx
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/Textarea';
-import Button from '@/components/ui/Button';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 
 interface ApplicationFormData {
 	employer: string;

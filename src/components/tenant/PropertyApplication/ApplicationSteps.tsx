@@ -1,6 +1,5 @@
-// PropertyApplicationComponents/ApplicationSteps.tsx
 import { Link } from 'react-router-dom';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 export const ApplicationSteps = () => (
 	<div className='flex flex-col sm:flex-row gap-4'>

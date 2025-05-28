@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import Alert from '@/components/ui/Alert';
+import { Alert } from '@/components/ui/alert';
 import DocumentViewerSheet from '@/components/agent/DocumentViewerSheet';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { FileText, Eye } from 'lucide-react';
 
 interface DocumentAnalysisCardProps {
@@ -70,7 +70,7 @@ const DocumentAnalysisCard = ({ documents }: DocumentAnalysisCardProps) => {
 						))}
 					</div>
 				) : (
-					<Alert variant='info'>No documents found for this tenant.</Alert>
+					<Alert variant='default'>No documents found for this tenant.</Alert>
 				)}
 			</CardContent>
 		</Card>

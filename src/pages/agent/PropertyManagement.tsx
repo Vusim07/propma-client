@@ -1,13 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { useAgentStore } from '../../stores/agentStore';
 import { usePageTitle } from '../../context/PageTitleContext';
-import { Card, CardContent } from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import Spinner from '@/components/ui/Spinner';
-import Badge from '@/components/ui/Badge';
-import Alert from '@/components/ui/Alert';
+import { Badge } from '@/components/ui/badge';
+import { Alert } from '@/components/ui/alert';
 import {
 	Home,
 	Plus,
@@ -133,9 +134,7 @@ const PropertyManagement: React.FC = () => {
 		setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
 	};
 
-	const getStatusBadgeVariant = (
-		status: PropertyViewModel['status'],
-	): string => {
+	const getStatusBadgeVariant = (status: PropertyViewModel['status']): any => {
 		switch (status) {
 			case 'available':
 				return 'success';
@@ -153,15 +152,11 @@ const PropertyManagement: React.FC = () => {
 	return (
 		<div>
 			<div className='mb-6 flex flex-col md:flex-row md:items-center md:justify-between'>
-				<div>
-					<p className='text-gray-600 mt-1'>
-						Manage your rental properties and listings
-					</p>
-				</div>
 				<div className='mt-4 md:mt-0'>
 					<Button
 						onClick={() => navigate('/agent/properties/new')}
-						className='bg-primary-500 text-white hover:bg-primary-600'
+						className='bg-primary text-white hover:bg-primary-600'
+						variant='default'
 					>
 						<Plus size={16} className='mr-2' />
 						Add New Property
@@ -170,7 +165,7 @@ const PropertyManagement: React.FC = () => {
 			</div>
 
 			{error && (
-				<Alert variant='error' className='mb-6'>
+				<Alert variant='destructive' className='mb-6'>
 					{error}
 				</Alert>
 			)}
@@ -180,35 +175,35 @@ const PropertyManagement: React.FC = () => {
 				<div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
 					<div className='flex flex-wrap gap-2'>
 						<Button
-							variant={statusFilter === 'all' ? 'primary' : 'outline'}
+							variant={statusFilter === 'all' ? 'default' : 'outline'}
 							size='sm'
 							onClick={() => setStatusFilter('all')}
 						>
 							All
 						</Button>
 						<Button
-							variant={statusFilter === 'available' ? 'primary' : 'outline'}
+							variant={statusFilter === 'available' ? 'default' : 'outline'}
 							size='sm'
 							onClick={() => setStatusFilter('available')}
 						>
 							Available
 						</Button>
 						<Button
-							variant={statusFilter === 'rented' ? 'primary' : 'outline'}
+							variant={statusFilter === 'rented' ? 'default' : 'outline'}
 							size='sm'
 							onClick={() => setStatusFilter('rented')}
 						>
 							Rented
 						</Button>
 						<Button
-							variant={statusFilter === 'maintenance' ? 'primary' : 'outline'}
+							variant={statusFilter === 'maintenance' ? 'default' : 'outline'}
 							size='sm'
 							onClick={() => setStatusFilter('maintenance')}
 						>
 							Maintenance
 						</Button>
 						<Button
-							variant={statusFilter === 'inactive' ? 'primary' : 'outline'}
+							variant={statusFilter === 'inactive' ? 'default' : 'outline'}
 							size='sm'
 							onClick={() => setStatusFilter('inactive')}
 						>
@@ -366,7 +361,7 @@ const PropertyManagement: React.FC = () => {
 										to={`/agent/properties/${property.id}/edit`}
 										className='flex-1'
 									>
-										<Button variant='primary' size='sm' className='w-full'>
+										<Button variant='default' size='sm' className='w-full'>
 											Edit
 										</Button>
 									</Link>
@@ -389,7 +384,7 @@ const PropertyManagement: React.FC = () => {
 						</p>
 						{properties.length === 0 && (
 							<Button
-								variant='primary'
+								variant='default'
 								className='mt-4'
 								onClick={() => navigate('/agent/properties/new')}
 							>
