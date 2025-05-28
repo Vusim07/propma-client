@@ -127,7 +127,14 @@ const Register: React.FC = () => {
 				<Button
 					type='button'
 					variant='outline'
-					onClick={() => loginWithSocial('google')}
+					onClick={() => {
+						if (isPropertyFlow) {
+							const redirectPath =
+								window.location.pathname + window.location.search;
+							sessionStorage.setItem('auth_return_path', redirectPath);
+						}
+						loginWithSocial('google');
+					}}
 					disabled={isLoading}
 					className='w-full flex items-center justify-center'
 				>
