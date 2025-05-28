@@ -329,7 +329,7 @@ const WorkflowManagement: React.FC = () => {
 				</p>
 			</div>
 
-			{error && (
+			{/* {error && (
 				<Alert variant='error' className='mb-6'>
 					{error.includes('relation') ? (
 						<>
@@ -340,9 +340,9 @@ const WorkflowManagement: React.FC = () => {
 						</>
 					) : (
 						error
-					)}
+					)};
 				</Alert>
-			)}
+			)} */}
 
 			{success && (
 				<Alert variant='success' className='mb-6'>
