@@ -12,6 +12,19 @@ import {
 	Subscription,
 } from '../types';
 
+/**
+ * @deprecated The email workflow and Gmail integration system is being deprecated in favor of a new dedicated inbox system.
+ * The new system will use custom email addresses (@n.agentamara.com) instead of Gmail integration.
+ *
+ * Migration Guide:
+ * - New Implementation: New Inbox feature with dedicated email addresses
+ * - Key Changes:
+ *   - No more Gmail integration required
+ *   - Users get a dedicated @n.agentamara.com email address
+ *   - Simplified email handling for listing site inquiries
+ * - Contact: [Your team contact]
+ */
+
 // Define CalendarIntegration type
 export interface CalendarIntegration {
 	id: string;
@@ -48,7 +61,6 @@ export interface GmailMessage {
 	threadId?: string;
 }
 
-// Add proper typing for the database workflow fields
 interface WorkflowUpdateFields {
 	name?: string;
 	active?: boolean; // This is the database field name, not is_active
@@ -58,7 +70,6 @@ interface WorkflowUpdateFields {
 	email_template?: string;
 }
 
-// Helper function to diagnose database schema issues
 const logTableSchema = async (
 	tableName:
 		| 'applications'
@@ -115,19 +126,47 @@ interface AgentState {
 	updateProperty: (id: string, updates: Partial<Property>) => Promise<void>;
 	deleteProperty: (id: string) => Promise<void>;
 	generateApplicationLink: (propertyId: string) => Promise<string>;
+	/**
+	 * @deprecated This function is deprecated. The email workflow system is being replaced with a new inbox system.
+	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 */
 	fetchWorkflows: (agentId: string) => Promise<void>;
+	/**
+	 * @deprecated This function is deprecated. The email workflow system is being replaced with a new inbox system.
+	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 */
 	createWorkflow: (
 		workflow: Omit<InsertEmailWorkflow, 'id' | 'created_at' | 'updated_at'>,
 	) => Promise<void>;
+	/**
+	 * @deprecated This function is deprecated. The email workflow system is being replaced with a new inbox system.
+	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 */
 	updateWorkflow: (
 		id: string,
 		updates: Partial<EmailWorkflow>,
 	) => Promise<void>;
+	/**
+	 * @deprecated This function is deprecated. The email workflow system is being replaced with a new inbox system.
+	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 */
 	deleteWorkflow: (id: string) => Promise<void>;
+	/**
+	 * @deprecated This function is deprecated. The email workflow system is being replaced with a new inbox system.
+	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 */
 	fetchWorkflowLogs: (workflowId?: string) => Promise<void>;
 	fetchAppointments: (agentId: string) => Promise<void>;
 	fetchSubscriptions: (userId: string) => Promise<Subscription | null>;
+	/**
+	 * @deprecated This function is deprecated. The Gmail integration is being replaced with a new inbox system.
+	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 */
 	fetchEmailIntegration: (userId: string) => Promise<EmailIntegration | null>;
+	/**
+	 * @deprecated This function is deprecated. The Gmail integration is being replaced with a new inbox system.
+	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 */
 	connectEmailIntegration: (
 		userId: string,
 		provider: string,
@@ -138,6 +177,10 @@ interface AgentState {
 			email_address?: string;
 		},
 	) => Promise<EmailIntegration>;
+	/**
+	 * @deprecated This function is deprecated. The Gmail integration is being replaced with a new inbox system.
+	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 */
 	disconnectEmailIntegration: (integrationId: string) => Promise<void>;
 	diagnosticCheck: () => Promise<void>;
 
@@ -148,8 +191,15 @@ interface AgentState {
 	connectGoogleCalendar: (userId: string) => Promise<{ url: string }>;
 	disconnectCalendar: (integrationId: string) => Promise<void>;
 
-	// Gmail integration functions
+	/**
+	 * @deprecated This function is deprecated. The Gmail integration is being replaced with a new inbox system.
+	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 */
 	fetchGmailMessages: () => Promise<GmailMessage[]>;
+	/**
+	 * @deprecated This function is deprecated. The Gmail integration is being replaced with a new inbox system.
+	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 */
 	sendGmailMessage: (
 		to: string,
 		subject: string,
@@ -434,7 +484,14 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 		}
 	},
 
+	/**
+	 * @deprecated This function is deprecated. The email workflow system is being replaced with a new inbox system.
+	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 */
 	fetchWorkflows: async (agentId) => {
+		console.warn(
+			'DEPRECATED: fetchWorkflows is deprecated. The email workflow system is being replaced with a new inbox system using @n.agentamara.com addresses.',
+		);
 		set((state) => ({
 			loadingCount: state.loadingCount + 1,
 			isLoading: true,
@@ -459,7 +516,14 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 		}
 	},
 
+	/**
+	 * @deprecated This function is deprecated. The email workflow system is being replaced with a new inbox system.
+	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 */
 	createWorkflow: async (workflow) => {
+		console.warn(
+			'DEPRECATED: createWorkflow is deprecated. The email workflow system is being replaced with a new inbox system using @n.agentamara.com addresses.',
+		);
 		set({ isLoading: true, error: null });
 		try {
 			const { data, error } = await supabase
@@ -479,7 +543,14 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 		}
 	},
 
+	/**
+	 * @deprecated This function is deprecated. The email workflow system is being replaced with a new inbox system.
+	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 */
 	updateWorkflow: async (id, updates) => {
+		console.warn(
+			'DEPRECATED: updateWorkflow is deprecated. The email workflow system is being replaced with a new inbox system using @n.agentamara.com addresses.',
+		);
 		set({ isLoading: true, error: null });
 		try {
 			// Transform updates to match database fields
@@ -514,7 +585,14 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 		}
 	},
 
+	/**
+	 * @deprecated This function is deprecated. The email workflow system is being replaced with a new inbox system.
+	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 */
 	deleteWorkflow: async (id) => {
+		console.warn(
+			'DEPRECATED: deleteWorkflow is deprecated. The email workflow system is being replaced with a new inbox system using @n.agentamara.com addresses.',
+		);
 		set({ isLoading: true, error: null });
 		try {
 			const { error } = await supabase
@@ -533,7 +611,14 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 		}
 	},
 
+	/**
+	 * @deprecated This function is deprecated. The email workflow system is being replaced with a new inbox system.
+	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 */
 	fetchWorkflowLogs: async (workflowId) => {
+		console.warn(
+			'DEPRECATED: fetchWorkflowLogs is deprecated. The email workflow system is being replaced with a new inbox system using @n.agentamara.com addresses.',
+		);
 		set((state) => ({
 			loadingCount: state.loadingCount + 1,
 			isLoading: true,
@@ -658,8 +743,14 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 		}
 	},
 
-	// Add fetchEmailIntegration function
+	/**
+	 * @deprecated This function is deprecated. The Gmail integration is being replaced with a new inbox system.
+	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 */
 	fetchEmailIntegration: async (userId) => {
+		console.warn(
+			'DEPRECATED: fetchEmailIntegration is deprecated. The Gmail integration is being replaced with a new inbox system using @n.agentamara.com addresses.',
+		);
 		set({ isLoading: true, error: null });
 		try {
 			const { data, error } = await supabase
@@ -676,8 +767,14 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 		}
 	},
 
-	// Add connectEmailIntegration function
+	/**
+	 * @deprecated This function is deprecated. The Gmail integration is being replaced with a new inbox system.
+	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 */
 	connectEmailIntegration: async (userId, provider, tokens) => {
+		console.warn(
+			'DEPRECATED: connectEmailIntegration is deprecated. The Gmail integration is being replaced with a new inbox system using @n.agentamara.com addresses.',
+		);
 		set({ isLoading: true, error: null });
 		try {
 			const { data, error } = await supabase
@@ -701,8 +798,14 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 		}
 	},
 
-	// Add disconnectEmailIntegration function
+	/**
+	 * @deprecated This function is deprecated. The Gmail integration is being replaced with a new inbox system.
+	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 */
 	disconnectEmailIntegration: async (integrationId) => {
+		console.warn(
+			'DEPRECATED: disconnectEmailIntegration is deprecated. The Gmail integration is being replaced with a new inbox system using @n.agentamara.com addresses.',
+		);
 		set({ isLoading: true, error: null });
 		try {
 			const { error } = await supabase
@@ -717,27 +820,101 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 		}
 	},
 
-	// Add a diagnostic function to help troubleshoot database issues
-	diagnosticCheck: async () => {
+	/**
+	 * @deprecated This function is deprecated. The Gmail integration is being replaced with a new inbox system.
+	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 */
+	fetchGmailMessages: async () => {
+		console.warn(
+			'DEPRECATED: fetchGmailMessages is deprecated. The Gmail integration is being replaced with a new inbox system using @n.agentamara.com addresses.',
+		);
+		set({ isLoading: true, error: null });
 		try {
-			await logTableSchema('applications');
-			await logTableSchema('properties');
-			await logTableSchema('tenant_profiles');
-			await logTableSchema('users');
-			await logTableSchema('appointments'); // Check appointments table too
-			await logTableSchema('email_workflows');
-			await logTableSchema('workflow_logs');
+			const { data: sessionData, error: sessionError } =
+				await supabase.auth.getSession();
+			if (sessionError || !sessionData?.session?.access_token)
+				throw new Error('Session expired');
+			const response = await fetch(
+				`${
+					import.meta.env.VITE_SUPABASE_FUNCTIONS_URL
+				}/email-gmail-list-messages`,
+				{
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${sessionData.session.access_token}`,
+						apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+					},
+				},
+			);
+			if (!response.ok) throw new Error(await response.text());
+			const { emails } = await response.json();
+			set({ isLoading: false });
+			return emails as GmailMessage[];
+		} catch (error: any) {
+			set({
+				error: error.message || 'Failed to fetch Gmail messages',
+				isLoading: false,
+			});
+			return [];
+		}
+	},
 
-			// Test a simple query to check RLS policies
-			const { error } = await supabase
-				.from('applications')
-				.select('count')
-				.single();
-			if (error) {
-				console.error('RLS policy test error:', error);
-			}
-		} catch (err) {
-			console.error('Diagnostic check failed:', err);
+	/**
+	 * @deprecated This function is deprecated. The Gmail integration is being replaced with a new inbox system.
+	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 */
+	sendGmailMessage: async (to, subject, body) => {
+		console.warn(
+			'DEPRECATED: sendGmailMessage is deprecated. The Gmail integration is being replaced with a new inbox system using @n.agentamara.com addresses.',
+		);
+		set({ isLoading: true, error: null });
+		try {
+			const { data: sessionData, error: sessionError } =
+				await supabase.auth.getSession();
+			if (sessionError || !sessionData?.session?.access_token)
+				throw new Error('Session expired');
+			const response = await fetch(
+				`${
+					import.meta.env.VITE_SUPABASE_FUNCTIONS_URL
+				}/email-gmail-send-message`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${sessionData.session.access_token}`,
+						apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+					},
+					body: JSON.stringify({ to, subject, body }),
+				},
+			);
+			if (!response.ok) throw new Error(await response.text());
+			set({ isLoading: false });
+			return true;
+		} catch (error: any) {
+			set({
+				error: error.message || 'Failed to send Gmail message',
+				isLoading: false,
+			});
+			return false;
+		}
+	},
+
+	// Add fetchSubscriptionChanges function
+	fetchSubscriptionChanges: async (subscriptionId) => {
+		try {
+			const { data, error } = await supabase
+				.from('subscription_changes')
+				.select('*')
+				.eq('subscription_id', subscriptionId)
+				.order('created_at', { ascending: false });
+
+			if (error) throw error;
+			return data;
+		} catch (error) {
+			console.error('Error fetching subscription changes:', error);
+			set({ error: 'Failed to load subscription changes' });
+			return [];
 		}
 	},
 
@@ -835,88 +1012,27 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 		}
 	},
 
-	// Add Gmail integration functions
-	fetchGmailMessages: async () => {
-		set({ isLoading: true, error: null });
+	// Add a diagnostic function to help troubleshoot database issues
+	diagnosticCheck: async () => {
 		try {
-			const { data: sessionData, error: sessionError } =
-				await supabase.auth.getSession();
-			if (sessionError || !sessionData?.session?.access_token)
-				throw new Error('Session expired');
-			const response = await fetch(
-				`${
-					import.meta.env.VITE_SUPABASE_FUNCTIONS_URL
-				}/email-gmail-list-messages`,
-				{
-					method: 'GET',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${sessionData.session.access_token}`,
-						apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-					},
-				},
-			);
-			if (!response.ok) throw new Error(await response.text());
-			const { emails } = await response.json();
-			set({ isLoading: false });
-			return emails as GmailMessage[];
-		} catch (error: any) {
-			set({
-				error: error.message || 'Failed to fetch Gmail messages',
-				isLoading: false,
-			});
-			return [];
-		}
-	},
+			await logTableSchema('applications');
+			await logTableSchema('properties');
+			await logTableSchema('tenant_profiles');
+			await logTableSchema('users');
+			await logTableSchema('appointments'); // Check appointments table too
+			await logTableSchema('email_workflows');
+			await logTableSchema('workflow_logs');
 
-	sendGmailMessage: async (to, subject, body) => {
-		set({ isLoading: true, error: null });
-		try {
-			const { data: sessionData, error: sessionError } =
-				await supabase.auth.getSession();
-			if (sessionError || !sessionData?.session?.access_token)
-				throw new Error('Session expired');
-			const response = await fetch(
-				`${
-					import.meta.env.VITE_SUPABASE_FUNCTIONS_URL
-				}/email-gmail-send-message`,
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${sessionData.session.access_token}`,
-						apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-					},
-					body: JSON.stringify({ to, subject, body }),
-				},
-			);
-			if (!response.ok) throw new Error(await response.text());
-			set({ isLoading: false });
-			return true;
-		} catch (error: any) {
-			set({
-				error: error.message || 'Failed to send Gmail message',
-				isLoading: false,
-			});
-			return false;
-		}
-	},
-
-	// Add fetchSubscriptionChanges function
-	fetchSubscriptionChanges: async (subscriptionId) => {
-		try {
-			const { data, error } = await supabase
-				.from('subscription_changes')
-				.select('*')
-				.eq('subscription_id', subscriptionId)
-				.order('created_at', { ascending: false });
-
-			if (error) throw error;
-			return data;
-		} catch (error) {
-			console.error('Error fetching subscription changes:', error);
-			set({ error: 'Failed to load subscription changes' });
-			return [];
+			// Test a simple query to check RLS policies
+			const { error } = await supabase
+				.from('applications')
+				.select('count')
+				.single();
+			if (error) {
+				console.error('RLS policy test error:', error);
+			}
+		} catch (err) {
+			console.error('Diagnostic check failed:', err);
 		}
 	},
 }));

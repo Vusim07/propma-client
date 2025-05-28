@@ -7,12 +7,13 @@ import {
 	Calendar,
 	LogOut,
 	User,
-	Workflow,
 	Home as HomeIcon,
 	ChevronLeft,
 	ChevronRight,
 	Menu,
 	LayoutDashboard,
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	Inbox,
 } from 'lucide-react';
 import Button from '../ui/Button';
 
@@ -53,11 +54,11 @@ const AgentLayout: React.FC = () => {
 			icon: <Calendar size={20} />,
 			label: 'Appointments',
 		},
-		{
-			to: '/agent/workflows',
-			icon: <Workflow size={20} />,
-			label: 'Workflows',
-		},
+		// {
+		// 	to: '/agent/inbox',
+		// 	icon: <Inbox size={20} />,
+		// 	label: 'Inbox',
+		// },
 		{
 			to: '/agent/settings',
 			icon: <User size={20} />,

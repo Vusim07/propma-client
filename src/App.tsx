@@ -33,7 +33,6 @@ import AgentDashboard from './pages/agent/Dashboard';
 import ReviewApplications from './pages/agent/ReviewApplications';
 import DetailedScreening from './pages/agent/DetailedScreening';
 import ManageAppointments from './pages/agent/ManageAppointments';
-import WorkflowManagement from './pages/agent/WorkflowManagement';
 import PropertyManagement from './pages/agent/PropertyManagement';
 import PropertyDetail from './pages/agent/PropertyDetail';
 import PropertyForm from './pages/agent/PropertyForm';
@@ -227,7 +226,7 @@ function App() {
 						<Route path='screening/:id' element={<DetailedScreening />} />
 						<Route path='appointments' element={<ManageAppointments />} />
 						<Route path='calendar-settings' element={<CalendarSettings />} />
-						<Route path='workflows' element={<WorkflowManagement />} />
+
 						<Route path='teams' element={<Teams />} />
 						<Route path='subscription' element={<SubscriptionPage />} />
 						<Route path='settings' element={<Settings />} />

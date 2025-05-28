@@ -1,5 +1,17 @@
 # Email Workflow Processor
 
+> **DEPRECATED**: This function is deprecated and will be removed in a future version.
+> The email workflow system is being replaced with a new inbox system using @n.agentamara.com addresses.
+>
+> ## Migration Guide
+>
+> - New Implementation: New Inbox feature with dedicated email addresses
+> - Key Changes:
+>   - No more Gmail integration required
+>   - Users get a dedicated @n.agentamara.com email address
+>   - Simplified email handling for listing site inquiries
+> - Contact: [Your team contact]
+
 This Supabase Edge Function processes email workflows by checking for new emails that match workflow filters and generating AI-powered responses using Amara AI.
 
 ## Features

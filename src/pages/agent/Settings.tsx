@@ -11,7 +11,6 @@ import {
 import CalendarSettings from './CalendarSettings';
 import SubscriptionPage from './SubscriptionPage';
 import AgentProfileForm from '@/components/agent/AgentProfileForm';
-import InboxIntegration from '@/components/agent/InboxIntegration';
 import Teams from './Teams';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -173,7 +172,6 @@ const Settings: React.FC = () => {
 				<TabsContent value='integrations'>
 					<div className='space-y-4'>
 						<CalendarSettings hideTitle={true} />
-						<InboxIntegration />
 					</div>
 				</TabsContent>
 			</Tabs>

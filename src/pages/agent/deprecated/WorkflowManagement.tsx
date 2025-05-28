@@ -1,7 +1,13 @@
+/**
+ * @deprecated This file is deprecated and will be removed in a future version.
+ * The workflow management functionality has been moved to a new implementation.
+ * Please do not use this component anymore.
+ */
+
 import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../../stores/authStore';
-import { useAgentStore } from '../../stores/agentStore';
-import { usePageTitle } from '../../context/PageTitleContext';
+import { useAuthStore } from '@/stores/authStore';
+import { useAgentStore } from '@/stores/agentStore';
+import { usePageTitle } from '@/context/PageTitleContext';
 
 import {
 	Card,
@@ -32,8 +38,8 @@ import {
 	Home,
 	Link as LinkIcon,
 } from 'lucide-react';
-import { Tables } from '../../services/database.types';
-import InboxIntegration from '@/components/agent/InboxIntegration';
+import { Tables } from '@/services/database.types';
+import InboxIntegration from '@/components/deprecated/InboxIntegration';
 
 interface WorkflowEmailFilter {
 	subject_contains?: string[];
@@ -87,7 +93,6 @@ const WorkflowManagement: React.FC = () => {
 		updateWorkflow,
 		deleteWorkflow,
 		isLoading,
-		error,
 		properties,
 		fetchProperties,
 	} = useAgentStore();

@@ -1,3 +1,9 @@
+/**
+ * @deprecated This file is deprecated and will be removed in a future version.
+ * The Inbox integration functionality has been moved to a new implementation.
+ * Please do not use this component anymore.
+ */
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent } from '../ui/Card';
