@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Star, Flag } from 'lucide-react';
 import EmailMessage from './EmailMessage';
@@ -31,6 +32,16 @@ const getLeadSourceColor = (source: string) => {
 		default:
 			return 'bg-gray-100 text-gray-800';
 	}
+};
+
+// Utility to get initials from a name string
+const getInitials = (name?: string) => {
+	if (!name) return '';
+	const parts = name.trim().split(' ');
+	if (parts.length === 1) return parts[0][0]?.toUpperCase() || '';
+	return (
+		(parts[0][0] || '') + (parts[parts.length - 1][0] || '')
+	).toUpperCase();
 };
 
 const EmailDetail: React.FC<EmailDetailProps> = ({ thread, message }) => {
@@ -74,15 +85,10 @@ const EmailDetail: React.FC<EmailDetailProps> = ({ thread, message }) => {
 			<div className='p-6 border-b border-gray-200'>
 				<div className='flex items-center justify-between mb-4'>
 					<div className='flex items-center gap-3'>
-						<Avatar className='w-12 h-12'>
-							<AvatarImage
-								src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${
-									message.from_name || message.from_address
-								}`}
-								alt={message.from_name || message.from_address}
-							/>
+						<Avatar className='w-10 h-10 rounded-full bg-blue-100'>
 							<AvatarFallback>
-								{(message.from_name || message.from_address).charAt(0)}
+								{getInitials(message.from_name as any) ||
+									message.from_address.charAt(0).toUpperCase()}
 							</AvatarFallback>
 						</Avatar>
 						<div>

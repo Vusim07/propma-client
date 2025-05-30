@@ -1,7 +1,7 @@
 import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { EmailThreadWithRelations } from '@/types/inbox';
 
 interface EmailListProps {
@@ -26,6 +26,16 @@ const getLeadSourceColor = (source: string) => {
 		default:
 			return 'bg-gray-100 text-gray-800';
 	}
+};
+
+// Utility to get initials from a name string
+const getInitials = (name?: string) => {
+	if (!name) return '';
+	const parts = name.trim().split(' ');
+	if (parts.length === 1) return parts[0][0]?.toUpperCase() || '';
+	return (
+		(parts[0][0] || '') + (parts[parts.length - 1][0] || '')
+	).toUpperCase();
 };
 
 const EmailList: React.FC<EmailListProps> = ({
@@ -56,6 +66,7 @@ const EmailList: React.FC<EmailListProps> = ({
 				{threads.map((thread) => {
 					const isUnread = thread.status === 'active';
 					const needsFollowUp = thread.needs_follow_up;
+					const fromName = thread.messages?.[0]?.from_name || '';
 					const fromAddress =
 						thread.messages?.[0]?.from_address || 'Unknown Sender';
 
@@ -70,12 +81,11 @@ const EmailList: React.FC<EmailListProps> = ({
 							onClick={() => onSelectThread(thread.id)}
 						>
 							<div className='flex items-start gap-3'>
-								<Avatar className='w-10 h-10'>
-									<AvatarImage
-										src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${fromAddress}`}
-										alt={fromAddress}
-									/>
-									<AvatarFallback>{fromAddress.charAt(0)}</AvatarFallback>
+								<Avatar className='w-10 h-10  rounded-full bg-blue-100'>
+									<AvatarFallback>
+										{getInitials(fromName) ||
+											fromAddress.charAt(0).toUpperCase()}
+									</AvatarFallback>
 								</Avatar>
 
 								<div className='flex-1 min-w-0'>
