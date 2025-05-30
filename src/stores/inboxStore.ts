@@ -111,7 +111,7 @@ export const useInboxStore = create<InboxState>((set, get) => ({
 			const { data: counts } = await supabase
 				.from('email_threads')
 				.select('status, needs_follow_up', { count: 'exact' })
-				.in('status', ['active'])
+				.in('status', ['received', 'sent', 'draft'])
 				.eq('needs_follow_up', true);
 
 			const response: InboxResponse = {
@@ -125,6 +125,7 @@ export const useInboxStore = create<InboxState>((set, get) => ({
 			};
 
 			set({ threads: response.threads, isLoading: false });
+			console.log('threads', response.threads);
 			return response;
 		} catch (error) {
 			set({ error: (error as Error).message, isLoading: false });
@@ -155,6 +156,8 @@ export const useInboxStore = create<InboxState>((set, get) => ({
 				.single();
 
 			if (error) throw error;
+
+			console.log('Fetched thread in selectThread:', thread);
 
 			// Sort messages by date and get the latest
 			const sortedMessages = thread.messages?.sort(
@@ -229,7 +232,7 @@ export const useInboxStore = create<InboxState>((set, get) => ({
 					.from('email_threads')
 					.insert({
 						subject: draft.subject,
-						status: 'active',
+						status: 'received',
 						priority: 'normal',
 						needs_follow_up: false,
 					})

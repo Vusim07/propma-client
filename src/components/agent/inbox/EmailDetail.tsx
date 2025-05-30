@@ -34,10 +34,28 @@ const getLeadSourceColor = (source: string) => {
 };
 
 const EmailDetail: React.FC<EmailDetailProps> = ({ thread, message }) => {
-	if (!thread || !message) {
+	console.log('EmailDetail props:', { thread, message });
+
+	if (!thread) {
 		return (
 			<div className='flex-1 bg-white flex items-center justify-center'>
 				<p className='text-gray-500'>Select an email to view details</p>
+			</div>
+		);
+	}
+
+	if (!thread.messages || thread.messages.length === 0) {
+		return (
+			<div className='flex-1 bg-white flex items-center justify-center'>
+				<p className='text-gray-500'>No messages in this thread.</p>
+			</div>
+		);
+	}
+
+	if (!message) {
+		return (
+			<div className='flex-1 bg-white flex items-center justify-center'>
+				<p className='text-gray-500'>Select a message to view details</p>
 			</div>
 		);
 	}

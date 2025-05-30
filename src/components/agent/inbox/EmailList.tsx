@@ -2,7 +2,6 @@ import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Paperclip } from 'lucide-react';
 import { EmailThreadWithRelations } from '@/types/inbox';
 
 interface EmailListProps {
@@ -55,12 +54,10 @@ const EmailList: React.FC<EmailListProps> = ({
 		<ScrollArea className='flex-1'>
 			<div className='divide-y divide-gray-100'>
 				{threads.map((thread) => {
-					const latestMessage = thread.last_message;
-					if (!latestMessage) return null;
-
-					const isUnread = !latestMessage.is_read;
-					const hasAttachment = latestMessage.has_attachments;
+					const isUnread = thread.status === 'active';
 					const needsFollowUp = thread.needs_follow_up;
+					const fromAddress =
+						thread.messages?.[0]?.from_address || 'Unknown Sender';
 
 					return (
 						<div
@@ -75,16 +72,10 @@ const EmailList: React.FC<EmailListProps> = ({
 							<div className='flex items-start gap-3'>
 								<Avatar className='w-10 h-10'>
 									<AvatarImage
-										src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${
-											latestMessage.from_name || latestMessage.from_address
-										}`}
-										alt={latestMessage.from_name || latestMessage.from_address}
+										src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${fromAddress}`}
+										alt={fromAddress}
 									/>
-									<AvatarFallback>
-										{(
-											latestMessage.from_name || latestMessage.from_address
-										).charAt(0)}
-									</AvatarFallback>
+									<AvatarFallback>{fromAddress.charAt(0)}</AvatarFallback>
 								</Avatar>
 
 								<div className='flex-1 min-w-0'>
@@ -94,10 +85,10 @@ const EmailList: React.FC<EmailListProps> = ({
 												isUnread ? 'text-gray-900' : 'text-gray-700'
 											}`}
 										>
-											{latestMessage.from_name || latestMessage.from_address}
+											{fromAddress}
 										</h3>
 										<span className='text-xs text-gray-500 ml-2'>
-											{new Date(latestMessage.created_at).toLocaleTimeString()}
+											{new Date(thread.last_message_at).toLocaleTimeString()}
 										</span>
 									</div>
 
@@ -109,14 +100,7 @@ const EmailList: React.FC<EmailListProps> = ({
 										>
 											{thread.subject}
 										</p>
-										{hasAttachment && (
-											<Paperclip className='h-3 w-3 text-gray-400' />
-										)}
 									</div>
-
-									<p className='text-sm text-gray-500 truncate mb-2'>
-										{latestMessage.body.substring(0, 100)}...
-									</p>
 
 									<div className='flex items-center gap-2'>
 										{isUnread && (

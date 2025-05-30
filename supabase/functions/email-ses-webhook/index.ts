@@ -79,30 +79,47 @@ async function parseEmailContent(
 	bucket: string,
 	key: string,
 ): Promise<ParsedEmailContent> {
+	function decodeContent(content: string, encoding: string): string {
+		if (!encoding) return content;
+		encoding = encoding.toLowerCase();
+		if (encoding === 'base64') {
+			try {
+				return atob(content.replace(/\s/g, ''));
+			} catch {
+				return content;
+			}
+		} else if (encoding === 'quoted-printable') {
+			// Simple quoted-printable decode
+			return content
+				.replace(/=([A-Fa-f0-9]{2})/g, (_, hex) =>
+					String.fromCharCode(parseInt(hex, 16)),
+				)
+				.replace(/=\r?\n/g, '');
+		}
+		return content;
+	}
+	function stripHtml(html: string): string {
+		return html
+			.replace(/<[^>]+>/g, '')
+			.replace(/\s+/g, ' ')
+			.trim();
+	}
 	try {
 		const command = new GetObjectCommand({
 			Bucket: bucket,
 			Key: key,
 		});
-
 		const response = await s3Client.send(command);
-
 		if (!response.Body) {
 			throw new Error('No email content received from S3');
 		}
-
-		// Convert raw message to text
 		const rawMessage = await response.Body.transformToString();
-
-		// Parse headers
 		const headerSection = rawMessage.split('\r\n\r\n')[0];
 		const headers: Record<string, string> = {};
 		const headerLines = headerSection.split('\r\n');
-
 		let currentHeader = '';
 		for (const line of headerLines) {
 			if (line.startsWith(' ') || line.startsWith('\t')) {
-				// Continuation of previous header
 				headers[currentHeader] += ' ' + line.trim();
 			} else {
 				const [name, ...valueParts] = line.split(':');
@@ -112,15 +129,10 @@ async function parseEmailContent(
 				}
 			}
 		}
-
-		// Extract message references for threading
 		const references = headers['references']?.split(/\s+/) || [];
 		const inReplyTo = headers['in-reply-to'];
-
-		// Parse MIME parts
 		const boundaryMatch = headerSection.match(/boundary="?([^";\r\n]+)"?/i);
 		const boundary = boundaryMatch ? boundaryMatch[1] : null;
-
 		let body = '';
 		let htmlBody: string | null = null;
 		const attachments: Array<{
@@ -128,47 +140,46 @@ async function parseEmailContent(
 			contentType: string;
 			content: Uint8Array;
 		}> = [];
-
+		let foundPlain = false;
 		if (boundary) {
 			const parts = rawMessage.split(`--${boundary}`);
 			for (const part of parts) {
-				const partHeaders = part.split('\r\n\r\n')[0];
-				const partContent = part.split('\r\n\r\n')[1];
-
-				if (!partContent) continue;
-
+				const [partHeadersRaw, ...contentArr] = part.split('\r\n\r\n');
+				const partContentRaw = contentArr.join('\r\n\r\n');
+				if (!partContentRaw) continue;
 				const contentType =
-					partHeaders
+					partHeadersRaw
 						.match(/Content-Type:\s*([^;\r\n]+)/i)?.[1]
 						?.toLowerCase() || '';
 				const contentDisposition =
-					partHeaders
+					partHeadersRaw
 						.match(/Content-Disposition:\s*([^;\r\n]+)/i)?.[1]
 						?.toLowerCase() || '';
-				const filename = partHeaders.match(/filename="?([^";\r\n]+)"?/i)?.[1];
-
+				const filename = partHeadersRaw.match(
+					/filename="?([^";\r\n]+)"?/i,
+				)?.[1];
+				const encoding =
+					partHeadersRaw
+						.match(/Content-Transfer-Encoding:\s*([^;\r\n]+)/i)?.[1]
+						?.toLowerCase() || '';
+				const partContent = decodeContent(partContentRaw.trim(), encoding);
 				if (contentDisposition.includes('attachment') && filename) {
-					// Handle attachment
-					const content = new TextEncoder().encode(partContent);
-					attachments.push({
-						filename,
-						contentType,
-						content,
-					});
-				} else if (contentType.includes('text/plain')) {
-					// Handle plain text
-					body = partContent.trim();
-				} else if (contentType.includes('text/html')) {
-					// Handle HTML
-					htmlBody = partContent.trim();
+					const content = new TextEncoder().encode(partContentRaw);
+					attachments.push({ filename, contentType, content });
+				} else if (contentType.includes('text/plain') && !foundPlain) {
+					body = partContent;
+					foundPlain = true;
+				} else if (contentType.includes('text/html') && !htmlBody) {
+					htmlBody = partContent;
 				}
 			}
 		} else {
-			// Simple message without MIME parts
 			const bodyMatch = rawMessage.match(/\r?\n\r?\n([\s\S]*)$/);
 			body = bodyMatch ? bodyMatch[1].trim() : '';
 		}
-
+		if (!body && htmlBody) {
+			body = stripHtml(htmlBody);
+		}
 		return {
 			body,
 			htmlBody,
