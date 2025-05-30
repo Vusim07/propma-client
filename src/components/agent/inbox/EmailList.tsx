@@ -1,112 +1,158 @@
-
-import React from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Paperclip } from "lucide-react";
-
-interface Email {
-  id: string;
-  sender: string;
-  email: string;
-  subject: string;
-  preview: string;
-  time: string;
-  isUnread: boolean;
-  hasAttachment: boolean;
-  avatar: string;
-  leadSource?: string;
-  needsFollowUp?: boolean;
-}
+import React from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Paperclip } from 'lucide-react';
+import { EmailThreadWithRelations } from '@/types/inbox';
 
 interface EmailListProps {
-  emails: Email[];
-  selectedEmail: Email | null;
-  onSelectEmail: (email: Email) => void;
+	threads: EmailThreadWithRelations[];
+	selectedThread: EmailThreadWithRelations | null;
+	onSelectThread: (threadId: string) => void;
+	isLoading?: boolean;
 }
 
 const getLeadSourceColor = (source: string) => {
-  switch (source.toLowerCase()) {
-    case 'property24':
-      return 'bg-blue-100 text-blue-800';
-    case 'privateproperty':
-      return 'bg-green-100 text-green-800';
-    case 'gumtree':
-      return 'bg-orange-100 text-orange-800';
-    case 'olx':
-      return 'bg-purple-100 text-purple-800';
-    case 'website':
-      return 'bg-gray-100 text-gray-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
+	switch (source.toLowerCase()) {
+		case 'property24':
+			return 'bg-blue-100 text-blue-800';
+		case 'privateproperty':
+			return 'bg-green-100 text-green-800';
+		case 'gumtree':
+			return 'bg-orange-100 text-orange-800';
+		case 'olx':
+			return 'bg-purple-100 text-purple-800';
+		case 'website':
+			return 'bg-gray-100 text-gray-800';
+		default:
+			return 'bg-gray-100 text-gray-800';
+	}
 };
 
-const EmailList: React.FC<EmailListProps> = ({ emails, selectedEmail, onSelectEmail }) => {
-  return (
-    <ScrollArea className="flex-1">
-      <div className="divide-y divide-gray-100">
-        {emails.map((email) => (
-          <div
-            key={email.id}
-            className={`p-4 cursor-pointer hover:bg-gray-50 ${
-              selectedEmail?.id === email.id ? "bg-blue-50 border-r-2 border-blue-600" : ""
-            }`}
-            onClick={() => onSelectEmail(email)}
-          >
-            <div className="flex items-start gap-3">
-              <Avatar className="w-10 h-10">
-                <AvatarImage src={email.avatar} alt={email.sender} />
-                <AvatarFallback>{email.sender.charAt(0)}</AvatarFallback>
-              </Avatar>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-1">
-                  <h3 className={`text-sm font-medium truncate ${
-                    email.isUnread ? "text-gray-900" : "text-gray-700"
-                  }`}>
-                    {email.sender}
-                  </h3>
-                  <span className="text-xs text-gray-500 ml-2">{email.time}</span>
-                </div>
-                
-                <div className="flex items-center gap-2 mb-1">
-                  <p className={`text-sm truncate ${
-                    email.isUnread ? "font-medium text-gray-900" : "text-gray-700"
-                  }`}>
-                    {email.subject}
-                  </p>
-                  {email.hasAttachment && (
-                    <Paperclip className="h-3 w-3 text-gray-400" />
-                  )}
-                </div>
-                
-                <p className="text-sm text-gray-500 truncate mb-2">{email.preview}</p>
-                
-                <div className="flex items-center gap-2">
-                  {email.isUnread && (
-                    <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
-                      New
-                    </Badge>
-                  )}
-                  {email.needsFollowUp && (
-                    <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs">
-                      Follow-up
-                    </Badge>
-                  )}
-                  {email.leadSource && (
-                    <Badge className={`text-xs ${getLeadSourceColor(email.leadSource)}`}>
-                      {email.leadSource}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </ScrollArea>
-  );
+const EmailList: React.FC<EmailListProps> = ({
+	threads,
+	selectedThread,
+	onSelectThread,
+	isLoading = false,
+}) => {
+	if (isLoading) {
+		return (
+			<ScrollArea className='flex-1'>
+				<div className='p-4 text-center text-gray-500'>Loading threads...</div>
+			</ScrollArea>
+		);
+	}
+
+	if (threads.length === 0) {
+		return (
+			<ScrollArea className='flex-1'>
+				<div className='p-4 text-center text-gray-500'>No threads found</div>
+			</ScrollArea>
+		);
+	}
+
+	return (
+		<ScrollArea className='flex-1'>
+			<div className='divide-y divide-gray-100'>
+				{threads.map((thread) => {
+					const latestMessage = thread.last_message;
+					if (!latestMessage) return null;
+
+					const isUnread = !latestMessage.is_read;
+					const hasAttachment = latestMessage.has_attachments;
+					const needsFollowUp = thread.needs_follow_up;
+
+					return (
+						<div
+							key={thread.id}
+							className={`p-4 cursor-pointer hover:bg-gray-50 ${
+								selectedThread?.id === thread.id
+									? 'bg-blue-50 border-r-2 border-blue-600'
+									: ''
+							}`}
+							onClick={() => onSelectThread(thread.id)}
+						>
+							<div className='flex items-start gap-3'>
+								<Avatar className='w-10 h-10'>
+									<AvatarImage
+										src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${
+											latestMessage.from_name || latestMessage.from_address
+										}`}
+										alt={latestMessage.from_name || latestMessage.from_address}
+									/>
+									<AvatarFallback>
+										{(
+											latestMessage.from_name || latestMessage.from_address
+										).charAt(0)}
+									</AvatarFallback>
+								</Avatar>
+
+								<div className='flex-1 min-w-0'>
+									<div className='flex items-center justify-between mb-1'>
+										<h3
+											className={`text-sm font-medium truncate ${
+												isUnread ? 'text-gray-900' : 'text-gray-700'
+											}`}
+										>
+											{latestMessage.from_name || latestMessage.from_address}
+										</h3>
+										<span className='text-xs text-gray-500 ml-2'>
+											{new Date(latestMessage.created_at).toLocaleTimeString()}
+										</span>
+									</div>
+
+									<div className='flex items-center gap-2 mb-1'>
+										<p
+											className={`text-sm truncate ${
+												isUnread ? 'font-medium text-gray-900' : 'text-gray-700'
+											}`}
+										>
+											{thread.subject}
+										</p>
+										{hasAttachment && (
+											<Paperclip className='h-3 w-3 text-gray-400' />
+										)}
+									</div>
+
+									<p className='text-sm text-gray-500 truncate mb-2'>
+										{latestMessage.body.substring(0, 100)}...
+									</p>
+
+									<div className='flex items-center gap-2'>
+										{isUnread && (
+											<Badge
+												variant='secondary'
+												className='bg-green-100 text-green-800 text-xs'
+											>
+												New
+											</Badge>
+										)}
+										{needsFollowUp && (
+											<Badge
+												variant='secondary'
+												className='bg-orange-100 text-orange-800 text-xs'
+											>
+												Follow-up
+											</Badge>
+										)}
+										{thread.lead_source && (
+											<Badge
+												className={`text-xs ${getLeadSourceColor(
+													thread.lead_source,
+												)}`}
+											>
+												{thread.lead_source}
+											</Badge>
+										)}
+									</div>
+								</div>
+							</div>
+						</div>
+					);
+				})}
+			</div>
+		</ScrollArea>
+	);
 };
 
 export default EmailList;

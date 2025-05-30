@@ -229,6 +229,9 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 	fetchApplications: async (agentId, teamId) => {
 		set({ isLoading: true, error: null });
 		try {
+			// Use the currentTeamId from store state if teamId is not provided
+			const currentTeamId = teamId ?? get().currentTeamId;
+
 			let query = supabase.from('applications').select(
 				`
 					*,
@@ -237,9 +240,9 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 				`,
 			);
 
-			if (teamId) {
+			if (currentTeamId) {
 				// If team context, fetch team applications
-				query = query.eq('team_id', teamId);
+				query = query.eq('team_id', currentTeamId);
 			} else {
 				// Otherwise fetch personal applications
 				query = query.eq('agent_id', agentId).is('team_id', null);
@@ -319,11 +322,14 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 		try {
 			set({ isLoading: true, error: null });
 
+			// Use the currentTeamId from store state if teamId is not provided
+			const currentTeamId = teamId ?? get().currentTeamId;
+
 			let query = supabase.from('properties').select('*');
 
-			if (teamId) {
+			if (currentTeamId) {
 				// If team context, fetch team properties
-				query = query.eq('team_id', teamId);
+				query = query.eq('team_id', currentTeamId);
 			} else {
 				// Otherwise fetch personal properties
 				query = query.eq('agent_id', agentId).is('team_id', null);

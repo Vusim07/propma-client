@@ -131,6 +131,7 @@ const ReviewApplications: React.FC = () => {
 		fetchProperties,
 		updateApplicationStatus,
 		isLoading,
+		currentTeamId,
 	} = useAgentStore();
 
 	const [statusFilter, setStatusFilter] = useState<
@@ -147,10 +148,10 @@ const ReviewApplications: React.FC = () => {
 	useEffect(() => {
 		if (user) {
 			setPageTitle('Prospects');
-			fetchApplications(user.id);
-			fetchProperties(user.id);
+			fetchApplications(user.id, currentTeamId);
+			fetchProperties(user.id, currentTeamId);
 		}
-	}, [user, fetchApplications, fetchProperties, setPageTitle]);
+	}, [user, fetchApplications, fetchProperties, setPageTitle, currentTeamId]);
 
 	const handleStatusChange = async (
 		applicationId: string,

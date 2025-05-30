@@ -40,13 +40,14 @@ const AgentDashboard: React.FC = () => {
 		fetchWorkflowLogs,
 		fetchAppointments,
 		isLoading,
+		currentTeamId,
 	} = useAgentStore();
 
 	useEffect(() => {
 		setPageTitle('Dashboard');
 		if (user) {
-			fetchApplications(user.id);
-			fetchProperties(user.id);
+			fetchApplications(user.id, currentTeamId);
+			fetchProperties(user.id, currentTeamId);
 			fetchWorkflowLogs();
 			fetchAppointments(user.id);
 		}
@@ -57,6 +58,7 @@ const AgentDashboard: React.FC = () => {
 		fetchWorkflowLogs,
 		fetchAppointments,
 		setPageTitle,
+		currentTeamId,
 	]);
 
 	if (isLoading) {

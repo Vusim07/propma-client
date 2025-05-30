@@ -1,0 +1,2 @@
+[functions.email-ses-webhook]
+verify_jwt = false  # We'll verify AWS SNS signature instead 

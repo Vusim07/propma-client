@@ -1055,6 +1055,309 @@ export interface Database {
 					};
 				};
 			};
+			team_email_addresses: {
+				Row: {
+					id: string;
+					team_id: string;
+					email_username: string;
+					email_address: string;
+					is_active: boolean;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					id?: string;
+					team_id: string;
+					email_username: string;
+					email_address: string;
+					is_active?: boolean;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					id?: string;
+					team_id?: string;
+					email_username?: string;
+					email_address?: string;
+					is_active?: boolean;
+					created_at?: string;
+					updated_at?: string;
+				};
+			};
+			email_threads: {
+				Row: {
+					id: string;
+					team_id: string;
+					subject: string;
+					last_message_at: string;
+					status: 'active' | 'archived' | 'deleted';
+					priority: 'low' | 'normal' | 'high' | 'urgent';
+					needs_follow_up: boolean;
+					lead_source: string | null;
+					property_id: string | null;
+					tenant_id: string | null;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					id?: string;
+					team_id: string;
+					subject: string;
+					last_message_at?: string;
+					status?: 'active' | 'archived' | 'deleted';
+					priority?: 'low' | 'normal' | 'high' | 'urgent';
+					needs_follow_up?: boolean;
+					lead_source?: string | null;
+					property_id?: string | null;
+					tenant_id?: string | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					id?: string;
+					team_id?: string;
+					subject?: string;
+					last_message_at?: string;
+					status?: 'active' | 'archived' | 'deleted';
+					priority?: 'low' | 'normal' | 'high' | 'urgent';
+					needs_follow_up?: boolean;
+					lead_source?: string | null;
+					property_id?: string | null;
+					tenant_id?: string | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+			};
+			email_messages: {
+				Row: {
+					id: string;
+					thread_id: string;
+					message_id: string;
+					from_address: string;
+					from_name: string | null;
+					to_address: string;
+					subject: string;
+					body: string;
+					body_html: string | null;
+					status:
+						| 'received'
+						| 'sent'
+						| 'draft'
+						| 'archived'
+						| 'deleted'
+						| 'bounced'
+						| 'failed';
+					is_read: boolean;
+					has_attachments: boolean;
+					in_reply_to: string | null;
+					sent_at: string | null;
+					received_at: string | null;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					id?: string;
+					thread_id: string;
+					message_id: string;
+					from_address: string;
+					from_name?: string | null;
+					to_address: string;
+					subject: string;
+					body: string;
+					body_html?: string | null;
+					status?:
+						| 'received'
+						| 'sent'
+						| 'draft'
+						| 'archived'
+						| 'deleted'
+						| 'bounced'
+						| 'failed';
+					is_read?: boolean;
+					has_attachments?: boolean;
+					in_reply_to?: string | null;
+					sent_at?: string | null;
+					received_at?: string | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					id?: string;
+					thread_id?: string;
+					message_id?: string;
+					from_address?: string;
+					from_name?: string | null;
+					to_address?: string;
+					subject?: string;
+					body?: string;
+					body_html?: string | null;
+					status?:
+						| 'received'
+						| 'sent'
+						| 'draft'
+						| 'archived'
+						| 'deleted'
+						| 'bounced'
+						| 'failed';
+					is_read?: boolean;
+					has_attachments?: boolean;
+					in_reply_to?: string | null;
+					sent_at?: string | null;
+					received_at?: string | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+			};
+			email_attachments: {
+				Row: {
+					id: string;
+					message_id: string;
+					file_name: string;
+					file_type: string;
+					file_size: number;
+					storage_path: string;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					id?: string;
+					message_id: string;
+					file_name: string;
+					file_type: string;
+					file_size: number;
+					storage_path: string;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					id?: string;
+					message_id?: string;
+					file_name?: string;
+					file_type?: string;
+					file_size?: number;
+					storage_path?: string;
+					created_at?: string;
+					updated_at?: string;
+				};
+			};
+			email_ai_suggestions: {
+				Row: {
+					id: string;
+					message_id: string;
+					suggestion_type: 'follow_up' | 'response' | 'classification';
+					content: string;
+					confidence_score: number;
+					is_applied: boolean;
+					metadata: Json | null;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					id?: string;
+					message_id: string;
+					suggestion_type: 'follow_up' | 'response' | 'classification';
+					content: string;
+					confidence_score: number;
+					is_applied?: boolean;
+					metadata?: Json | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					id?: string;
+					message_id?: string;
+					suggestion_type?: 'follow_up' | 'response' | 'classification';
+					content?: string;
+					confidence_score?: number;
+					is_applied?: boolean;
+					metadata?: Json | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+			};
+			email_delivery_logs: {
+				Row: {
+					id: string;
+					message_id: string;
+					event_type: string;
+					recipient: string;
+					status: string;
+					error_message: string | null;
+					raw_data: Json | null;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					id?: string;
+					message_id: string;
+					event_type: string;
+					recipient: string;
+					status: string;
+					error_message?: string | null;
+					raw_data?: Json | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					id?: string;
+					message_id?: string;
+					event_type?: string;
+					recipient?: string;
+					status?: string;
+					error_message?: string | null;
+					raw_data?: Json | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+			};
+			email_addresses: {
+				Row: {
+					id: string;
+					user_id: string | null;
+					team_id: string | null;
+					email_address: string;
+					is_active: boolean;
+					is_primary: boolean;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					id?: string;
+					user_id?: string | null;
+					team_id?: string | null;
+					email_address?: string;
+					is_active?: boolean;
+					is_primary?: boolean;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					id?: string;
+					user_id?: string | null;
+					team_id?: string | null;
+					email_address?: string;
+					is_active?: boolean;
+					is_primary?: boolean;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'email_addresses_user_id_fkey';
+						columns: ['user_id'];
+						isOneToOne: false;
+						referencedRelation: 'users';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'email_addresses_team_id_fkey';
+						columns: ['team_id'];
+						isOneToOne: false;
+						referencedRelation: 'teams';
+						referencedColumns: ['id'];
+					},
+				];
+			};
 		};
 		Functions: {
 			save_screening_report: {
