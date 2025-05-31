@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -49,7 +48,7 @@ const EmailDetail: React.FC<EmailDetailProps> = ({ thread, message }) => {
 
 	if (!thread) {
 		return (
-			<div className='flex-1 bg-white flex items-center justify-center'>
+			<div className='flex-1 bg-white flex items-center justify-center p-4'>
 				<p className='text-gray-500'>Select an email to view details</p>
 			</div>
 		);
@@ -57,7 +56,7 @@ const EmailDetail: React.FC<EmailDetailProps> = ({ thread, message }) => {
 
 	if (!thread.messages || thread.messages.length === 0) {
 		return (
-			<div className='flex-1 bg-white flex items-center justify-center'>
+			<div className='flex-1 bg-white flex items-center justify-center p-4'>
 				<p className='text-gray-500'>No messages in this thread.</p>
 			</div>
 		);
@@ -65,7 +64,7 @@ const EmailDetail: React.FC<EmailDetailProps> = ({ thread, message }) => {
 
 	if (!message) {
 		return (
-			<div className='flex-1 bg-white flex items-center justify-center'>
+			<div className='flex-1 bg-white flex items-center justify-center p-4'>
 				<p className='text-gray-500'>Select a message to view details</p>
 			</div>
 		);
@@ -80,30 +79,47 @@ const EmailDetail: React.FC<EmailDetailProps> = ({ thread, message }) => {
 	};
 
 	return (
-		<div className='flex-1 bg-white flex flex-col'>
-			{/* Header */}
-			<div className='p-6 border-b border-gray-200'>
-				<div className='flex items-center justify-between mb-4'>
-					<div className='flex items-center gap-3'>
-						<Avatar className='w-8 h-8 rounded-full bg-blue-100'>
+		<div className='flex-1 bg-white flex flex-col max-h-screen overflow-hidden'>
+			{/* Main header - Hidden on mobile as we use the parent's header */}
+			<div className='hidden md:block border-b border-gray-200'>
+				<div className='px-4 md:px-6 py-4 overflow-hidden'>
+					<div className='flex items-start gap-4 min-w-0'>
+						<Avatar className='w-10 h-10 rounded-full bg-blue-100 flex-shrink-0'>
 							<AvatarFallback>
-								{getInitials(message.from_name as any) ||
+								{getInitials(message.from_name ?? undefined) ||
 									message.from_address.charAt(0).toUpperCase()}
 							</AvatarFallback>
 						</Avatar>
-						<div>
-							<h2 className='text-lg font-semibold text-gray-900'>
+						<div className='flex-1 min-w-0'>
+							<h2 className='text-base font-semibold text-gray-900 truncate'>
 								{message.from_name || message.from_address}
 							</h2>
-							<p className='text-sm text-gray-500'>{message.from_address}</p>
-							<p className='text-sm text-gray-700 mt-1'>{thread.subject}</p>
-							{/* Property reference display */}
+							<p className='text-sm text-gray-600 truncate'>
+								{message.from_address}
+							</p>
+						</div>
+						<div className='flex items-center gap-2 flex-shrink-0'>
+							<Button variant='ghost' size='icon' className='h-9 w-9'>
+								<Star className='h-[18px] w-[18px]' />
+							</Button>
+							<Button variant='ghost' size='icon' className='h-9 w-9'>
+								<Flag className='h-[18px] w-[18px]' />
+							</Button>
+						</div>
+					</div>
+
+					{/* Subject and metadata */}
+					<div className='mt-3 space-y-2'>
+						<h1 className='text-lg font-semibold text-gray-900 break-words'>
+							{thread.subject}
+						</h1>
+
+						<div className='flex flex-wrap items-center gap-2'>
 							{thread.property?.address && (
-								<p className='text-xs text-blue-700 mt-1 truncate'>
+								<div className='text-sm text-blue-700 break-all'>
 									{thread.property.address}
-								</p>
+								</div>
 							)}
-							{/* Application status badge */}
 							{thread.application?.status && (
 								<Badge
 									variant={
@@ -113,62 +129,24 @@ const EmailDetail: React.FC<EmailDetailProps> = ({ thread, message }) => {
 											? 'destructive'
 											: 'secondary'
 									}
-									className='text-xs mt-1'
 								>
 									{thread.application.status.charAt(0).toUpperCase() +
 										thread.application.status.slice(1)}
 								</Badge>
 							)}
 							{thread.lead_source && (
-								<Badge
-									className={`text-xs mt-1 ${getLeadSourceColor(
-										thread.lead_source,
-									)}`}
-								>
+								<Badge className={`${getLeadSourceColor(thread.lead_source)}`}>
 									{thread.lead_source}
 								</Badge>
 							)}
 						</div>
 					</div>
-					<div className='flex items-center gap-2'>
-						<Button variant='ghost' size='icon'>
-							<Star className='h-4 w-4' />
-						</Button>
-						<Button variant='ghost' size='icon'>
-							<Flag className='h-4 w-4' />
-						</Button>
-					</div>
 				</div>
-				{/* Appointment info or schedule action */}
-				{thread.appointment ? (
-					<div className='mt-2'>
-						<Badge className='bg-indigo-100 text-indigo-800 text-xs mr-2'>
-							Viewing: {thread.appointment.date} {thread.appointment.start_time}
-						</Badge>
-						<Badge
-							className={`text-xs ml-1 ${
-								thread.appointment.status === 'scheduled'
-									? 'bg-green-100 text-green-800'
-									: thread.appointment.status === 'completed'
-									? 'bg-gray-100 text-gray-800'
-									: 'bg-red-100 text-red-800'
-							}`}
-						>
-							{thread.appointment.status.charAt(0).toUpperCase() +
-								thread.appointment.status.slice(1)}
-						</Badge>
-					</div>
-				) : (
-					<Button className='mt-2' size='sm' variant='outline'>
-						Schedule Viewing
-					</Button>
-				)}
 			</div>
 
-			{/* Email Content */}
-			<div className='flex-1 p-6 overflow-y-auto'>
-				<div className='space-y-6'>
-					{/* Messages */}
+			{/* Messages Section */}
+			<div className='flex-1 overflow-y-auto'>
+				<div className='px-4 md:px-6 py-4 space-y-6 max-w-full'>
 					{thread.messages?.map((msg) => (
 						<EmailMessage
 							key={msg.id}
@@ -182,7 +160,6 @@ const EmailDetail: React.FC<EmailDetailProps> = ({ thread, message }) => {
 						/>
 					))}
 
-					{/* AI Suggestions */}
 					{message.ai_suggestions?.map((suggestion) => (
 						<AISuggestion
 							key={suggestion.id}
@@ -213,7 +190,11 @@ const EmailDetail: React.FC<EmailDetailProps> = ({ thread, message }) => {
 			</div>
 
 			{/* Reply Box */}
-			<ReplyBox onSend={handleSendMessage} />
+			<div className='border-t border-gray-200 bg-white'>
+				<div className='px-4 md:px-6 py-4 max-w-full'>
+					<ReplyBox onSend={handleSendMessage} />
+				</div>
+			</div>
 		</div>
 	);
 };

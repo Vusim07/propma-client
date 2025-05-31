@@ -69,31 +69,29 @@ const EmailList: React.FC<EmailListProps> = ({
 					const fromName = thread.messages?.[0]?.from_name || '';
 					const fromAddress =
 						thread.messages?.[0]?.from_address || 'Unknown Sender';
-
-					// Property reference and application status
 					const propertyAddress = thread.property?.address;
 					const applicationStatus = thread.application?.status;
 
 					return (
 						<div
 							key={thread.id}
-							className={`p-4 cursor-pointer hover:bg-gray-50 ${
+							className={`p-4 cursor-pointer hover:bg-gray-50 active:bg-gray-100 touch-manipulation ${
 								selectedThread?.id === thread.id
-									? 'bg-blue-50 border-r-2 border-blue-600'
+									? 'bg-blue-50 border-r-2 border-blue-600 md:border-r-2'
 									: ''
 							}`}
 							onClick={() => onSelectThread(thread.id)}
 						>
-							<div className='flex items-start gap-3'>
-								<Avatar className='w-8 h-8 rounded-full bg-blue-100'>
+							<div className='flex items-start gap-4'>
+								<Avatar className='w-10 h-10 md:w-8 md:h-8 rounded-full bg-blue-100 flex-shrink-0'>
 									<AvatarFallback>
 										{getInitials(fromName) ||
 											fromAddress.charAt(0).toUpperCase()}
 									</AvatarFallback>
 								</Avatar>
 
-								<div className='flex-1 min-w-0'>
-									<div className='flex items-center justify-between mb-1'>
+								<div className='flex-1 min-w-0 space-y-1'>
+									<div className='flex items-center justify-between gap-2'>
 										<h3
 											className={`text-sm font-medium truncate ${
 												isUnread ? 'text-gray-900' : 'text-gray-700'
@@ -101,29 +99,26 @@ const EmailList: React.FC<EmailListProps> = ({
 										>
 											{fromAddress}
 										</h3>
-										<span className='text-xs text-gray-500 ml-2'>
+										<span className='text-xs text-gray-500 whitespace-nowrap'>
 											{new Date(thread.last_message_at).toLocaleTimeString()}
 										</span>
 									</div>
 
-									{/* Property reference display */}
 									{propertyAddress && (
-										<p className='text-xs text-blue-700 truncate mb-1'>
+										<p className='text-xs text-blue-700 truncate'>
 											{propertyAddress}
 										</p>
 									)}
 
-									<div className='flex items-center gap-2 mb-1'>
-										<p
-											className={`text-sm truncate ${
-												isUnread ? 'font-medium text-gray-900' : 'text-gray-700'
-											}`}
-										>
-											{thread.subject}
-										</p>
-									</div>
+									<p
+										className={`text-sm truncate ${
+											isUnread ? 'font-medium text-gray-900' : 'text-gray-700'
+										}`}
+									>
+										{thread.subject}
+									</p>
 
-									<div className='flex items-center gap-2'>
+									<div className='flex flex-wrap items-center gap-2 pt-1'>
 										{isUnread && (
 											<Badge
 												variant='secondary'
@@ -140,7 +135,6 @@ const EmailList: React.FC<EmailListProps> = ({
 												Follow-up
 											</Badge>
 										)}
-										{/* Application status badge */}
 										{applicationStatus && (
 											<Badge
 												variant={
@@ -163,17 +157,6 @@ const EmailList: React.FC<EmailListProps> = ({
 												)}`}
 											>
 												{thread.lead_source}
-											</Badge>
-										)}
-										{/* Appointment info or schedule action */}
-										{thread.appointment ? (
-											<Badge className='bg-indigo-100 text-indigo-800 text-xs ml-1'>
-												Viewing: {thread.appointment.date}{' '}
-												{thread.appointment.start_time}
-											</Badge>
-										) : (
-											<Badge className='bg-gray-100 text-gray-800 text-xs ml-1'>
-												No Viewing Scheduled
 											</Badge>
 										)}
 									</div>
