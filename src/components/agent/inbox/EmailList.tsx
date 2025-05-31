@@ -70,6 +70,10 @@ const EmailList: React.FC<EmailListProps> = ({
 					const fromAddress =
 						thread.messages?.[0]?.from_address || 'Unknown Sender';
 
+					// Property reference and application status
+					const propertyAddress = thread.property?.address;
+					const applicationStatus = thread.application?.status;
+
 					return (
 						<div
 							key={thread.id}
@@ -102,6 +106,13 @@ const EmailList: React.FC<EmailListProps> = ({
 										</span>
 									</div>
 
+									{/* Property reference display */}
+									{propertyAddress && (
+										<p className='text-xs text-blue-700 truncate mb-1'>
+											{propertyAddress}
+										</p>
+									)}
+
 									<div className='flex items-center gap-2 mb-1'>
 										<p
 											className={`text-sm truncate ${
@@ -129,6 +140,22 @@ const EmailList: React.FC<EmailListProps> = ({
 												Follow-up
 											</Badge>
 										)}
+										{/* Application status badge */}
+										{applicationStatus && (
+											<Badge
+												variant={
+													applicationStatus === 'approved'
+														? 'default'
+														: applicationStatus === 'rejected'
+														? 'destructive'
+														: 'secondary'
+												}
+												className='text-xs'
+											>
+												{applicationStatus.charAt(0).toUpperCase() +
+													applicationStatus.slice(1)}
+											</Badge>
+										)}
 										{thread.lead_source && (
 											<Badge
 												className={`text-xs ${getLeadSourceColor(
@@ -136,6 +163,17 @@ const EmailList: React.FC<EmailListProps> = ({
 												)}`}
 											>
 												{thread.lead_source}
+											</Badge>
+										)}
+										{/* Appointment info or schedule action */}
+										{thread.appointment ? (
+											<Badge className='bg-indigo-100 text-indigo-800 text-xs ml-1'>
+												Viewing: {thread.appointment.date}{' '}
+												{thread.appointment.start_time}
+											</Badge>
+										) : (
+											<Badge className='bg-gray-100 text-gray-800 text-xs ml-1'>
+												No Viewing Scheduled
 											</Badge>
 										)}
 									</div>

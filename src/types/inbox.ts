@@ -80,6 +80,19 @@ export interface EmailThreadWithRelations extends EmailThread {
 		last_name: string;
 		email: string;
 	};
+	application?: {
+		id: string;
+		status: string;
+		property_id: string;
+		tenant_id: string;
+	};
+	appointment?: {
+		id: string;
+		date: string;
+		start_time: string;
+		end_time: string | null;
+		status: string;
+	};
 	last_message?: EmailMessageWithRelations;
 }
 

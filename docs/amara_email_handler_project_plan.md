@@ -60,9 +60,9 @@ This system leverages **AWS SES** for email delivery and receipt, **Supabase Edg
 
 - [ ] Inbox UI Updates
 
-  - [ ] Property reference display
-  - [ ] Application status integration
-  - [ ] Viewing appointment features
+  - [x] Property reference display
+  - [x] Application status integration
+  - [x] Viewing appointment features
   - [ ] AI suggestion management
   - [ ] Advanced filtering and sorting
   - [ ] Bulk actions implementation

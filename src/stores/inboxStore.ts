@@ -70,16 +70,16 @@ export const useInboxStore = create<InboxState>((set, get) => ({
 				.from('email_threads')
 				.select(
 					`
-          *,
-          messages:email_messages(
-            *,
-            attachments:email_attachments(*),
-            ai_suggestions:email_ai_suggestions(*),
-            delivery_logs:email_delivery_logs(*)
-          ),
-          property:properties(id, address, property_type),
-          tenant:tenant_profiles(id, first_name, last_name, email)
-        `,
+				*,
+				messages:email_messages(
+					*,
+					attachments:email_attachments(*),
+					ai_suggestions:email_ai_suggestions(*),
+					delivery_logs:email_delivery_logs(*)
+				),
+				property:properties(id, address, property_type),
+				tenant:tenant_profiles(id, first_name, last_name, email)
+				`,
 				)
 				.order('last_message_at', { ascending: false });
 
@@ -141,16 +141,16 @@ export const useInboxStore = create<InboxState>((set, get) => ({
 				.from('email_threads')
 				.select(
 					`
-          *,
-          messages:email_messages(
-            *,
-            attachments:email_attachments(*),
-            ai_suggestions:email_ai_suggestions(*),
-            delivery_logs:email_delivery_logs(*)
-          ),
-          property:properties(id, address, property_type),
-          tenant:tenant_profiles(id, first_name, last_name, email)
-        `,
+				*,
+				messages:email_messages(
+					*,
+					attachments:email_attachments(*),
+					ai_suggestions:email_ai_suggestions(*),
+					delivery_logs:email_delivery_logs(*)
+				),
+				property:properties(id, address, property_type),
+				tenant:tenant_profiles(id, first_name, last_name, email)
+				`,
 				)
 				.eq('id', threadId)
 				.single();
