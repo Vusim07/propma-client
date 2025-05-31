@@ -85,7 +85,7 @@ const EmailDetail: React.FC<EmailDetailProps> = ({ thread, message }) => {
 			<div className='p-6 border-b border-gray-200'>
 				<div className='flex items-center justify-between mb-4'>
 					<div className='flex items-center gap-3'>
-						<Avatar className='w-10 h-10 rounded-full bg-blue-100'>
+						<Avatar className='w-8 h-8 rounded-full bg-blue-100'>
 							<AvatarFallback>
 								{getInitials(message.from_name as any) ||
 									message.from_address.charAt(0).toUpperCase()}

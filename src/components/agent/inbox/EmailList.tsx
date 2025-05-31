@@ -81,7 +81,7 @@ const EmailList: React.FC<EmailListProps> = ({
 							onClick={() => onSelectThread(thread.id)}
 						>
 							<div className='flex items-start gap-3'>
-								<Avatar className='w-10 h-10  rounded-full bg-blue-100'>
+								<Avatar className='w-8 h-8 rounded-full bg-blue-100'>
 									<AvatarFallback>
 										{getInitials(fromName) ||
 											fromAddress.charAt(0).toUpperCase()}
