@@ -507,6 +507,38 @@ serve(async (req) => {
 						action?.objectKey,
 					);
 
+					// Process email with Amara AI
+					console.log(`Processing message ${messageId} with Amara AI`);
+					try {
+						const aiResponse = await amaraAI({
+							parsedEmail: {
+								body,
+								headers,
+								attachments: attachments.map((a) => ({
+									filename: a.filename,
+									contentType: a.contentType,
+								})),
+							},
+							thread: {
+								id: thread.id,
+								subject: commonHeaders.subject || '(No Subject)',
+								status: 'received',
+							},
+							emailAddress,
+							supabaseClient,
+						});
+						console.log(
+							`AI Response generated for message ${messageId}:`,
+							aiResponse,
+						);
+					} catch (aiError) {
+						console.error(
+							`Error processing message ${messageId} with AI:`,
+							aiError,
+						);
+						// Don't throw here - we still want to log the delivery
+					}
+
 					try {
 						await supabaseClient.from('email_delivery_logs').insert({
 							message_id: messageId,

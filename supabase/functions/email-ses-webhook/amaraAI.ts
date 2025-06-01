@@ -4,8 +4,7 @@
 import type { ParsedEmailContent, SupabaseClient } from './types.ts';
 
 const CREWAI_API_URL =
-	Deno.env.get('CREWAI_API_URL') ||
-	'http://localhost:8000/api/v1/process-email';
+	'https://renewed-cockatoo-liked.ngrok-free.app/api/v1/process-email';
 
 /**
  * Calls the Amara AI agent to generate an email response for a given parsed email and agent context.
@@ -28,16 +27,16 @@ export async function amaraAI({
 		({ data: properties, error: propError } = await supabaseClient
 			.from('properties')
 			.select('*')
-			.eq('team_id', emailAddress.team_id)
+			.eq('active_team_id', emailAddress.team_id)
 			.limit(50));
 	} else if (emailAddress.user_id) {
 		({ data: properties, error: propError } = await supabaseClient
 			.from('properties')
 			.select('*')
-			.eq('user_id', emailAddress.user_id)
+			.eq('agent_id', emailAddress.user_id)
 			.limit(50));
 	} else {
-		throw new Error('No team_id or user_id found for agent');
+		throw new Error('No team_id or agent_id found for agent');
 	}
 	if (propError) throw propError;
 
@@ -57,7 +56,7 @@ export async function amaraAI({
 		workflow_actions: workflowActions,
 	};
 
-	const response = await fetch(`${CREWAI_API_URL}/process-email`, {
+	const response = await fetch(CREWAI_API_URL, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(payload),
