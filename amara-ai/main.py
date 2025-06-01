@@ -12,7 +12,7 @@ import logging
 from src.affordability_crew import AffordabilityAnalysisCrew
 from src.affordability_crew.config import setup_config
 
-# Import email connector module
+# Import email connector modul
 from src.email_connector import register_routes
 
 # Configure logging

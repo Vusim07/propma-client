@@ -9,6 +9,12 @@ services:
       - ./.env:/app/.env
       - ./src:/app/src  # Keep source mounting for development
     working_dir: /app
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app/src
+        
     environment:
       - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
       - AZURE_OPENAI_API_VERSION=${AZURE_OPENAI_API_VERSION}
@@ -25,3 +31,4 @@ services:
       - LANGFUSE_PROJECT=${LANGFUSE_PROJECT}
       - LANGFUSE_DEBUG=${LANGFUSE_DEBUG}
     restart: unless-stopped
+    

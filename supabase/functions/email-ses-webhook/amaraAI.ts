@@ -40,6 +40,16 @@ export async function amaraAI({
 	}
 	if (propError) throw propError;
 
+	// Only send minimal property fields to CrewAI
+	const minimalProperties = (properties || []).map((p) => ({
+		id: p.id,
+		web_reference: p.web_reference,
+		address: p.address,
+		status: p.status,
+		application_link: p.application_link,
+		agent_id: p.agent_id,
+	}));
+
 	const workflowActions = {
 		agent_name: 'Agent Amara',
 		agent_contact: '', // TODO: fetch from agent/team profile
@@ -52,7 +62,7 @@ export async function amaraAI({
 		email_subject: thread.subject,
 		email_from: parsedEmail.headers['from'] || '',
 		email_date: new Date().toISOString(),
-		agent_properties: properties || [],
+		agent_properties: minimalProperties,
 		workflow_actions: workflowActions,
 	};
 
@@ -61,9 +71,31 @@ export async function amaraAI({
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(payload),
 	});
+
 	if (!response.ok) {
 		const errorText = await response.text();
+		console.error('CrewAI API error:', errorText);
+
+		// Parse error response if possible
+		try {
+			const errorJson = JSON.parse(errorText);
+			if (errorJson.detail) {
+				throw new Error(errorJson.detail);
+			}
+		} catch (parseError) {
+			// If can't parse JSON, use raw error text
+			console.error('CrewAI API error (raw):', parseError);
+		}
+
 		throw new Error(`CrewAI API error: ${errorText}`);
 	}
-	return await response.json();
+
+	const result = await response.json();
+
+	// Validate result structure
+	if (!result.success) {
+		throw new Error(`CrewAI processing failed: ${JSON.stringify(result)}`);
+	}
+
+	return result;
 }
