@@ -57,6 +57,26 @@ class EmailResponseCrew:
             verbose=True,
         )
 
+    @agent
+    def inquiry_classifier(self):
+        """Classifies the inquiry type (viewing, availability, general info)"""
+        return Agent(
+            role="Inquiry Classifier",
+            goal="Classify the type of property inquiry (viewing, availability, general info)",
+            backstory="I am an expert at understanding the intent behind real estate emails.",
+            verbose=True,
+        )
+
+    @agent
+    def response_validator(self):
+        """Validates the generated response for accuracy, tone, and completeness"""
+        return Agent(
+            role="Response Validator",
+            goal="Ensure the generated response is accurate, professional, and complete",
+            backstory="I am a detail-oriented QA specialist for real estate communications.",
+            verbose=True,
+        )
+
     @task
     def analyze_email_task(self) -> Task:
         """Task for analyzing email content"""
@@ -70,9 +90,7 @@ class EmailResponseCrew:
                 "full_address": prop["address"],
                 "suburb": prop.get("suburb", ""),
                 "city": prop.get("city", ""),
-                "web_reference": prop.get(
-                    "web_reference", ""
-                ),  # FIXED: Using correct field name
+                "web_reference": prop.get("web_reference", ""),
                 "application_link": prop.get("application_link", ""),
                 "description": prop.get("description", ""),
                 "rent": prop.get("monthly_rent", 0),
@@ -114,6 +132,24 @@ Output must be a valid JSON object with a 'property' key containing the matched 
             description=f"Generate a professional response to the inquiry about {self.matched_property['address']}. Include the application link {self.matched_property['application_link']}. Base your response on this template if provided: {custom_message}",
             agent=self.response_writer(),
             expected_output="A JSON object with a 'response' key containing the reply message.",
+        )
+
+    @task
+    def classify_inquiry_task(self) -> Task:
+        """Task for classifying the inquiry type"""
+        return Task(
+            description=f"""Classify the following email as one of: viewing_request, availability_check, general_info.\n\nSubject: {self.email_subject}\nContent: {self.email_content}\n\nReturn a JSON object: {{'inquiry_type': ...}}""",
+            agent=self.inquiry_classifier(),
+            expected_output="A JSON object with an 'inquiry_type' key.",
+        )
+
+    @task
+    def validate_response_task(self, response: dict) -> Task:
+        """Task for validating the generated response"""
+        return Task(
+            description=f"""Validate the following response for factual accuracy, professional tone, and completeness.\n\nResponse: {json.dumps(response)}\n\nOriginal Email: {self.email_content}\n\nReturn a JSON object: {{'pass': true/false, 'confidence': 0.0-1.0, 'details': ...}}""",
+            agent=self.response_validator(),
+            expected_output="A JSON object with pass, confidence, and details.",
         )
 
     def process_task_output(self, task_name: str, output: Any) -> None:
@@ -183,17 +219,44 @@ Output must be a valid JSON object with a 'property' key containing the matched 
 
     @crew
     def crew(self) -> Crew:
-        """Create the crew for email response generation"""
+        """Create the crew for email response generation with classification and validation"""
         analyze_task = self.analyze_email_task()
+        classify_task = self.classify_inquiry_task()
+        response_task = self.generate_response_task()
 
         def after_analysis(task_output):
             self.process_task_output("analyze_email_task", task_output)
-            return self.generate_response_task()
+            return classify_task
+
+        def after_classification(task_output):
+            # Optionally store classification result for downstream use
+            self.inquiry_type = None
+            if isinstance(task_output, dict) and "inquiry_type" in task_output:
+                self.inquiry_type = task_output["inquiry_type"]
+            elif isinstance(task_output, str):
+                try:
+                    result = json.loads(task_output)
+                    if "inquiry_type" in result:
+                        self.inquiry_type = result["inquiry_type"]
+                except Exception:
+                    pass
+            return response_task
+
+        def after_response(task_output):
+            # Validate the response
+            return self.validate_response_task(task_output)
 
         analyze_task.on_complete(after_analysis)
+        classify_task.on_complete(after_classification)
+        response_task.on_complete(after_response)
 
         return Crew(
-            agents=[self.email_analyzer(), self.response_writer()],
+            agents=[
+                self.email_analyzer(),
+                self.inquiry_classifier(),
+                self.response_writer(),
+                self.response_validator(),
+            ],
             tasks=[analyze_task],
             process=Process.sequential,
             verbose=True,
@@ -226,7 +289,19 @@ def process_email_with_crew(
         )
         crew = crew_instance.crew()
         result = crew.kickoff()
-        return result if isinstance(result, dict) else {"response": str(result)}
+        # Ensure output is structured
+        if isinstance(result, dict):
+            if "response" in result and isinstance(result["response"], dict):
+                return result
+            # If only a string, wrap as body
+            return {
+                "response": {"subject": f"Re: {email_subject}", "body": str(result)},
+                "error": None,
+            }
+        return {
+            "response": {"subject": f"Re: {email_subject}", "body": str(result)},
+            "error": None,
+        }
     except Exception as e:
         logger.error(f"CrewAI email agent failed: {str(e)}")
         return {"response": "", "error": str(e)}

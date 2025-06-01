@@ -1,0 +1,5 @@
+INSERT INTO "public"."email_messages" ("id", "thread_id", "message_id", "from_address", "from_name", "to_address", "subject", "body", "body_html", "status", "is_read", "has_attachments", "in_reply_to", "sent_at", "received_at", "created_at", "updated_at") VALUES ('c29443da-5eb4-442f-b698-dd826d7250f1', 'c4284f09-6018-461c-8aad-d85cb452c5b4', '67fbhqsl0nvatbtql4fp1l8o57467h634jhmem81', 'vusimbokane@gmail.com', 'Vusi Mthimunye <vusimbokane', 'vusi-77dff4d2-f083-493b-9060-ab1220d8763a@n.agentamara.com', 'New Private Property enquiry (property RR4379658)', '*New Property Enquiry on RR4379658*', '<div dir=3D"ltr"><div><b>New Property Enquiry on RR4379658</b></div><div st=
+yle=3D"text-align:center"><br></div><div>Hi Nozipho, I&#39;m interested in =
+this unit. Is it still available?</div><div><br></div><div>2 Bed Apartment =
+In Ferndale</div><div>R 8250 Per Month</div><div>Private Property Ref: RR43=
+79658</div></div>', 'received', 'false', 'false', null, null, '2025-06-01 00:03:30.818+00', '2025-06-01 00:03:33.395981+00', '2025-06-01 00:03:33.395981+00');
