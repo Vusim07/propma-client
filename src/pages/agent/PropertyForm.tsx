@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { useAgentStore } from '../../stores/agentStore';
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -328,10 +328,10 @@ const PropertyForm: React.FC = () => {
 					Back to Properties
 				</Button>
 
-				<h1 className='text-2xl font-bold text-gray-900'>
+				<h1 className='text-xl font-bold text-gray-900'>
 					{isEditMode ? 'Edit Property' : 'Add New Property'}
 				</h1>
-				<p className='text-gray-600 mt-1'>
+				<p className='text-gray-600 mt-1 text-sm'>
 					{isEditMode
 						? 'Update the details of your property'
 						: 'Fill in the details to add a new rental property'}
@@ -695,9 +695,9 @@ const PropertyForm: React.FC = () => {
 					</CardContent>
 				</Card>
 
-				<div className='flex justify-end space-x-4'>
+				<div className='flex justify-end space-x-4 mb-12 pb-4'>
 					<Button
-						variant='secondary'
+						variant='outline'
 						type='button'
 						onClick={() => navigate('/agent/properties')}
 						disabled={isLoading || isUploading}
@@ -705,7 +705,7 @@ const PropertyForm: React.FC = () => {
 						Cancel
 					</Button>
 					<Button
-						variant='primary'
+						variant='default'
 						type='submit'
 						isLoading={isLoading || isUploading}
 						disabled={isLoading || isUploading}

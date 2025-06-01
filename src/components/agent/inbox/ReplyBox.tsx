@@ -35,7 +35,7 @@ const ReplyBox: React.FC<ReplyBoxProps> = ({ onSend }) => {
 					className='flex-1 min-w-0'
 				/>
 				<Button
-					className='bg-blue-600 hover:bg-blue-700 flex-shrink-0'
+					className='bg-primary text-primary-foreground hover:bg-primary/90 flex-shrink-0'
 					onClick={handleSend}
 					disabled={!message.trim()}
 				>

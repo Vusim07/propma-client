@@ -162,15 +162,19 @@ class EmailResponseCrew:
                 "task_creation", {"task": "classify_inquiry", "config": task_config}
             )
 
-            # Create context as a list of items
+            # Create context as a list of properly formatted items
             context = [
                 {
                     "role": "system",
                     "content": "You are an expert at classifying property inquiries.",
+                    "description": "System prompt for inquiry classification",
+                    "expected_output": "A valid JSON object containing the inquiry_type.",
                 },
                 {
                     "role": "user",
                     "content": f"Subject: {self.email_subject}\nContent: {self.email_content}",
+                    "description": "Email content to classify",
+                    "expected_output": "A valid JSON object containing the inquiry_type.",
                 },
             ]
 

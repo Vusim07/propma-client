@@ -190,7 +190,7 @@ const EmailDetail: React.FC<EmailDetailProps> = ({ thread, message }) => {
 			</div>
 
 			{/* Reply Box */}
-			<div className='border-t border-gray-200 bg-white'>
+			<div className='border-t border-gray-200 bg-white mb-12'>
 				<div className='px-4 md:px-6 py-4 max-w-full'>
 					<ReplyBox onSend={handleSendMessage} />
 				</div>

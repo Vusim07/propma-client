@@ -9,12 +9,12 @@ import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import {
 	FileText,
-	CheckSquare,
 	ArrowRight,
 	Home,
 	Clock,
 	CalendarDays,
 	Users,
+	Mail,
 } from 'lucide-react';
 import {
 	Table,
@@ -44,7 +44,7 @@ const AgentDashboard: React.FC = () => {
 	} = useAgentStore();
 
 	useEffect(() => {
-		setPageTitle('Dashboard');
+		setPageTitle('Welcome, ' + user?.first_name + '👋');
 		if (user) {
 			fetchApplications(user.id, currentTeamId);
 			fetchProperties(user.id, currentTeamId);
@@ -112,16 +112,16 @@ const AgentDashboard: React.FC = () => {
 			</div> */}
 
 			{/* Metrics */}
-			<div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8'>
+			<div className='grid grid-cols-1 md:grid-cols-3 gap-3 mb-2'>
 				<Card>
 					<CardContent className='p-6'>
 						<div className='flex items-center justify-between'>
 							<div>
 								<p className='text-sm font-medium text-gray-500'>Properties</p>
-								<p className='text-3xl font-bold mt-1'>{properties.length}</p>
+								<p className='text-xl font-bold mt-1'>{properties.length}</p>
 							</div>
 							<div className='bg-blue-100 p-3 rounded-full'>
-								<Home className='h-6 w-6 text-blue-600' />
+								<Home className='h-6 w-6 text-dusty_grey' />
 							</div>
 						</div>
 					</CardContent>
@@ -134,7 +134,7 @@ const AgentDashboard: React.FC = () => {
 								<p className='text-sm font-medium text-gray-500'>
 									Applications
 								</p>
-								<p className='text-3xl font-bold mt-1'>
+								<p className='text-xl font-bold mt-1'>
 									{formattedApplications.length}
 								</p>
 							</div>
@@ -150,9 +150,9 @@ const AgentDashboard: React.FC = () => {
 						<div className='flex items-center justify-between'>
 							<div>
 								<p className='text-sm font-medium text-gray-500'>
-									Pending Reviews
+									Pending Review
 								</p>
-								<p className='text-3xl font-bold mt-1'>{pendingApplications}</p>
+								<p className='text-xl font-bold mt-1'>{pendingApplications}</p>
 							</div>
 							<div className='bg-yellow-100 p-3 rounded-full'>
 								<Clock className='h-6 w-6 text-yellow-600' />
@@ -162,12 +162,14 @@ const AgentDashboard: React.FC = () => {
 				</Card>
 			</div>
 
-			<div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8'>
+			<div className='grid grid-cols-1 lg:grid-cols-3 gap-3 mb-2'>
 				{/* Recent Applications */}
 				<Card className='lg:col-span-1'>
-					<CardHeader className='flex items-center justify-between'>
-						<h2 className='text-lg font-semibold'>Recent Applications</h2>
-						<Users className='h-5 w-5 text-blue-600' />
+					<CardHeader>
+						<div className='flex items-center gap-2'>
+							<h2 className='text-md font-semibold'>Recent Applications</h2>
+							<Users className='h-5 w-5 text-dusty_grey' />
+						</div>
 					</CardHeader>
 					<CardContent>
 						{recentApplications.length > 0 ? (
@@ -242,9 +244,11 @@ const AgentDashboard: React.FC = () => {
 
 				{/* Today's Appointments */}
 				<Card className='lg:col-span-1'>
-					<CardHeader className='flex items-center justify-between'>
-						<h2 className='text-lg font-semibold'>Today's Appointments</h2>
-						<CalendarDays className='h-5 w-5 text-blue-600' />
+					<CardHeader>
+						<div className='flex items-center gap-2'>
+							<h2 className='text-md font-semibold'>Today's Appointments</h2>
+							<CalendarDays className='h-5 w-5 text-dusty_grey' />
+						</div>
 					</CardHeader>
 					<CardContent>
 						{todaysAppointments.length > 0 ? (
@@ -295,11 +299,11 @@ const AgentDashboard: React.FC = () => {
 
 				{/* Recent Workflow Activities */}
 				<Card className='lg:col-span-1'>
-					<CardHeader className='flex items-center justify-between'>
-						<h2 className='text-lg font-semibold'>
-							Recent Workflow Activities
-						</h2>
-						<CheckSquare className='h-5 w-5 text-blue-600' />
+					<CardHeader>
+						<div className='flex items-center gap-2'>
+							<h2 className='text-md font-semibold'>Recent Inbox Activities</h2>
+							<Mail className='h-5 w-5 text-dusty_grey' />
+						</div>
 					</CardHeader>
 					<CardContent>
 						{recentWorkflowActivities.length > 0 ? (
@@ -333,17 +337,17 @@ const AgentDashboard: React.FC = () => {
 							</div>
 						) : (
 							<p className='text-gray-500 text-center py-4'>
-								No workflow activities found
+								No inbox activities found
 							</p>
 						)}
 
 						<div className='mt-4'>
-							<Link to='/agent/workflows'>
+							<Link to='/agent/inbox'>
 								<Button
 									variant='outline'
 									className='w-full flex justify-between items-center'
 								>
-									<span>Manage Workflows</span>
+									<span>Manage Inbox</span>
 									<ArrowRight size={16} />
 								</Button>
 							</Link>
@@ -355,7 +359,7 @@ const AgentDashboard: React.FC = () => {
 			{/* Application Status Summary */}
 			<Card>
 				<CardHeader>
-					<h2 className='text-lg font-semibold'>Application Status Summary</h2>
+					<h2 className='text-md font-semibold'>Application Status Summary</h2>
 				</CardHeader>
 				<CardContent>
 					<div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
