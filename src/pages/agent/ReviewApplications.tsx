@@ -360,7 +360,7 @@ const ReviewApplications: React.FC = () => {
 													<Badge
 														variant={
 															application.status === 'approved'
-																? 'default'
+																? 'success'
 																: application.status === 'rejected'
 																? 'destructive'
 																: 'default'
@@ -431,10 +431,10 @@ const ReviewApplications: React.FC = () => {
 								<Badge
 									variant={
 										selectedApplication.status === 'approved'
-											? 'default'
+											? 'success'
 											: selectedApplication.status === 'rejected'
 											? 'destructive'
-											: 'default'
+											: 'success'
 									}
 								>
 									{selectedApplication.status.toUpperCase()}

@@ -3,11 +3,18 @@ from crewai.project import CrewBase, agent, crew, task
 from typing import Dict, List, Any, Optional
 import json
 import logging
-import re
-import rapidfuzz.fuzz as fuzz
+import os
+import traceback
+import sys
+from langfuse import Langfuse
+from datetime import datetime
 
 # Configure logging
 logger = logging.getLogger(__name__)
+handler = logging.StreamHandler(sys.stdout)
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
 
@@ -18,249 +25,429 @@ class EmailResponseCrew:
     def __init__(
         self, email_content, email_subject, agent_properties, workflow_actions
     ):
-        self.email_content = (
-            email_content.lower()
-        )  # Convert to lowercase for case-insensitive matching
-        self.email_subject = (
-            email_subject.lower()
-        )  # Convert to lowercase for case-insensitive matching
+        logger.info("Initializing EmailResponseCrew")
+        self.email_content = email_content.strip()
+        self.email_subject = email_subject.strip()
         self.agent_properties = agent_properties
         self.workflow_actions = workflow_actions
-        self.matched_property = None
-        # Log initialization data
-        logger.info("Initializing EmailResponseCrew")
+        self.matched_property = workflow_actions.get("matched_property")
+        self.inquiry_type = None
+
+        # Initialize Langfuse with debug logging
+        self.langfuse = None
+        logger.info("[Langfuse] Attempting to initialize Langfuse SDK...")
+        try:
+            self.langfuse = Langfuse(
+                public_key=os.getenv("LANGFUSE_PUBLIC_KEY"),
+                secret_key=os.getenv("LANGFUSE_SECRET_KEY"),
+                host=os.getenv("LANGFUSE_HOST", "http://localhost:3000"),
+                debug=False,
+            )
+            logger.info("[Langfuse] Langfuse SDK initialized successfully.")
+        except Exception as e:
+            logger.error(f"[Langfuse] Langfuse initialization failed: {e}")
+
+        # Log initialization info
         logger.info(f"Email subject: {self.email_subject}")
         logger.info(f"Email content: {self.email_content}")
         logger.info(f"Number of available properties: {len(agent_properties)}")
-        logger.info(
-            f"Properties to match against: {json.dumps(agent_properties, indent=2)}"
-        )
         logger.info(f"Workflow actions: {json.dumps(workflow_actions, indent=2)}")
 
-    @agent
-    def email_analyzer(self):
-        """Creates an agent that analyzes email content to identify property inquiries"""
-        return Agent(
-            role="Email Analyzer",
-            goal="Extract property details from inquiry emails and match to existing properties",
-            backstory="I am an expert at understanding customer inquiries and matching them to property listings by identifying property references, addresses, and web references in the email content",
-            verbose=True,
-        )
+        if self.matched_property:
+            logger.info(
+                f"Matched property provided: {json.dumps(self.matched_property, indent=2)}"
+            )
+        else:
+            logger.warning("No matched_property provided in workflow_actions!")
+
+        # Prepare initial context
+        self.context_data = self._prepare_context()
+        self.log_observability_event("initialization", self.context_data)
+
+    def _prepare_context(self) -> dict:
+        """Prepare context data for tasks"""
+        return {
+            "email_subject": self.email_subject,
+            "email_content": self.email_content,
+            "matched_property": self.matched_property,
+            "agent_properties": self.agent_properties,
+            "workflow_actions": {
+                k: v
+                for k, v in self.workflow_actions.items()
+                if k not in ["matched_property"]
+            },
+        }
+
+    def log_observability_event(self, step: str, data: dict, event_type: str = "info"):
+        """Log structured observability/monitoring events"""
+        log_entry = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "step": step,
+            "event_type": event_type,
+            "data": data,
+        }
+        logger.info(f"[OBSERVABILITY] {json.dumps(log_entry, default=str)}")
+        if self.langfuse:
+            try:
+                trace = self.langfuse.trace(
+                    name=step,
+                    input=data,
+                    metadata={"event_type": event_type},
+                )
+                if hasattr(trace, "flush"):
+                    trace.flush(output=data)
+                elif hasattr(trace, "finalize"):
+                    trace.finalize(output=data)
+            except Exception as e:
+                logger.warning(f"Langfuse trace logging failed: {e}")
 
     @agent
-    def response_writer(self):
-        """Creates an agent that writes personalized responses to property inquiries"""
+    def response_writer(self) -> Agent:
+        """Agent for writing personalized responses to property inquiries"""
         return Agent(
             role="Response Writer",
             goal="Write personalized, helpful responses to property inquiries",
-            backstory="I am skilled at crafting professional and engaging responses that convert inquiries to applications",
+            backstory="""I am an expert real estate agent skilled at crafting professional and engaging 
+                     responses that convert inquiries to viewings and applications. I am familiar with 
+                     South African real estate standards and POPI Act compliance.""",
             verbose=True,
+            allow_delegation=False,
         )
 
     @agent
-    def inquiry_classifier(self):
-        """Classifies the inquiry type (viewing, availability, general info)"""
+    def inquiry_classifier(self) -> Agent:
+        """Agent for classifying inquiry types"""
         return Agent(
             role="Inquiry Classifier",
-            goal="Classify the type of property inquiry (viewing, availability, general info)",
-            backstory="I am an expert at understanding the intent behind real estate emails.",
+            goal="Accurately classify the type of property inquiry",
+            backstory="""I am an expert at understanding customer intent in real estate emails.
+                     I can determine if they want to view a property, check availability, or need general info.""",
             verbose=True,
+            allow_delegation=False,
         )
 
     @agent
-    def response_validator(self):
-        """Validates the generated response for accuracy, tone, and completeness"""
+    def response_validator(self) -> Agent:
+        """Agent for validating generated responses"""
         return Agent(
             role="Response Validator",
-            goal="Ensure the generated response is accurate, professional, and complete",
-            backstory="I am a detail-oriented QA specialist for real estate communications.",
+            goal="Ensure responses are accurate, professional, and complete",
+            backstory="""I am a detail-oriented QA specialist who ensures all responses are factually correct,
+                     professionally written, and include all required information.""",
             verbose=True,
-        )
-
-    @task
-    def analyze_email_task(self) -> Task:
-        """Task for analyzing email content"""
-        property_info = []
-        logger.info("Preparing property information for analysis")
-
-        for prop in self.agent_properties:
-            # Create a detailed string for each property
-            info = {
-                "id": prop["id"],
-                "full_address": prop["address"],
-                "suburb": prop.get("suburb", ""),
-                "city": prop.get("city", ""),
-                "web_reference": prop.get("web_reference", ""),
-                "application_link": prop.get("application_link", ""),
-                "description": prop.get("description", ""),
-                "rent": prop.get("monthly_rent", 0),
-            }
-            property_info.append(info)
-            logger.info(f"Prepared property info: {json.dumps(info, indent=2)}")
-
-        return Task(
-            description=f"""Analyze this email to identify which property is being inquired about:
-
-Subject: {self.email_subject}
-
-Content:
-{self.email_content}
-
-Match against these properties:
-{json.dumps(property_info, indent=2)}
-
-Important matching rules:
-1. Match on exact web reference number (e.g. 'RR123456', case insensitive)
-2. Match on full or partial address
-3. Match on street name
-4. Consider suburb/city combinations
-5. Consider property descriptions
-
-Output must be a valid JSON object with a 'property' key containing the matched property details.""",
-            agent=self.email_analyzer(),
-            expected_output="A JSON object with a 'property' key containing the matched property details.",
-        )
-
-    @task
-    def generate_response_task(self) -> Task:
-        """Task for generating a response with application link"""
-        if not self.matched_property:
-            raise ValueError("No property matched from email analysis")
-
-        custom_message = self.workflow_actions.get("custom_message", "")
-        return Task(
-            description=f"Generate a professional response to the inquiry about {self.matched_property['address']}. Include the application link {self.matched_property['application_link']}. Base your response on this template if provided: {custom_message}",
-            agent=self.response_writer(),
-            expected_output="A JSON object with a 'response' key containing the reply message.",
+            allow_delegation=False,
         )
 
     @task
     def classify_inquiry_task(self) -> Task:
         """Task for classifying the inquiry type"""
-        return Task(
-            description=f"""Classify the following email as one of: viewing_request, availability_check, general_info.\n\nSubject: {self.email_subject}\nContent: {self.email_content}\n\nReturn a JSON object: {{'inquiry_type': ...}}""",
-            agent=self.inquiry_classifier(),
-            expected_output="A JSON object with an 'inquiry_type' key.",
-        )
+        try:
+            task_config = {
+                "description": f"""Classify the type of property inquiry from this email exchange.
+                    Subject: {self.email_subject}
+                    Content: {self.email_content}
+                    
+                    Analyze the email content and determine if this is:
+                    1. viewing_request: Customer wants to view the property
+                    2. availability_check: Customer is asking about availability
+                    3. general_info: General inquiry about the property
+                    
+                    IMPORTANT: Return ONLY a valid JSON object with this exact format:
+                    {{"inquiry_type": "viewing_request" | "availability_check" | "general_info"}}""",
+                "expected_output": "A valid JSON object containing the inquiry_type.",
+            }
+
+            logger.info("Creating classification task with config")
+            self.log_observability_event(
+                "task_creation", {"task": "classify_inquiry", "config": task_config}
+            )
+
+            # Create context as a list of items
+            context = [
+                {
+                    "role": "system",
+                    "content": "You are an expert at classifying property inquiries.",
+                },
+                {
+                    "role": "user",
+                    "content": f"Subject: {self.email_subject}\nContent: {self.email_content}",
+                },
+            ]
+
+            return Task(
+                description=task_config["description"],
+                expected_output=task_config["expected_output"],
+                agent=self.inquiry_classifier(),
+                context=context,
+            )
+        except Exception as e:
+            logger.error(f"Error creating classification task: {str(e)}")
+            self.log_observability_event(
+                "task_creation_error",
+                {"task": "classify_inquiry", "error": str(e)},
+                "error",
+            )
+            raise
 
     @task
-    def validate_response_task(self, response: dict) -> Task:
-        """Task for validating the generated response"""
-        return Task(
-            description=f"""Validate the following response for factual accuracy, professional tone, and completeness.\n\nResponse: {json.dumps(response)}\n\nOriginal Email: {self.email_content}\n\nReturn a JSON object: {{'pass': true/false, 'confidence': 0.0-1.0, 'details': ...}}""",
-            agent=self.response_validator(),
-            expected_output="A JSON object with pass, confidence, and details.",
-        )
-
-    def process_task_output(self, task_name: str, output: Any) -> None:
-        """Process task outputs and store necessary data"""
-        if task_name == "analyze_email_task":
-            logger.info(f"Processing task output for {task_name}")
-            logger.info(f"Task output: {output}")
-
-            # First try parsing the AI output
-            if isinstance(output, dict) and "property" in output:
-                logger.info("Found property in dictionary output")
-                self.matched_property = output["property"]
-            elif isinstance(output, str):
-                try:
-                    logger.info("Attempting to parse string output as JSON")
-                    result = json.loads(output)
-                    if "property" in result:
-                        logger.info("Found property in parsed JSON")
-                        self.matched_property = result["property"]
-                except json.JSONDecodeError as e:
-                    logger.error(f"Failed to parse JSON: {e}")
-                    pass  # We'll handle fallback matching below
-
-            # If no match found yet, try direct matching
+    def generate_response_task(self) -> Task:
+        """Task for generating response with application link"""
+        try:
             if not self.matched_property:
-                logger.info(
-                    "No property matched from AI output, trying direct matching"
+                raise ValueError("No matched_property provided to response task!")
+
+            # Prepare property context
+            property_context = {
+                "address": self.matched_property["address"],
+                "web_reference": self.matched_property["web_reference"],
+                "status": self.matched_property["status"],
+                "application_link": self.matched_property["application_link"],
+            }
+
+            task_config = {
+                "description": f"""Generate a professional, POPI-compliant response to this property inquiry.
+                    
+                    Email Subject: {self.email_subject}
+                    Email Content: {self.email_content}
+                    Inquiry Type: {self.inquiry_type}
+                    
+                    Property Details:
+                    {json.dumps(property_context, indent=2)}
+                    
+                    Response Requirements (MUST INCLUDE ALL):
+                    1. Address: {property_context["address"]}
+                    2. Property reference: {property_context["web_reference"]}
+                    3. Application link: {property_context["application_link"]}
+                    4. Be friendly and professional
+                    5. Follow South African business etiquette
+                    
+                    IMPORTANT: Return ONLY a valid JSON object with this exact format:
+                    {{
+                        "response": {{
+                            "subject": "Re: ...",
+                            "body": "Dear [Name],\\n\\nThank you..."
+                        }}
+                    }}""",
+                "expected_output": "A valid JSON object with response.subject and response.body",
+            }
+
+            logger.info("Creating response generation task with config")
+            self.log_observability_event(
+                "task_creation", {"task": "generate_response", "config": task_config}
+            )
+
+            # Create context as a list of items
+            context = [
+                {
+                    "role": "system",
+                    "content": "You are an expert at writing professional property inquiry responses.",
+                },
+                {
+                    "role": "user",
+                    "content": f"Property Details: {json.dumps(property_context, indent=2)}\nInquiry Type: {self.inquiry_type}",
+                },
+            ]
+
+            return Task(
+                description=task_config["description"],
+                expected_output=task_config["expected_output"],
+                agent=self.response_writer(),
+                context=context,
+            )
+        except Exception as e:
+            logger.error(f"Error creating response generation task: {str(e)}")
+            self.log_observability_event(
+                "task_creation_error",
+                {"task": "generate_response", "error": str(e)},
+                "error",
+            )
+            raise
+
+    @task
+    def validate_response_task(self) -> Task:
+        """Task for validating the generated response"""
+        try:
+            if not self.matched_property:
+                raise ValueError("No matched_property provided to validation task")
+
+            task_config = {
+                "description": f"""Validate this email response for accuracy, professionalism, and completeness.
+
+                    Original Email: 
+                    {self.email_content}
+
+                    Property Details:
+                    {json.dumps(self.matched_property, indent=2)}
+
+                    Validation Requirements:
+                    1. Address included: {self.matched_property["address"]}
+                    2. Property reference included: {self.matched_property["web_reference"]}
+                    3. Application link included: {self.matched_property["application_link"]}
+
+                    IMPORTANT: Return ONLY a valid JSON object with this exact format:
+                    {{
+                        "pass": true/false,
+                        "confidence": 0.0-1.0,
+                        "details": {{
+                            "factual_pass": true/false,
+                            "completeness_pass": true/false,
+                            "tone_pass": true/false,
+                            "missing_fields": [...],
+                            "inquiry_type": "{self.inquiry_type}"
+                        }}
+                    }}""",
+                "expected_output": "A valid JSON object with validation results",
+            }
+
+            logger.info("Creating validation task with config")
+            self.log_observability_event(
+                "task_creation", {"task": "validate_response", "config": task_config}
+            )
+
+            # Create context as a list of items
+            context = [
+                {
+                    "role": "system",
+                    "content": "You are an expert at validating property inquiry responses.",
+                },
+                {
+                    "role": "user",
+                    "content": f"Property Details: {json.dumps(self.matched_property, indent=2)}\nInquiry Type: {self.inquiry_type}",
+                },
+            ]
+
+            return Task(
+                description=task_config["description"],
+                expected_output=task_config["expected_output"],
+                agent=self.response_validator(),
+                context=context,
+            )
+        except Exception as e:
+            logger.error(f"Error creating validation task: {str(e)}")
+            self.log_observability_event(
+                "task_creation_error",
+                {"task": "validate_response", "error": str(e)},
+                "error",
+            )
+            raise
+
+    def process_results(self, event_name: str, **kwargs) -> Dict[str, Any]:
+        """Process results after crew kickoff, handling extraction and validation"""
+        logger.info(f"========== PROCESS RESULTS STARTED: {event_name} ==========")
+
+        result = kwargs.get("final_result") if event_name == "crew_finished" else None
+        if not result:
+            logger.warning(f"No result to process for event {event_name}")
+            return None
+
+        logger.info(f"Result Type: {type(result)}")
+        logger.info(f"Result Preview: {str(result)[:200]}")
+
+        # Initialize default structure
+        final_data = {
+            "success": False,
+            "response": None,
+            "validation": {
+                "pass": False,
+                "confidence": 0.0,
+                "details": {
+                    "factual_pass": False,
+                    "completeness_pass": False,
+                    "tone_pass": False,
+                    "missing_fields": [],
+                    "inquiry_type": None,
+                },
+            },
+        }
+
+        try:
+            # Parse raw result if it's a string
+            if isinstance(result, str):
+                try:
+                    result = json.loads(result)
+                except json.JSONDecodeError:
+                    logger.error("Failed to parse result as JSON")
+                    result = {"response": result}
+
+            # Extract response
+            if isinstance(result, dict):
+                if "response" in result:
+                    final_data["response"] = result["response"]
+                    logger.info("Successfully extracted response")
+
+                # Extract validation if present
+                if "validation" in result:
+                    final_data["validation"] = result["validation"]
+                    logger.info("Successfully extracted validation")
+
+                # Set success based on validation
+                final_data["success"] = (
+                    final_data["validation"]["pass"]
+                    and final_data["validation"]["confidence"] >= 0.7
                 )
 
-                # Combine subject and content for matching
-                combined_text = f"{self.email_subject} {self.email_content}".lower()
-                logger.info(f"Combined text for matching: {combined_text}")
+            # Validate required fields
+            if final_data["response"]:
+                logger.info("Validating response completeness...")
+                required_fields = [
+                    self.matched_property["address"],
+                    self.matched_property["application_link"],
+                    self.matched_property["web_reference"],
+                ]
+                missing = []
+                response_text = str(final_data["response"])
+                for field in required_fields:
+                    if field not in response_text:
+                        missing.append(field)
+                if missing:
+                    final_data["validation"]["details"]["missing_fields"] = missing
+                    final_data["validation"]["pass"] = False
+                    final_data["success"] = False
+                    logger.warning(f"Missing required fields: {missing}")
 
-                for prop in self.agent_properties:
-                    # Convert all values to lowercase for case-insensitive matching
-                    web_ref = (prop.get("web_reference", "") or "").lower()
-                    address = prop["address"].lower()
-                    street_name = " ".join(prop["address"].split()[1:]).lower()
+            # Add inquiry type
+            final_data["validation"]["details"]["inquiry_type"] = self.inquiry_type
 
-                    logger.info(
-                        f"Checking property - Web Reference: {web_ref}, Address: {address}, Street: {street_name}"
-                    )
+            logger.info(f"Final processed data: {json.dumps(final_data, indent=2)}")
+            self.log_observability_event("process_results_end", final_data)
+            return final_data
 
-                    # Try matching different patterns against combined text
-                    if web_ref and re.search(
-                        rf"\b{re.escape(web_ref)}\b", combined_text
-                    ):
-                        logger.info(f"Matched by web reference: {web_ref}")
-                        self.matched_property = prop
-                        break
-                    elif fuzz.partial_ratio(address, combined_text) > 80:
-                        logger.info(f"Matched by fuzzy address: {address}")
-                        self.matched_property = prop
-                        break
-                    elif fuzz.partial_ratio(street_name, combined_text) > 80:
-                        logger.info(f"Matched by fuzzy street name: {street_name}")
-                        self.matched_property = prop
-                        break
-
-            if self.matched_property:
-                logger.info(
-                    f"Successfully matched property: {json.dumps(self.matched_property, indent=2)}"
-                )
-            else:
-                logger.error("No property matched from email analysis")
-                raise ValueError("No property matched from email analysis")
+        except Exception as e:
+            logger.error(f"Error processing results: {str(e)}")
+            logger.error(f"Stack trace: {traceback.format_exc()}")
+            return final_data
 
     @crew
     def crew(self) -> Crew:
-        """Create the crew for email response generation with classification and validation"""
-        analyze_task = self.analyze_email_task()
-        classify_task = self.classify_inquiry_task()
-        response_task = self.generate_response_task()
+        """Create the crew with proper task chaining and process management"""
+        try:
+            # Create tasks
+            classify_task = self.classify_inquiry_task()
+            response_task = self.generate_response_task()
+            validate_task = self.validate_response_task()
 
-        def after_analysis(task_output):
-            self.process_task_output("analyze_email_task", task_output)
-            return classify_task
+            # Create the crew with sequential process
+            crew = Crew(
+                agents=[
+                    self.inquiry_classifier(),
+                    self.response_writer(),
+                    self.response_validator(),
+                ],
+                tasks=[classify_task, response_task, validate_task],
+                process=Process.sequential,
+                verbose=True,
+                callbacks=[self.process_results],
+            )
 
-        def after_classification(task_output):
-            # Optionally store classification result for downstream use
-            self.inquiry_type = None
-            if isinstance(task_output, dict) and "inquiry_type" in task_output:
-                self.inquiry_type = task_output["inquiry_type"]
-            elif isinstance(task_output, str):
-                try:
-                    result = json.loads(task_output)
-                    if "inquiry_type" in result:
-                        self.inquiry_type = result["inquiry_type"]
-                except Exception:
-                    pass
-            return response_task
-
-        def after_response(task_output):
-            # Validate the response
-            return self.validate_response_task(task_output)
-
-        analyze_task.on_complete(after_analysis)
-        classify_task.on_complete(after_classification)
-        response_task.on_complete(after_response)
-
-        return Crew(
-            agents=[
-                self.email_analyzer(),
-                self.inquiry_classifier(),
-                self.response_writer(),
-                self.response_validator(),
-            ],
-            tasks=[analyze_task],
-            process=Process.sequential,
-            verbose=True,
-        )
+            logger.info(f"Created crew with 3 tasks")
+            self.log_observability_event("crew_creation", {"num_tasks": 3})
+            return crew
+        except Exception as e:
+            logger.error(f"Error creating crew: {str(e)}")
+            self.log_observability_event(
+                "crew_creation_error", {"error": str(e)}, "error"
+            )
+            raise
 
 
 def process_email_with_crew(
@@ -289,19 +476,34 @@ def process_email_with_crew(
         )
         crew = crew_instance.crew()
         result = crew.kickoff()
-        # Ensure output is structured
+
+        # Handle different result formats
         if isinstance(result, dict):
-            if "response" in result and isinstance(result["response"], dict):
+            if workflow_actions.get("classification_only"):
                 return result
-            # If only a string, wrap as body
-            return {
-                "response": {"subject": f"Re: {email_subject}", "body": str(result)},
-                "error": None,
-            }
+
+            if "response" in result:
+                if isinstance(result["response"], dict):
+                    return {
+                        "response": result["response"],
+                        "inquiry_type": crew_instance.inquiry_type,
+                        "error": None,
+                    }
+                return {
+                    "response": {
+                        "subject": f"Re: {email_subject}",
+                        "body": result["response"],
+                    },
+                    "inquiry_type": crew_instance.inquiry_type,
+                    "error": None,
+                }
+
+        # Handle string or other response types
         return {
             "response": {"subject": f"Re: {email_subject}", "body": str(result)},
+            "inquiry_type": crew_instance.inquiry_type,
             "error": None,
         }
     except Exception as e:
         logger.error(f"CrewAI email agent failed: {str(e)}")
-        return {"response": "", "error": str(e)}
+        return {"response": "", "error": str(e), "inquiry_type": None}

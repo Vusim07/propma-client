@@ -201,7 +201,7 @@ const AgentDashboard: React.FC = () => {
 													<Badge
 														variant={
 															application.status === 'approved'
-																? 'default'
+																? 'success'
 																: application.status === 'rejected'
 																? 'destructive'
 																: application.status === 'pending'

@@ -22,15 +22,15 @@ export default {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
-				background: 'hsl(var(--background))',
+				background: 'hsl(var(--background_color))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
 					DEFAULT: '#FC7557', // Orange from style guide
-					foreground: 'hsl(var(--primary-foreground))',
+					foreground: '#FFFFFF',
 				},
 				secondary: {
-					DEFAULT: '#31C5B7', // Teal from style guide
-					foreground: 'hsl(var(--secondary-foreground))',
+					DEFAULT: '#F39237',
+					foreground: '#FFFFFF',
 				},
 				accent: {
 					DEFAULT: '#7F9DFF', // Blue from style guide
@@ -41,8 +41,32 @@ export default {
 					foreground: '#FFFFFF',
 				},
 				success: {
-					DEFAULT: '#31C5B7', // Using teal for success color
-					foreground: 'hsl(var(--primary-foreground))',
+					DEFAULT: '#6CC551',
+					foreground: '#FFFFFF',
+				},
+				text: '#222222', // Dark text
+
+				dark_void: {
+					DEFAULT: '#151419',
+				},
+				liquid_lava: {
+					DEFAULT: '#F56E0F',
+				},
+				dusty_grey: {
+					DEFAULT: '#878787',
+				},
+				gluon_grey: {
+					DEFAULT: '#1B1B1E',
+				},
+				slate_grey: {
+					DEFAULT: '#262626',
+				},
+				snow: {
+					DEFAULT: '#FBFBFB',
+				},
+				background_color: {
+					DEFAULT: '#F8F5EF', // Cream background
+					card: '#FFFFFF',
 				},
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive))',

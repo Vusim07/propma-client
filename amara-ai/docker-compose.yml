@@ -14,7 +14,7 @@ services:
         - action: sync
           path: ./src
           target: /app/src
-        
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     environment:
       - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
       - AZURE_OPENAI_API_VERSION=${AZURE_OPENAI_API_VERSION}
@@ -30,5 +30,5 @@ services:
       - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
       - LANGFUSE_PROJECT=${LANGFUSE_PROJECT}
       - LANGFUSE_DEBUG=${LANGFUSE_DEBUG}
+      - RELOAD=1
     restart: unless-stopped
-    
