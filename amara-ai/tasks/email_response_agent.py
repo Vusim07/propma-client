@@ -126,7 +126,7 @@ class EmailResponseCrew:
                 "deployment_name": os.getenv("OPENAI_API_ENGINE"),
             },
             tools=[],
-            memory=True,
+            memory=False,  # Disable memory to avoid vector search issues
             max_rpm=5,
         )
 
@@ -150,7 +150,7 @@ class EmailResponseCrew:
                 "deployment_name": os.getenv("OPENAI_API_ENGINE"),
             },
             tools=[],
-            memory=True,
+            memory=False,  # Disable memory to avoid vector search issues
             max_rpm=5,
         )
 
@@ -174,7 +174,7 @@ class EmailResponseCrew:
                 "deployment_name": os.getenv("OPENAI_API_ENGINE"),
             },
             tools=[],
-            memory=True,
+            memory=False,  # Disable memory to avoid vector search issues
             max_rpm=5,
         )
 
@@ -517,7 +517,7 @@ class EmailResponseCrew:
                 process=Process.sequential,
                 verbose=True,
                 callbacks=[self.process_results],
-                memory=True,  # Enable memory for better context retention
+                memory=False,  # Disable memory to avoid vector search issues
                 max_rpm=10,  # Rate limiting for API calls
                 cache=True,  # Enable caching for better performance
                 temperature=0.7,  # Default temperature for the crew
