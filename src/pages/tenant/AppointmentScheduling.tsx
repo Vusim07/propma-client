@@ -144,6 +144,22 @@ const AppointmentScheduling: React.FC = () => {
 					statusText: response.statusText,
 					body: errorText,
 				});
+
+				// Handle specific error cases
+				if (response.status === 404) {
+					// If no calendar integration, use default slots
+					setAvailableSlots([
+						'09:00-09:30',
+						'10:00-10:30',
+						'11:00-11:30',
+						'13:00-13:30',
+						'14:00-14:30',
+						'15:00-15:30',
+						'16:00-16:30',
+					]);
+					return;
+				}
+
 				throw new Error(`API error: ${response.status} ${errorText}`);
 			}
 
@@ -165,8 +181,7 @@ const AppointmentScheduling: React.FC = () => {
 			setAvailableSlots(formattedSlots);
 		} catch (err: any) {
 			console.error('Error fetching slots:', err);
-			setError(`Failed to load available slots: ${err.message}`);
-			// Fallback to default slots
+			// Don't show the error to the user, just use default slots
 			setAvailableSlots([
 				'09:00-09:30',
 				'10:00-10:30',

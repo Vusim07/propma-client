@@ -58,7 +58,7 @@ const TenantDashboard: React.FC = () => {
 	} = useTenantStore();
 
 	useEffect(() => {
-		setPageTitle('Dashboard');
+		setPageTitle(`Welcome, ${user?.first_name}`);
 		if (user) {
 			loadTenantData();
 		}
@@ -185,14 +185,6 @@ const TenantDashboard: React.FC = () => {
 	return (
 		<div>
 			<div className='mb-6 flex justify-between items-center'>
-				<div>
-					<h1 className='text-2xl font-bold text-gray-900'>
-						Welcome, {user?.first_name || 'Tenant'}
-					</h1>
-					<p className='text-gray-600 mt-1'>
-						Manage your rental application process
-					</p>
-				</div>
 				<Button
 					variant='outline'
 					size='sm'
@@ -212,8 +204,10 @@ const TenantDashboard: React.FC = () => {
 			<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'>
 				<Card>
 					<CardHeader className='flex items-center justify-between'>
-						<h2 className='text-lg font-semibold'>Documents</h2>
-						<FileText className='h-5 w-5 text-blue-600' />
+						<h2 className='text-lg font-semibold flex items-center gap-2'>
+							Documents
+							<FileText className='h-5 w-5 text-dusty_grey' />
+						</h2>
 					</CardHeader>
 					<CardContent>
 						<p className='text-gray-600 mb-4'>
@@ -236,8 +230,10 @@ const TenantDashboard: React.FC = () => {
 				{/* Screening Card */}
 				<Card>
 					<CardHeader className='flex items-center justify-between'>
-						<h2 className='text-lg font-semibold'>Screening Status</h2>
-						<CheckSquare className='h-5 w-5 text-blue-600' />
+						<div className='flex items-center gap-2'>
+							<h2 className='text-lg font-semibold'>Screening Status</h2>
+							<CheckSquare className='h-5 w-5 text-dusty_grey' />
+						</div>
 					</CardHeader>
 					<CardContent>
 						{screeningReport ? (
@@ -247,7 +243,7 @@ const TenantDashboard: React.FC = () => {
 									<Badge
 										variant={
 											screeningReport.pre_approval_status === 'approved'
-												? 'default'
+												? 'success'
 												: screeningReport.pre_approval_status === 'rejected'
 												? 'destructive'
 												: 'secondary'
@@ -283,8 +279,10 @@ const TenantDashboard: React.FC = () => {
 				{/* Appointments Card */}
 				<Card>
 					<CardHeader className='flex items-center justify-between'>
-						<h2 className='text-lg font-semibold'>Appointments</h2>
-						<Calendar className='h-5 w-5 text-blue-600' />
+						<div className='flex items-center gap-2'>
+							<h2 className='text-lg font-semibold'>Appointments</h2>
+							<Calendar className='h-5 w-5 text-dusty_grey' />
+						</div>
 					</CardHeader>
 					<CardContent>
 						<p className='text-gray-600 mb-4'>
@@ -310,7 +308,7 @@ const TenantDashboard: React.FC = () => {
 				<Card className='mb-8'>
 					<CardHeader className='flex flex-row items-center justify-between'>
 						<h2 className='text-lg font-semibold'>Your Applications</h2>
-						<Home className='h-5 w-5 text-blue-600' />
+						<Home className='h-5 w-5 text-dusty_grey' />
 					</CardHeader>
 					<CardContent>
 						<div className='w-full overflow-auto'>
@@ -336,7 +334,7 @@ const TenantDashboard: React.FC = () => {
 												<Badge
 													variant={
 														app.status === 'approved'
-															? 'default'
+															? 'success'
 															: app.status === 'rejected'
 															? 'destructive'
 															: 'secondary'
@@ -351,7 +349,7 @@ const TenantDashboard: React.FC = () => {
 												data-label='Property'
 												className='flex flex-col md:table-cell pb-1 md:pb-4'
 											>
-												<span className='block md:hidden text-xs text-gray-500 mb-1 md:hidden'>
+												<span className='block md:hidden text-xs text-gray-500 mb-1 '>
 													Property
 												</span>
 												<span className='font-medium'>
@@ -367,7 +365,7 @@ const TenantDashboard: React.FC = () => {
 												<Badge
 													variant={
 														app.status === 'approved'
-															? 'default'
+															? 'success'
 															: app.status === 'rejected'
 															? 'destructive'
 															: 'secondary'
