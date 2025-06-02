@@ -120,13 +120,14 @@ class EmailResponseCrew:
                 "temperature": 0.7,
                 "max_tokens": 1000,
                 "api_type": "azure",
-                "api_key": os.getenv("AZURE_API_KEY"),
-                "api_base": os.getenv("AZURE_API_BASE"),
-                "api_version": os.getenv("AZURE_API_VERSION"),
-                "deployment_name": os.getenv("OPENAI_API_ENGINE"),
+                "api_key": os.getenv("AZURE_OPENAI_API_KEY"),
+                "api_base": os.getenv("AZURE_OPENAI_ENDPOINT"),
+                "api_version": os.getenv("AZURE_OPENAI_API_VERSION"),
+                "deployment_name": os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
+                "model": os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
             },
             tools=[],
-            memory=False,  # Disable memory to avoid vector search issues
+            memory=False,
             max_rpm=5,
         )
 
@@ -144,13 +145,14 @@ class EmailResponseCrew:
                 "temperature": 0.3,
                 "max_tokens": 500,
                 "api_type": "azure",
-                "api_key": os.getenv("AZURE_API_KEY"),
-                "api_base": os.getenv("AZURE_API_BASE"),
-                "api_version": os.getenv("AZURE_API_VERSION"),
-                "deployment_name": os.getenv("OPENAI_API_ENGINE"),
+                "api_key": os.getenv("AZURE_OPENAI_API_KEY"),
+                "api_base": os.getenv("AZURE_OPENAI_ENDPOINT"),
+                "api_version": os.getenv("AZURE_OPENAI_API_VERSION"),
+                "deployment_name": os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
+                "model": os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
             },
             tools=[],
-            memory=False,  # Disable memory to avoid vector search issues
+            memory=False,
             max_rpm=5,
         )
 
@@ -168,13 +170,14 @@ class EmailResponseCrew:
                 "temperature": 0.2,
                 "max_tokens": 800,
                 "api_type": "azure",
-                "api_key": os.getenv("AZURE_API_KEY"),
-                "api_base": os.getenv("AZURE_API_BASE"),
-                "api_version": os.getenv("AZURE_API_VERSION"),
-                "deployment_name": os.getenv("OPENAI_API_ENGINE"),
+                "api_key": os.getenv("AZURE_OPENAI_API_KEY"),
+                "api_base": os.getenv("AZURE_OPENAI_ENDPOINT"),
+                "api_version": os.getenv("AZURE_OPENAI_API_VERSION"),
+                "deployment_name": os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
+                "model": os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
             },
             tools=[],
-            memory=False,  # Disable memory to avoid vector search issues
+            memory=False,
             max_rpm=5,
         )
 
