@@ -240,15 +240,19 @@ class EmailResponseCrew:
                 "task_creation", {"task": "generate_response", "config": task_config}
             )
 
-            # Create context as a list of items
+            # Create context as a list of properly formatted items
             context = [
                 {
                     "role": "system",
                     "content": "You are an expert at writing professional property inquiry responses.",
+                    "description": "System prompt for response generation",
+                    "expected_output": "A valid JSON object with response.subject and response.body",
                 },
                 {
                     "role": "user",
                     "content": f"Property Details: {json.dumps(property_context, indent=2)}\nInquiry Type: {self.inquiry_type}",
+                    "description": "Property details and inquiry type for response generation",
+                    "expected_output": "A valid JSON object with response.subject and response.body",
                 },
             ]
 
