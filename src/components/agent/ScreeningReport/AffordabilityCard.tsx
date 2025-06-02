@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
 	DollarSign,
@@ -46,7 +46,7 @@ const AffordabilityCard = ({
 		<Card>
 			<CardHeader>
 				<h2 className='text-lg font-semibold flex items-center'>
-					<DollarSign className='h-5 w-5 text-blue-600 mr-2' />
+					<DollarSign className='h-5 w-5 text-dusty_grey mr-2' />
 					Affordability Analysis
 				</h2>
 			</CardHeader>
@@ -290,10 +290,16 @@ const AffordabilityCard = ({
 											</p>
 											<p className='font-medium'>
 												{formatCurrency(
-													reportData?.transaction_analysis?.outgoing?.essential_expenses?.reduce(
-														(sum: number, exp: any) => sum + (exp.amount || 0),
-														0,
-													) || 0,
+													Array.isArray(
+														reportData?.transaction_analysis?.outgoing
+															?.essential_expenses,
+													)
+														? reportData.transaction_analysis.outgoing.essential_expenses.reduce(
+																(sum: number, exp: any) =>
+																	sum + (exp.amount || 0),
+																0,
+														  )
+														: 0,
 												)}
 											</p>
 										</div>
@@ -303,10 +309,16 @@ const AffordabilityCard = ({
 											</p>
 											<p className='font-medium'>
 												{formatCurrency(
-													reportData?.transaction_analysis?.outgoing?.non_essential_expenses?.reduce(
-														(sum: number, exp: any) => sum + (exp.amount || 0),
-														0,
-													) || 0,
+													Array.isArray(
+														reportData?.transaction_analysis?.outgoing
+															?.non_essential_expenses,
+													)
+														? reportData.transaction_analysis.outgoing.non_essential_expenses.reduce(
+																(sum: number, exp: any) =>
+																	sum + (exp.amount || 0),
+																0,
+														  )
+														: 0,
 												)}
 											</p>
 										</div>

@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Alert } from '@/components/ui/alert';
 import { User } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
@@ -20,7 +20,7 @@ const TenantInfoCard = ({ tenantProfile, createdAt }: TenantInfoCardProps) => {
 		<Card className='mb-6'>
 			<CardHeader>
 				<h2 className='text-lg font-semibold flex items-center'>
-					<User className='h-5 w-5 text-blue-600 mr-2' />
+					<User className='h-5 w-5 text-dusty_grey mr-2' />
 					Tenant Information
 				</h2>
 			</CardHeader>

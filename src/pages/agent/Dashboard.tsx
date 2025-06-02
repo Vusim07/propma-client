@@ -184,7 +184,13 @@ const AgentDashboard: React.FC = () => {
 									</TableHeader>
 									<TableBody>
 										{recentApplications.map((application) => (
-											<TableRow key={application.id}>
+											<TableRow
+												key={application.id}
+												className='cursor-pointer hover:bg-gray-50'
+												onClick={() =>
+													(window.location.href = `/agent/screening/${application.id}`)
+												}
+											>
 												<TableCell className='font-medium truncate max-w-[100px]'>
 													{application.tenant_profiles?.first_name}{' '}
 													{application.tenant_profiles?.last_name ||

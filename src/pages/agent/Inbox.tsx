@@ -49,30 +49,32 @@ const Inbox = () => {
 	};
 
 	return (
-		<div className='flex flex-col h-screen bg-white md:flex-row overflow-hidden'>
+		<div className='flex flex-col h-screen bg-white md:flex-row'>
 			{/* Email List - Full width on mobile, sidebar on desktop */}
 			<div
 				className={`${
 					showList ? 'flex' : 'hidden'
-				} md:flex w-full md:w-[400px] bg-white border-r border-gray-200 flex-col md:min-h-screen overflow-hidden`}
+				} md:flex w-full md:w-[400px] bg-white border-r border-gray-200 flex-col h-full`}
 			>
 				<InboxHeader
 					activeTab={filters.needsFollowUp ? 'Follow-up' : 'All'}
 					setActiveTab={handleTabChange}
 				/>
-				<EmailList
-					threads={threads}
-					selectedThread={selectedThread}
-					onSelectThread={handleSelectThread}
-					isLoading={isLoading}
-				/>
+				<div className='flex-1'>
+					<EmailList
+						threads={threads}
+						selectedThread={selectedThread}
+						onSelectThread={handleSelectThread}
+						isLoading={isLoading}
+					/>
+				</div>
 			</div>
 
 			{/* Email Detail - Full width on mobile, main content on desktop */}
 			<div
 				className={`${
 					showList ? 'hidden' : 'flex'
-				} md:flex flex-1 flex-col bg-white overflow-hidden`}
+				} md:flex flex-1 flex-col bg-white`}
 			>
 				{/* Mobile back button */}
 				{selectedThread && (

@@ -8,6 +8,7 @@ import traceback
 import sys
 from langfuse import Langfuse
 from datetime import datetime
+from src.email_response_config import setup_config
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -16,6 +17,9 @@ formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
+
+# Setup Azure OpenAI configuration
+setup_config()
 
 
 @CrewBase
@@ -112,6 +116,18 @@ class EmailResponseCrew:
                      South African real estate standards and POPI Act compliance.""",
             verbose=True,
             allow_delegation=False,
+            llm_config={
+                "temperature": 0.7,
+                "max_tokens": 1000,
+                "api_type": "azure",
+                "api_key": os.getenv("AZURE_API_KEY"),
+                "api_base": os.getenv("AZURE_API_BASE"),
+                "api_version": os.getenv("AZURE_API_VERSION"),
+                "deployment_name": os.getenv("OPENAI_API_ENGINE"),
+            },
+            tools=[],
+            memory=True,
+            max_rpm=5,
         )
 
     @agent
@@ -124,6 +140,18 @@ class EmailResponseCrew:
                      I can determine if they want to view a property, check availability, or need general info.""",
             verbose=True,
             allow_delegation=False,
+            llm_config={
+                "temperature": 0.3,
+                "max_tokens": 500,
+                "api_type": "azure",
+                "api_key": os.getenv("AZURE_API_KEY"),
+                "api_base": os.getenv("AZURE_API_BASE"),
+                "api_version": os.getenv("AZURE_API_VERSION"),
+                "deployment_name": os.getenv("OPENAI_API_ENGINE"),
+            },
+            tools=[],
+            memory=True,
+            max_rpm=5,
         )
 
     @agent
@@ -136,14 +164,46 @@ class EmailResponseCrew:
                      professionally written, and include all required information.""",
             verbose=True,
             allow_delegation=False,
+            llm_config={
+                "temperature": 0.2,
+                "max_tokens": 800,
+                "api_type": "azure",
+                "api_key": os.getenv("AZURE_API_KEY"),
+                "api_base": os.getenv("AZURE_API_BASE"),
+                "api_version": os.getenv("AZURE_API_VERSION"),
+                "deployment_name": os.getenv("OPENAI_API_ENGINE"),
+            },
+            tools=[],
+            memory=True,
+            max_rpm=5,
         )
 
     @task
     def classify_inquiry_task(self) -> Task:
         """Task for classifying the inquiry type"""
         try:
-            task_config = {
-                "description": f"""Classify the type of property inquiry from this email exchange.
+            logger.info("Creating classification task...")
+
+            # Create context as a list of dictionaries
+            context = [
+                {
+                    "role": "system",
+                    "content": "You are an expert at classifying property inquiries.",
+                    "description": "System prompt for classification",
+                    "expected_output": "A valid JSON object containing the inquiry_type.",
+                },
+                {
+                    "role": "user",
+                    "content": f"Subject: {self.email_subject}\nContent: {self.email_content}",
+                    "description": "Property inquiry details for classification",
+                    "expected_output": "A valid JSON object containing the inquiry_type.",
+                },
+            ]
+
+            logger.info(f"Task context created: {json.dumps(context, indent=2)}")
+
+            task = Task(
+                description=f"""Classify the type of property inquiry from this email exchange.
                     Subject: {self.email_subject}
                     Content: {self.email_content}
                     
@@ -154,41 +214,29 @@ class EmailResponseCrew:
                     
                     IMPORTANT: Return ONLY a valid JSON object with this exact format:
                     {{"inquiry_type": "viewing_request" | "availability_check" | "general_info"}}""",
-                "expected_output": "A valid JSON object containing the inquiry_type.",
-            }
-
-            logger.info("Creating classification task with config")
-            self.log_observability_event(
-                "task_creation", {"task": "classify_inquiry", "config": task_config}
-            )
-
-            # Create context as a list of properly formatted items
-            context = [
-                {
-                    "role": "system",
-                    "content": "You are an expert at classifying property inquiries.",
-                    "description": "System prompt for inquiry classification",
-                    "expected_output": "A valid JSON object containing the inquiry_type.",
-                },
-                {
-                    "role": "user",
-                    "content": f"Subject: {self.email_subject}\nContent: {self.email_content}",
-                    "description": "Email content to classify",
-                    "expected_output": "A valid JSON object containing the inquiry_type.",
-                },
-            ]
-
-            return Task(
-                description=task_config["description"],
-                expected_output=task_config["expected_output"],
+                expected_output="A valid JSON object containing the inquiry_type.",
                 agent=self.inquiry_classifier(),
                 context=context,
             )
+
+            logger.info("Classification task created successfully")
+            self.log_observability_event(
+                "task_creation",
+                {"task": "classify_inquiry", "context": context, "status": "success"},
+            )
+
+            return task
+
         except Exception as e:
             logger.error(f"Error creating classification task: {str(e)}")
+            logger.error(f"Stack trace: {traceback.format_exc()}")
             self.log_observability_event(
                 "task_creation_error",
-                {"task": "classify_inquiry", "error": str(e)},
+                {
+                    "task": "classify_inquiry",
+                    "error": str(e),
+                    "stack_trace": traceback.format_exc(),
+                },
                 "error",
             )
             raise
@@ -200,6 +248,8 @@ class EmailResponseCrew:
             if not self.matched_property:
                 raise ValueError("No matched_property provided to response task!")
 
+            logger.info("Creating response generation task...")
+
             # Prepare property context
             property_context = {
                 "address": self.matched_property["address"],
@@ -208,8 +258,28 @@ class EmailResponseCrew:
                 "application_link": self.matched_property["application_link"],
             }
 
-            task_config = {
-                "description": f"""Generate a professional, POPI-compliant response to this property inquiry.
+            # Create context as a list of dictionaries
+            context = [
+                {
+                    "role": "system",
+                    "content": "You are an expert at writing professional property inquiry responses.",
+                    "description": "System prompt for response generation",
+                    "expected_output": "A valid JSON object with response.subject and response.body",
+                },
+                {
+                    "role": "user",
+                    "content": f"Property Details: {json.dumps(property_context, indent=2)}\nInquiry Type: {self.inquiry_type}",
+                    "description": "Property details and inquiry type for response generation",
+                    "expected_output": "A valid JSON object with response.subject and response.body",
+                },
+            ]
+
+            logger.info(
+                f"Response task context created: {json.dumps(context, indent=2)}"
+            )
+
+            task = Task(
+                description=f"""Generate a professional, POPI-compliant response to this property inquiry.
                     
                     Email Subject: {self.email_subject}
                     Email Content: {self.email_content}
@@ -232,41 +302,29 @@ class EmailResponseCrew:
                             "body": "Dear [Name],\\n\\nThank you..."
                         }}
                     }}""",
-                "expected_output": "A valid JSON object with response.subject and response.body",
-            }
-
-            logger.info("Creating response generation task with config")
-            self.log_observability_event(
-                "task_creation", {"task": "generate_response", "config": task_config}
-            )
-
-            # Create context as a list of properly formatted items
-            context = [
-                {
-                    "role": "system",
-                    "content": "You are an expert at writing professional property inquiry responses.",
-                    "description": "System prompt for response generation",
-                    "expected_output": "A valid JSON object with response.subject and response.body",
-                },
-                {
-                    "role": "user",
-                    "content": f"Property Details: {json.dumps(property_context, indent=2)}\nInquiry Type: {self.inquiry_type}",
-                    "description": "Property details and inquiry type for response generation",
-                    "expected_output": "A valid JSON object with response.subject and response.body",
-                },
-            ]
-
-            return Task(
-                description=task_config["description"],
-                expected_output=task_config["expected_output"],
+                expected_output="A valid JSON object with response.subject and response.body",
                 agent=self.response_writer(),
                 context=context,
             )
+
+            logger.info("Response generation task created successfully")
+            self.log_observability_event(
+                "task_creation",
+                {"task": "generate_response", "context": context, "status": "success"},
+            )
+
+            return task
+
         except Exception as e:
             logger.error(f"Error creating response generation task: {str(e)}")
+            logger.error(f"Stack trace: {traceback.format_exc()}")
             self.log_observability_event(
                 "task_creation_error",
-                {"task": "generate_response", "error": str(e)},
+                {
+                    "task": "generate_response",
+                    "error": str(e),
+                    "stack_trace": traceback.format_exc(),
+                },
                 "error",
             )
             raise
@@ -278,8 +336,30 @@ class EmailResponseCrew:
             if not self.matched_property:
                 raise ValueError("No matched_property provided to validation task")
 
-            task_config = {
-                "description": f"""Validate this email response for accuracy, professionalism, and completeness.
+            logger.info("Creating validation task...")
+
+            # Create context as a list of dictionaries
+            context = [
+                {
+                    "role": "system",
+                    "content": "You are an expert at validating property inquiry responses.",
+                    "description": "System prompt for response validation",
+                    "expected_output": "A valid JSON object with validation results",
+                },
+                {
+                    "role": "user",
+                    "content": f"Property Details: {json.dumps(self.matched_property, indent=2)}\nInquiry Type: {self.inquiry_type}",
+                    "description": "Property details and inquiry type for validation",
+                    "expected_output": "A valid JSON object with validation results",
+                },
+            ]
+
+            logger.info(
+                f"Validation task context created: {json.dumps(context, indent=2)}"
+            )
+
+            task = Task(
+                description=f"""Validate this email response for accuracy, professionalism, and completeness.
 
                     Original Email: 
                     {self.email_content}
@@ -304,37 +384,29 @@ class EmailResponseCrew:
                             "inquiry_type": "{self.inquiry_type}"
                         }}
                     }}""",
-                "expected_output": "A valid JSON object with validation results",
-            }
-
-            logger.info("Creating validation task with config")
-            self.log_observability_event(
-                "task_creation", {"task": "validate_response", "config": task_config}
-            )
-
-            # Create context as a list of items
-            context = [
-                {
-                    "role": "system",
-                    "content": "You are an expert at validating property inquiry responses.",
-                },
-                {
-                    "role": "user",
-                    "content": f"Property Details: {json.dumps(self.matched_property, indent=2)}\nInquiry Type: {self.inquiry_type}",
-                },
-            ]
-
-            return Task(
-                description=task_config["description"],
-                expected_output=task_config["expected_output"],
+                expected_output="A valid JSON object with validation results",
                 agent=self.response_validator(),
                 context=context,
             )
+
+            logger.info("Validation task created successfully")
+            self.log_observability_event(
+                "task_creation",
+                {"task": "validate_response", "context": context, "status": "success"},
+            )
+
+            return task
+
         except Exception as e:
             logger.error(f"Error creating validation task: {str(e)}")
+            logger.error(f"Stack trace: {traceback.format_exc()}")
             self.log_observability_event(
                 "task_creation_error",
-                {"task": "validate_response", "error": str(e)},
+                {
+                    "task": "validate_response",
+                    "error": str(e),
+                    "stack_trace": traceback.format_exc(),
+                },
                 "error",
             )
             raise
@@ -445,6 +517,15 @@ class EmailResponseCrew:
                 process=Process.sequential,
                 verbose=True,
                 callbacks=[self.process_results],
+                memory=True,  # Enable memory for better context retention
+                max_rpm=10,  # Rate limiting for API calls
+                cache=True,  # Enable caching for better performance
+                temperature=0.7,  # Default temperature for the crew
+                max_iterations=3,  # Maximum number of iterations for task completion
+                timeout=300,  # Timeout in seconds for the entire crew execution
+                retry_on_failure=True,  # Enable retry on task failure
+                retry_attempts=2,  # Number of retry attempts
+                observability=True,  # Enable detailed observability
             )
 
             logger.info(f"Created crew with 3 tasks")

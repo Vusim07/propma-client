@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Alert } from '@/components/ui/alert';
 import DocumentViewerSheet from '@/components/agent/DocumentViewerSheet';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ const DocumentAnalysisCard = ({ documents }: DocumentAnalysisCardProps) => {
 		<Card>
 			<CardHeader>
 				<h2 className='text-lg font-semibold flex items-center'>
-					<FileText className='h-5 w-5 text-blue-600 mr-2' />
+					<FileText className='h-5 w-5 text-dusty_grey mr-2' />
 					Document Analysis
 					<span className='ml-2 text-xs text-gray-500 font-normal'>
 						({documents.length} document{documents.length === 1 ? '' : 's'})

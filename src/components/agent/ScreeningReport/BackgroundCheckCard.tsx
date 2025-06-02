@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { User, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
@@ -22,7 +22,7 @@ const BackgroundCheckCard = ({
 		<Card>
 			<CardHeader>
 				<h2 className='text-lg font-semibold flex items-center'>
-					<User className='h-5 w-5 text-blue-600 mr-2' />
+					<User className='h-5 w-5 text-dusty_grey mr-2' />
 					Background Check
 				</h2>
 			</CardHeader>
@@ -69,7 +69,7 @@ const BackgroundCheckCard = ({
 							{backgroundCheck.criminal_record ? (
 								<Badge variant='destructive'>Found</Badge>
 							) : (
-								<Badge variant='default'>None</Badge>
+								<Badge variant='outline'>None</Badge>
 							)}
 						</div>
 
@@ -80,7 +80,7 @@ const BackgroundCheckCard = ({
 							{backgroundCheck.eviction_history ? (
 								<Badge variant='destructive'>Found</Badge>
 							) : (
-								<Badge variant='default'>None</Badge>
+								<Badge variant='outline'>None</Badge>
 							)}
 						</div>
 
@@ -94,7 +94,7 @@ const BackgroundCheckCard = ({
 										? 'default'
 										: idVerificationStatus === 'failed'
 										? 'destructive'
-										: 'default'
+										: 'secondary'
 								}
 							>
 								{idVerificationStatus?.toUpperCase() ?? 'PENDING'}

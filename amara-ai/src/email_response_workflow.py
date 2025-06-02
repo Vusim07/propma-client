@@ -3,10 +3,15 @@ from src.utils.web_ref_extractor import extract_web_ref
 from src.utils.template_manager import TemplateManager
 from src.utils.validators import ResponseValidator
 from tasks.email_response_agent import process_email_with_crew
+from src.email_response_config import setup_config
 import logging
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+# Setup Azure OpenAI configuration
+setup_config()
+
 # In-memory templates (replace with DB fetch in production)
 TEMPLATES = {
     "viewing_request": """Subject: Re: Property Viewing - {web_ref}\n\nDear {customer_name},\n\nThank you for your interest in {property_address}. I'd be delighted to arrange a viewing for you.\n\nThis {property_type} features {key_highlights} and is currently {availability_status}.\n\nTo proceed with your application or schedule a viewing, please use this secure link: {application_link}\n\nI look forward to showing you this wonderful property.\n\nBest regards,\n{agent_name}\n{agent_contact}\n""",

@@ -46,7 +46,7 @@ const EmailList: React.FC<EmailListProps> = ({
 }) => {
 	if (isLoading) {
 		return (
-			<ScrollArea className='flex-1'>
+			<ScrollArea className='h-[calc(100vh-8rem)]' type='auto'>
 				<div className='p-4 text-center text-gray-500'>Loading threads...</div>
 			</ScrollArea>
 		);
@@ -54,14 +54,14 @@ const EmailList: React.FC<EmailListProps> = ({
 
 	if (threads.length === 0) {
 		return (
-			<ScrollArea className='flex-1'>
+			<ScrollArea className='h-[calc(100vh-8rem)]' type='auto'>
 				<div className='p-4 text-center text-gray-500'>No threads found</div>
 			</ScrollArea>
 		);
 	}
 
 	return (
-		<ScrollArea className='flex-1'>
+		<ScrollArea className='h-[calc(100vh-8rem)]' type='auto'>
 			<div className='divide-y divide-gray-100'>
 				{threads.map((thread) => {
 					const isUnread = thread.status === 'active';

@@ -30,7 +30,7 @@ const ScreeningHeader = ({
 			<Badge
 				variant={
 					screeningData.pre_approval_status === 'approved'
-						? 'default'
+						? 'success'
 						: screeningData.pre_approval_status === 'rejected'
 						? 'destructive'
 						: 'default'
