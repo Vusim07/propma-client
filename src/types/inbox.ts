@@ -168,6 +168,9 @@ export interface EmailDraft {
 	attachments?: File[];
 	threadId?: string;
 	inReplyTo?: string;
+	from: string;
+	teamId?: string;
+	userId?: string;
 }
 
 // Email validation types

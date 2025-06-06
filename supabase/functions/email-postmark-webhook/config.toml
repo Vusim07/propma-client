@@ -1,0 +1,2 @@
+[functions.email-postmark-webhook]
+verify_jwt = false

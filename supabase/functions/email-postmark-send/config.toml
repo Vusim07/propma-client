@@ -1,0 +1,2 @@
+[functions.email-postmark-send]
+verify_jwt = true 

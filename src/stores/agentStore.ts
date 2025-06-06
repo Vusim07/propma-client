@@ -14,13 +14,13 @@ import {
 
 /**
  * @deprecated The email workflow and Gmail integration system is being deprecated in favor of a new dedicated inbox system.
- * The new system will use custom email addresses (@n.agentamara.com) instead of Gmail integration.
+ * The new system will use custom email addresses (@mail.agentamara.com) instead of Gmail integration.
  *
  * Migration Guide:
  * - New Implementation: New Inbox feature with dedicated email addresses
  * - Key Changes:
  *   - No more Gmail integration required
- *   - Users get a dedicated @n.agentamara.com email address
+ *   - Users get a dedicated @mail.agentamara.com email address
  *   - Simplified email handling for listing site inquiries
  * - Contact: [Your team contact]
  */
@@ -128,19 +128,19 @@ interface AgentState {
 	generateApplicationLink: (propertyId: string) => Promise<string>;
 	/**
 	 * @deprecated This function is deprecated. The email workflow system is being replaced with a new inbox system.
-	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 * Users will receive a dedicated @mail.agentamara.com email address instead of connecting their Gmail.
 	 */
 	fetchWorkflows: (agentId: string) => Promise<void>;
 	/**
 	 * @deprecated This function is deprecated. The email workflow system is being replaced with a new inbox system.
-	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 * Users will receive a dedicated @mail.agentamara.com email address instead of connecting their Gmail.
 	 */
 	createWorkflow: (
 		workflow: Omit<InsertEmailWorkflow, 'id' | 'created_at' | 'updated_at'>,
 	) => Promise<void>;
 	/**
 	 * @deprecated This function is deprecated. The email workflow system is being replaced with a new inbox system.
-	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 * Users will receive a dedicated @mail.agentamara.com email address instead of connecting their Gmail.
 	 */
 	updateWorkflow: (
 		id: string,
@@ -148,24 +148,24 @@ interface AgentState {
 	) => Promise<void>;
 	/**
 	 * @deprecated This function is deprecated. The email workflow system is being replaced with a new inbox system.
-	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 * Users will receive a dedicated @mail.agentamara.com email address instead of connecting their Gmail.
 	 */
 	deleteWorkflow: (id: string) => Promise<void>;
 	/**
 	 * @deprecated This function is deprecated. The email workflow system is being replaced with a new inbox system.
-	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 * Users will receive a dedicated @mail.agentamara.com email address instead of connecting their Gmail.
 	 */
 	fetchWorkflowLogs: (workflowId?: string) => Promise<void>;
 	fetchAppointments: (agentId: string) => Promise<void>;
 	fetchSubscriptions: (userId: string) => Promise<Subscription | null>;
 	/**
 	 * @deprecated This function is deprecated. The Gmail integration is being replaced with a new inbox system.
-	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 * Users will receive a dedicated @mail.agentamara.com email address instead of connecting their Gmail.
 	 */
 	fetchEmailIntegration: (userId: string) => Promise<EmailIntegration | null>;
 	/**
 	 * @deprecated This function is deprecated. The Gmail integration is being replaced with a new inbox system.
-	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 * Users will receive a dedicated @mail.agentamara.com email address instead of connecting their Gmail.
 	 */
 	connectEmailIntegration: (
 		userId: string,
@@ -179,7 +179,7 @@ interface AgentState {
 	) => Promise<EmailIntegration>;
 	/**
 	 * @deprecated This function is deprecated. The Gmail integration is being replaced with a new inbox system.
-	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 * Users will receive a dedicated @mail.agentamara.com email address instead of connecting their Gmail.
 	 */
 	disconnectEmailIntegration: (integrationId: string) => Promise<void>;
 	diagnosticCheck: () => Promise<void>;
@@ -193,12 +193,12 @@ interface AgentState {
 
 	/**
 	 * @deprecated This function is deprecated. The Gmail integration is being replaced with a new inbox system.
-	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 * Users will receive a dedicated @mail.agentamara.com email address instead of connecting their Gmail.
 	 */
 	fetchGmailMessages: () => Promise<GmailMessage[]>;
 	/**
 	 * @deprecated This function is deprecated. The Gmail integration is being replaced with a new inbox system.
-	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 * Users will receive a dedicated @mail.agentamara.com email address instead of connecting their Gmail.
 	 */
 	sendGmailMessage: (
 		to: string,
@@ -492,11 +492,11 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 
 	/**
 	 * @deprecated This function is deprecated. The email workflow system is being replaced with a new inbox system.
-	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 * Users will receive a dedicated @mail.agentamara.com email address instead of connecting their Gmail.
 	 */
 	fetchWorkflows: async (agentId) => {
 		console.warn(
-			'DEPRECATED: fetchWorkflows is deprecated. The email workflow system is being replaced with a new inbox system using @n.agentamara.com addresses.',
+			'DEPRECATED: fetchWorkflows is deprecated. The email workflow system is being replaced with a new inbox system using @mail.agentamara.com addresses.',
 		);
 		set((state) => ({
 			loadingCount: state.loadingCount + 1,
@@ -524,11 +524,11 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 
 	/**
 	 * @deprecated This function is deprecated. The email workflow system is being replaced with a new inbox system.
-	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 * Users will receive a dedicated @mail.agentamara.com email address instead of connecting their Gmail.
 	 */
 	createWorkflow: async (workflow) => {
 		console.warn(
-			'DEPRECATED: createWorkflow is deprecated. The email workflow system is being replaced with a new inbox system using @n.agentamara.com addresses.',
+			'DEPRECATED: createWorkflow is deprecated. The email workflow system is being replaced with a new inbox system using @mail.agentamara.com addresses.',
 		);
 		set({ isLoading: true, error: null });
 		try {
@@ -551,11 +551,11 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 
 	/**
 	 * @deprecated This function is deprecated. The email workflow system is being replaced with a new inbox system.
-	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 * Users will receive a dedicated @mail.agentamara.com email address instead of connecting their Gmail.
 	 */
 	updateWorkflow: async (id, updates) => {
 		console.warn(
-			'DEPRECATED: updateWorkflow is deprecated. The email workflow system is being replaced with a new inbox system using @n.agentamara.com addresses.',
+			'DEPRECATED: updateWorkflow is deprecated. The email workflow system is being replaced with a new inbox system using @mail.agentamara.com addresses.',
 		);
 		set({ isLoading: true, error: null });
 		try {
@@ -593,11 +593,11 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 
 	/**
 	 * @deprecated This function is deprecated. The email workflow system is being replaced with a new inbox system.
-	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 * Users will receive a dedicated @mail.agentamara.com email address instead of connecting their Gmail.
 	 */
 	deleteWorkflow: async (id) => {
 		console.warn(
-			'DEPRECATED: deleteWorkflow is deprecated. The email workflow system is being replaced with a new inbox system using @n.agentamara.com addresses.',
+			'DEPRECATED: deleteWorkflow is deprecated. The email workflow system is being replaced with a new inbox system using @mail.agentamara.com addresses.',
 		);
 		set({ isLoading: true, error: null });
 		try {
@@ -619,11 +619,11 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 
 	/**
 	 * @deprecated This function is deprecated. The email workflow system is being replaced with a new inbox system.
-	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 * Users will receive a dedicated @mail.agentamara.com email address instead of connecting their Gmail.
 	 */
 	fetchWorkflowLogs: async (workflowId) => {
 		console.warn(
-			'DEPRECATED: fetchWorkflowLogs is deprecated. The email workflow system is being replaced with a new inbox system using @n.agentamara.com addresses.',
+			'DEPRECATED: fetchWorkflowLogs is deprecated. The email workflow system is being replaced with a new inbox system using @mail.agentamara.com addresses.',
 		);
 		set((state) => ({
 			loadingCount: state.loadingCount + 1,
@@ -751,11 +751,11 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 
 	/**
 	 * @deprecated This function is deprecated. The Gmail integration is being replaced with a new inbox system.
-	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 * Users will receive a dedicated @mail.agentamara.com email address instead of connecting their Gmail.
 	 */
 	fetchEmailIntegration: async (userId) => {
 		console.warn(
-			'DEPRECATED: fetchEmailIntegration is deprecated. The Gmail integration is being replaced with a new inbox system using @n.agentamara.com addresses.',
+			'DEPRECATED: fetchEmailIntegration is deprecated. The Gmail integration is being replaced with a new inbox system using @mail.agentamara.com addresses.',
 		);
 		set({ isLoading: true, error: null });
 		try {
@@ -775,11 +775,11 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 
 	/**
 	 * @deprecated This function is deprecated. The Gmail integration is being replaced with a new inbox system.
-	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 * Users will receive a dedicated @mail.agentamara.com email address instead of connecting their Gmail.
 	 */
 	connectEmailIntegration: async (userId, provider, tokens) => {
 		console.warn(
-			'DEPRECATED: connectEmailIntegration is deprecated. The Gmail integration is being replaced with a new inbox system using @n.agentamara.com addresses.',
+			'DEPRECATED: connectEmailIntegration is deprecated. The Gmail integration is being replaced with a new inbox system using @mail.agentamara.com addresses.',
 		);
 		set({ isLoading: true, error: null });
 		try {
@@ -806,11 +806,11 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 
 	/**
 	 * @deprecated This function is deprecated. The Gmail integration is being replaced with a new inbox system.
-	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 * Users will receive a dedicated @mail.agentamara.com email address instead of connecting their Gmail.
 	 */
 	disconnectEmailIntegration: async (integrationId) => {
 		console.warn(
-			'DEPRECATED: disconnectEmailIntegration is deprecated. The Gmail integration is being replaced with a new inbox system using @n.agentamara.com addresses.',
+			'DEPRECATED: disconnectEmailIntegration is deprecated. The Gmail integration is being replaced with a new inbox system using @mail.agentamara.com addresses.',
 		);
 		set({ isLoading: true, error: null });
 		try {
@@ -828,11 +828,11 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 
 	/**
 	 * @deprecated This function is deprecated. The Gmail integration is being replaced with a new inbox system.
-	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 * Users will receive a dedicated @mail.agentamara.com email address instead of connecting their Gmail.
 	 */
 	fetchGmailMessages: async () => {
 		console.warn(
-			'DEPRECATED: fetchGmailMessages is deprecated. The Gmail integration is being replaced with a new inbox system using @n.agentamara.com addresses.',
+			'DEPRECATED: fetchGmailMessages is deprecated. The Gmail integration is being replaced with a new inbox system using @mail.agentamara.com addresses.',
 		);
 		set({ isLoading: true, error: null });
 		try {
@@ -868,11 +868,11 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 
 	/**
 	 * @deprecated This function is deprecated. The Gmail integration is being replaced with a new inbox system.
-	 * Users will receive a dedicated @n.agentamara.com email address instead of connecting their Gmail.
+	 * Users will receive a dedicated @mail.agentamara.com email address instead of connecting their Gmail.
 	 */
 	sendGmailMessage: async (to, subject, body) => {
 		console.warn(
-			'DEPRECATED: sendGmailMessage is deprecated. The Gmail integration is being replaced with a new inbox system using @n.agentamara.com addresses.',
+			'DEPRECATED: sendGmailMessage is deprecated. The Gmail integration is being replaced with a new inbox system using @mail.agentamara.com addresses.',
 		);
 		set({ isLoading: true, error: null });
 		try {

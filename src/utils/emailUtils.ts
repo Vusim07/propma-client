@@ -12,12 +12,12 @@ export const isValidEmailFormat = (email: string): boolean => {
 };
 
 /**
- * Validates if an email address is a valid @n.agentamara.com address
+ * Validates if an email address is a valid @mail.agentamara.com address
  * @param email - The email address to validate
  * @returns boolean indicating if it's a valid agent email
  */
 export const isValidAgentEmail = (email: string): boolean => {
-	const agentEmailRegex = /^[a-zA-Z0-9-]+-[a-zA-Z0-9]+@n\.agentamara\.com$/;
+	const agentEmailRegex = /^[a-zA-Z0-9-]+-[a-zA-Z0-9]+@mail\.agentamara\.com$/;
 	return agentEmailRegex.test(email);
 };
 
@@ -41,7 +41,7 @@ export const generateAgentEmailAddress = (
 	const truncatedName = sanitizedName.slice(0, 20);
 
 	// Generate email address
-	return `${truncatedName}-${userId}@n.agentamara.com`;
+	return `${truncatedName}-${userId}@mail.agentamara.com`;
 };
 
 /**
@@ -64,7 +64,7 @@ export const generateTeamEmailAddress = (
 	const truncatedName = sanitizedName.slice(0, 20);
 
 	// Generate email address
-	return `${truncatedName}-${teamId}@n.agentamara.com`;
+	return `${truncatedName}-${teamId}@mail.agentamara.com`;
 };
 
 /**
@@ -87,7 +87,7 @@ export const isUniqueEmailAddress = (
  */
 export const extractUserIdFromEmail = (email: string): string | null => {
 	const match = email.match(
-		/^[a-zA-Z0-9-]+-([a-zA-Z0-9]+)@n\.agentamara\.com$/,
+		/^[a-zA-Z0-9-]+-([a-zA-Z0-9]+)@mail\.agentamara\.com$/,
 	);
 	return match ? match[1] : null;
 };
@@ -99,7 +99,7 @@ export const extractUserIdFromEmail = (email: string): string | null => {
  */
 export const extractTeamIdFromEmail = (email: string): string | null => {
 	const match = email.match(
-		/^[a-zA-Z0-9-]+-([a-zA-Z0-9]+)@n\.agentamara\.com$/,
+		/^[a-zA-Z0-9-]+-([a-zA-Z0-9]+)@mail\.agentamara\.com$/,
 	);
 	return match ? match[1] : null;
 };
@@ -135,9 +135,9 @@ export const validateEmailAddress = (
 	}
 
 	// Check domain
-	if (!email.endsWith('@n.agentamara.com')) {
+	if (!email.endsWith('@mail.agentamara.com')) {
 		result.isValid = false;
-		result.errors.domain = 'Email must be from @n.agentamara.com domain';
+		result.errors.domain = 'Email must be from @mail.agentamara.com domain';
 	}
 
 	// Check uniqueness

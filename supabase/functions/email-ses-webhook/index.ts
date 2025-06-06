@@ -172,9 +172,15 @@ serve(async (req) => {
 									.eq('email_address', destination[0])
 									.single();
 
-								if (error) throw error;
-								if (!data)
-									throw new Error(`Email address not found: ${destination[0]}`);
+								if (error) {
+									console.error('Error finding email address:', error);
+									throw error;
+								}
+								if (!data) {
+									const err = `Email address not found: ${destination[0]}`;
+									console.error(err);
+									throw new Error(err);
+								}
 								return data;
 							}, 'find email address');
 
@@ -192,29 +198,53 @@ serve(async (req) => {
 								threadInsert.user_id = emailAddress.user_id;
 								threadInsert.team_id = null;
 							} else {
-								throw new Error(
-									'Email address is not associated with a user or team',
-								);
+								const err =
+									'Email address is not associated with a user or team';
+								console.error(err);
+								throw new Error(err);
 							}
-							const thread = await retryOperation(async () => {
-								const { data, error } = await supabaseClient
-									.from('email_threads')
-									.upsert(threadInsert)
-									.select()
-									.single();
-								if (error) throw error;
-								return data;
-							}, 'create/update thread');
 
-							await storeEmailWithRetry(
-								supabaseClient,
-								messageId,
-								thread.id,
-								parsedEmail,
-								{ source, destination, commonHeaders, timestamp },
-								action.bucketName,
-								action.objectKey,
-							);
+							try {
+								const thread = await retryOperation(async () => {
+									const { data, error } = await supabaseClient
+										.from('email_threads')
+										.insert(threadInsert)
+										.select()
+										.single();
+
+									if (error) {
+										console.error('Error creating thread:', error);
+										throw error;
+									}
+									return data;
+								}, 'create email thread');
+
+								await storeEmailWithRetry(
+									supabaseClient,
+									messageId,
+									thread.id,
+									parsedEmail,
+									{
+										source,
+										destination,
+										commonHeaders,
+										timestamp,
+									},
+									action.bucketName,
+									action.objectKey,
+								);
+
+								console.log(`Successfully processed message ${messageId}`);
+							} catch (error) {
+								console.error('Error storing email:', {
+									error: error.message,
+									stack: error.stack,
+									messageId,
+									destination: destination[0],
+									threadInsert,
+								});
+								throw error;
+							}
 
 							// --- Amara AI Integration: Generate and store AI response ---
 							try {
