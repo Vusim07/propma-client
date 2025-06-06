@@ -5,12 +5,11 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 
 interface SendEmailRequest {
+	messageId: string;
 	to: string;
 	subject: string;
-	textBody?: string;
+	body: string;
 	htmlBody?: string;
-	from?: string;
-	replyTo?: string;
 	attachments?: Array<{
 		name: string;
 		content: string; // Base64 encoded
@@ -38,9 +37,10 @@ serve(async (req) => {
 
 		// Validate required fields
 		if (
+			!payload.messageId ||
 			!payload.to ||
 			!payload.subject ||
-			(!payload.textBody && !payload.htmlBody)
+			!payload.body
 		) {
 			return new Response(
 				JSON.stringify({ error: 'Missing required fields' }),
@@ -51,16 +51,65 @@ serve(async (req) => {
 			);
 		}
 
+		// Get the message details from the database
+		const { data: message, error: messageError } = await supabaseClient
+			.from('email_messages')
+			.select('*, thread:email_threads(*)')
+			.eq('id', payload.messageId)
+			.single();
+
+		if (messageError || !message) {
+			throw new Error(`Message not found: ${messageError?.message}`);
+		}
+
+		// Get the sender's email address based on thread ownership
+		let emailAddress;
+		if (message.thread.team_id) {
+			// If thread belongs to a team, get team's primary email
+			const { data: teamEmail, error: teamEmailError } = await supabaseClient
+				.from('email_addresses')
+				.select('email_address')
+				.eq('is_primary', true)
+				.eq('team_id', message.thread.team_id)
+				.single();
+
+			if (teamEmailError || !teamEmail) {
+				throw new Error(
+					`No primary email address found for team: ${teamEmailError?.message}`,
+				);
+			}
+			emailAddress = teamEmail.email_address;
+		} else {
+			// If thread belongs to an individual user, get user's primary email
+			const { data: userEmail, error: userEmailError } = await supabaseClient
+				.from('email_addresses')
+				.select('email_address')
+				.eq('is_primary', true)
+				.eq('user_id', message.thread.user_id)
+				.single();
+
+			if (userEmailError || !userEmail) {
+				throw new Error(
+					`No primary email address found for user: ${userEmailError?.message}`,
+				);
+			}
+			emailAddress = userEmail.email_address;
+		}
+
 		// Prepare the email payload for Postmark
 		const emailPayload = {
-			From: payload.from || Deno.env.get('POSTMARK_FROM_EMAIL'),
+			From: emailAddress,
 			To: payload.to,
 			Subject: payload.subject,
-			TextBody: payload.textBody,
+			TextBody: payload.body,
 			HtmlBody: payload.htmlBody,
-			ReplyTo: payload.replyTo,
+			ReplyTo: emailAddress,
 			Tag: payload.tag,
-			Metadata: payload.metadata,
+			Metadata: {
+				...payload.metadata,
+				messageId: payload.messageId,
+				threadId: message.thread_id,
+			},
 			Attachments: payload.attachments?.map((attachment) => ({
 				Name: attachment.name,
 				Content: attachment.content,
@@ -86,23 +135,35 @@ serve(async (req) => {
 
 		const result = await response.json();
 
-		// Store the sent email in the database
-		const { error: emailError } = await supabaseClient.from('emails').insert({
-			from_email: emailPayload.From,
-			to_email: emailPayload.To,
-			subject: emailPayload.Subject,
-			text_content: emailPayload.TextBody,
-			html_content: emailPayload.HtmlBody,
-			message_id: result.MessageID,
-			sent_at: new Date().toISOString(),
-			status: 'sent',
-			tag: emailPayload.Tag,
-			metadata: emailPayload.Metadata,
-		});
+		// Update the message in the database
+		const { error: updateError } = await supabaseClient
+			.from('email_messages')
+			.update({
+				message_id: result.MessageID,
+				status: 'sent',
+				sent_at: new Date().toISOString(),
+			})
+			.eq('id', payload.messageId);
 
-		if (emailError) {
-			console.error('Error storing sent email:', emailError);
-			throw emailError;
+		if (updateError) {
+			console.error('Error updating message:', updateError);
+			throw updateError;
+		}
+
+		// Log the delivery event
+		const { error: logError } = await supabaseClient
+			.from('email_delivery_logs')
+			.insert({
+				message_id: payload.messageId,
+				event_type: 'send',
+				recipient: payload.to,
+				status: 'sent',
+				raw_data: result,
+			});
+
+		if (logError) {
+			console.error('Error logging delivery:', logError);
+			// Don't throw here, as the email was sent successfully
 		}
 
 		return new Response(
@@ -114,7 +175,7 @@ serve(async (req) => {
 		);
 	} catch (error) {
 		console.error('Error sending email:', error);
-		return new Response(JSON.stringify({ error: 'Internal server error' }), {
+		return new Response(JSON.stringify({ error: error.message }), {
 			headers: { ...corsHeaders, 'Content-Type': 'application/json' },
 			status: 500,
 		});
