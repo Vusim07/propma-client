@@ -54,6 +54,24 @@ interface PostmarkInboundEmail {
 	}>;
 }
 
+// Helper function to extract clean email address
+function extractEmailAddress(formattedEmail: string): string {
+	// Try to extract email from "Display Name <email@example.com>" format
+	const matchAngleBrackets = formattedEmail.match(/<([^>]+)>/);
+	if (matchAngleBrackets) {
+		return matchAngleBrackets[1];
+	}
+
+	// Try to extract from quoted format "email@example.com"
+	const matchQuotes = formattedEmail.match(/"([^"]+)"/);
+	if (matchQuotes) {
+		return matchQuotes[1];
+	}
+
+	// If no special formatting, return as is
+	return formattedEmail.trim();
+}
+
 serve(async (req) => {
 	// Handle CORS preflight requests
 	if (req.method === 'OPTIONS') {
@@ -115,12 +133,16 @@ serve(async (req) => {
 			Headers,
 		} = payload;
 
+		// Clean the To address
+		const cleanToAddress = extractEmailAddress(To);
+		console.log('Cleaned To address:', cleanToAddress);
+
 		// Find the email address in our system
 		const emailAddress = await retryOperation(async () => {
 			const { data, error } = await supabaseClient
 				.from('email_addresses')
 				.select('id, team_id, user_id')
-				.eq('email_address', To)
+				.eq('email_address', cleanToAddress)
 				.single();
 
 			if (error) {
@@ -128,7 +150,7 @@ serve(async (req) => {
 				throw error;
 			}
 			if (!data) {
-				const err = `Email address not found: ${To}`;
+				const err = `Email address not found: ${cleanToAddress}`;
 				console.error(err);
 				throw new Error(err);
 			}

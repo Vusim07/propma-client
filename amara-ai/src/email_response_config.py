@@ -1,6 +1,14 @@
 import os
 import logging
+import os
+import logging
 from dotenv import load_dotenv
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+# Load environment variables
+load_dotenv()
 
 # Load environment variables
 load_dotenv(verbose=True)
@@ -76,11 +84,52 @@ def log_env_vars():
 
 
 def setup_config():
+    """Setup Azure OpenAI configuration and validate settings"""
+    logger.info("Setting up Azure OpenAI configuration...")
+
+    # Required configuration
+    required_vars = {
+        "AZURE_OPENAI_API_KEY": "API key for authentication",
+        "AZURE_OPENAI_API_VERSION": "API version (e.g., 2024-08-01-preview)",
+        "AZURE_OPENAI_ENDPOINT": "Azure OpenAI endpoint URL",
+        "AZURE_OPENAI_DEPLOYMENT_NAME": "Model deployment name",
+    }
+
+    # Validate all required variables
+    missing_vars = []
+    for var, description in required_vars.items():
+        value = os.getenv(var)
+        if not value:
+            missing_vars.append(f"{var} ({description})")
+        else:
+            logger.info(f"{var} is configured")
+
+    if missing_vars:
+        error_msg = (
+            f"Missing required Azure OpenAI configuration: {', '.join(missing_vars)}"
+        )
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+
+    # Validate endpoint URL format
+    endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+    if not endpoint.startswith("https://") or not endpoint.endswith(
+        ".openai.azure.com/"
+    ):
+        error_msg = f"Invalid Azure OpenAI endpoint format: {endpoint}"
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+
+    logger.info("Azure OpenAI configuration validated successfully")
+
+
+def setup():
     """Setup and validate environment configuration"""
     try:
         check_env_vars()
         setup_azure_openai_env()
         log_env_vars()
+        setup_config()
     except Exception as e:
         logger.error(f"Configuration error: {str(e)}")
         raise

@@ -8,6 +8,7 @@ import os
 import json
 import logging
 
+
 # Import the refactored CrewAI components and config
 from src.affordability_crew import AffordabilityAnalysisCrew
 from src.affordability_crew.config import setup_config
@@ -18,6 +19,7 @@ from src.email_connector import register_routes
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 # Initialize environment configuration
 try:
