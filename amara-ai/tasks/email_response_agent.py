@@ -58,7 +58,7 @@ class EmailResponseCrew:
                     public_key=os.getenv("LANGFUSE_PUBLIC_KEY"),
                     secret_key=os.getenv("LANGFUSE_SECRET_KEY"),
                     host=langfuse_host,
-                    debug=True,  # Enable debug mode for better error tracking
+                    debug=False,  # Enable debug mode for better error tracking
                 )
                 logger.info("[Langfuse] Langfuse SDK initialized successfully.")
             except Exception as e:
@@ -631,53 +631,29 @@ def process_email_with_crew(
         crew = crew_instance.crew()
 
         logger.info("Starting crew execution...")
-        result = crew.kickoff()
-        logger.info(f"Crew execution completed. Result type: {type(result)}")
+        result = crew.kickoff()  # This runs all tasks in sequence
 
-        # Handle different result formats
-        if isinstance(result, dict):
-            if workflow_actions.get("classification_only"):
-                logger.info(
-                    "Classification only mode - returning classification result"
-                )
-                return result
+        # CrewAI returns a CrewOutput object; extract the output dict
+        if hasattr(result, "output"):
+            result = result.output
 
-            if "response" in result:
-                if isinstance(result["response"], dict):
-                    logger.info("Processing structured response")
-                    return {
-                        "response": result["response"],
-                        "inquiry_type": crew_instance.inquiry_type,
-                        "error": None,
-                    }
-                # Handle string response
-                logger.info("Processing string response")
-                return {
-                    "response": {
-                        "subject": f"Re: {email_subject}",
-                        "body": str(result["response"]),
-                    },
-                    "inquiry_type": crew_instance.inquiry_type,
-                    "error": None,
-                }
-
-        # Handle string or other response types
-        logger.info("Processing raw response")
-        return {
-            "response": {"subject": f"Re: {email_subject}", "body": str(result)},
-            "inquiry_type": crew_instance.inquiry_type,
-            "error": None,
-        }
+        return result
 
     except ValueError as ve:
         logger.error(f"Validation error in email processing: {str(ve)}")
-        return {"response": "", "error": str(ve), "inquiry_type": None}
+        return {
+            "response": None,
+            "validation": None,
+            "error": str(ve),
+            "inquiry_type": None,
+        }
     except Exception as e:
         error_msg = f"CrewAI email agent failed: {str(e)}"
         logger.error(error_msg)
         logger.error(f"Stack trace: {traceback.format_exc()}")
         return {
-            "response": "",
+            "response": None,
+            "validation": None,
             "error": error_msg,
             "inquiry_type": None,
             "stack_trace": traceback.format_exc(),
