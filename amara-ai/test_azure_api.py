@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
 """
 Test script for Azure OpenAI API access
 """
+
 import os
 import logging
 from dotenv import load_dotenv
