@@ -1,8 +1,10 @@
 import os
 import logging
-import os
-import logging
 from dotenv import load_dotenv
+
+# Suppress verbose langfuse logs
+logging.getLogger("langfuse").setLevel(logging.WARNING)
+logging.getLogger("langfuse._task_manager.media_manager").setLevel(logging.WARNING)
 
 # Configure logging
 logger = logging.getLogger(__name__)

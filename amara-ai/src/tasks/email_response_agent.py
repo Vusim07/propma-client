@@ -6,7 +6,6 @@ import logging
 import os
 import traceback
 import sys
-from langfuse import Langfuse
 from datetime import datetime
 from src.email_response_config import setup_config
 
@@ -46,40 +45,6 @@ class EmailResponseCrew:
         self.matched_property = workflow_actions.get("matched_property")
         self.inquiry_type = None
 
-        # Initialize Langfuse with debug logging
-        self.langfuse = None
-        langfuse_host = os.getenv("LANGFUSE_HOST", "http://localhost:3000")
-
-        # Only attempt Langfuse initialization if keys are present
-        if os.getenv("LANGFUSE_PUBLIC_KEY") and os.getenv("LANGFUSE_SECRET_KEY"):
-            logger.info("[Langfuse] Attempting to initialize Langfuse SDK...")
-            try:
-                self.langfuse = Langfuse(
-                    public_key=os.getenv("LANGFUSE_PUBLIC_KEY"),
-                    secret_key=os.getenv("LANGFUSE_SECRET_KEY"),
-                    host=langfuse_host,
-                    debug=False,  # Enable debug mode for better error tracking
-                )
-                logger.info("[Langfuse] Langfuse SDK initialized successfully.")
-            except Exception as e:
-                logger.warning(f"[Langfuse] Initialization skipped: {str(e)}")
-                logger.warning("[Langfuse] Continuing without observability...")
-        else:
-            logger.warning("[Langfuse] Skipping initialization - missing credentials")
-
-        # Verify Azure OpenAI configuration
-        required_vars = [
-            "AZURE_OPENAI_API_KEY",
-            "AZURE_OPENAI_ENDPOINT",
-            "AZURE_OPENAI_API_VERSION",
-            "AZURE_OPENAI_DEPLOYMENT_NAME",
-        ]
-        missing_vars = [var for var in required_vars if not os.getenv(var)]
-        if missing_vars:
-            error_msg = f"Missing required Azure OpenAI environment variables: {', '.join(missing_vars)}"
-            logger.error(error_msg)
-            raise ValueError(error_msg)
-
         # Log initialization info
         logger.info(f"Email subject: {self.email_subject}")
         logger.info(f"Email content: {self.email_content}")
@@ -95,10 +60,6 @@ class EmailResponseCrew:
 
         # Prepare initial context
         self.context_data = self._prepare_context()
-        if not self.langfuse:
-            logger.info("Skipping observability event logging - Langfuse not available")
-        else:
-            self.log_observability_event("initialization", self.context_data)
 
     def _prepare_context(self) -> dict:
         """Prepare context data for tasks"""
@@ -123,25 +84,8 @@ class EmailResponseCrew:
             "data": data,
         }
 
-        # Always log to standard logger
-        logger.info(f"[OBSERVABILITY] {json.dumps(log_entry, default=str)}")
-
-        # Only attempt Langfuse logging if it's available
-        if self.langfuse:
-            try:
-                with logger.catch(message="Langfuse trace logging failed"):
-                    trace = self.langfuse.trace(
-                        name=step,
-                        input=data,
-                        metadata={"event_type": event_type},
-                    )
-                    if hasattr(trace, "flush"):
-                        trace.flush(output=data)
-                    elif hasattr(trace, "finalize"):
-                        trace.finalize(output=data)
-            except Exception as e:
-                logger.warning(f"Langfuse trace logging failed: {e}")
-                # Continue execution - Langfuse logging is non-critical
+        # Only log to standard logger (Langfuse logging removed)
+        # logger.info(f"[OBSERVABILITY] {json.dumps(log_entry, default=str)}")
 
     @agent
     def response_writer(self) -> Agent:
@@ -215,7 +159,7 @@ class EmailResponseCrew:
 
             try:
                 task = Task(
-                    description=f"""Classify the type of property inquiry from this email exchange.\nSubject: {self.email_subject}\nContent: {self.email_content}\n\nAnalyze the email content and determine if this is:\n1. viewing_request: Customer wants to view the property\n2. availability_check: Customer is asking about availability\n3. general_info: General inquiry about the property\n\nIMPORTANT: Return ONLY a valid JSON object with this exact format:\n{{\"inquiry_type\": \"viewing_request\" | \"availability_check\" | \"general_info\"}}""",
+                    description=f"""Classify the type of property inquiry from this email exchange.\nSubject: {self.email_subject}\nContent: {self.email_content}\n\nAnalyze the email content and determine if this is:\n1. viewing_request: Customer wants to view the property\n2. availability_check: Customer is asking about availability\n3. general_info: General inquiry about the property\n\nIMPORTANT: Return ONLY a valid JSON object with this exact format:\n{{"inquiry_type": "viewing_request" | "availability_check" | "general_info"}}""",
                     expected_output="A valid JSON object containing the inquiry_type.",
                     agent=self.inquiry_classifier(),
                     context=context,
@@ -289,29 +233,7 @@ class EmailResponseCrew:
             )
 
             task = Task(
-                description=f"""Generate a professional, POPI-compliant response to this property inquiry.
-                    
-                    Email Subject: {self.email_subject}
-                    Email Content: {self.email_content}
-                    Inquiry Type: {self.inquiry_type}
-                    
-                    Property Details:
-                    {json.dumps(property_context, indent=2)}
-                    
-                    Response Requirements (MUST INCLUDE ALL):
-                    1. Address: {property_context["address"]}
-                    2. Property reference: {property_context["web_reference"]}
-                    3. Application link: {property_context["application_link"]}
-                    4. Be friendly and professional
-                    5. Follow South African business etiquette
-                    
-                    IMPORTANT: Return ONLY a valid JSON object with this exact format:
-                    {{
-                        "response": {{
-                            "subject": "Re: ...",
-                            "body": "Dear [Name],\\n\\nThank you..."
-                        }}
-                    }}""",
+                description=f"""Generate a professional, POPI-compliant response to this property inquiry.\n\nEmail Subject: {self.email_subject}\nEmail Content: {self.email_content}\nInquiry Type: {self.inquiry_type}\n\nProperty Details:\n{json.dumps(property_context, indent=2)}\n\nResponse Requirements (MUST INCLUDE ALL):\n1. Address: {property_context["address"]}\n2. Property reference: {property_context["web_reference"]}\n3. Application link: {property_context["application_link"]}\n4. Be friendly and professional\n5. Follow South African business etiquette\n\nIMPORTANT: You MUST copy and paste the address, property reference, and application link EXACTLY as provided above into the response body. Do not paraphrase or omit them.\n\nEXAMPLE RESPONSE (format):\n{{\n    \"response\": {{\n        \"subject\": \"Re: Property Inquiry - {property_context["web_reference"]}\",\n        \"body\": \"Dear [Name],\\n\\nThank you for your interest in the property at {property_context["address"]} (Reference: {property_context["web_reference"]}).\\n\\nThe property is available. You can apply here: {property_context["application_link"]}\\n\\nBest regards,\\n[Agent Name]\"\n    }}\n}}\n\nIMPORTANT: Return ONLY a valid JSON object with this exact format:\n{{\n    \"response\": {{\n        \"subject\": \"Re: ...\",\n        \"body\": \"Dear [Name],\\n\\nThank you... [INCLUDE address, web reference, and application link here]\"\n    }}\n}}""",
                 expected_output="A valid JSON object with response.subject and response.body",
                 agent=self.response_writer(),
                 context=context,
@@ -591,33 +513,78 @@ class EmailResponseCrew:
             raise ValueError(error_msg)
 
 
+def extract_inquiry_type_from_result(result):
+    """Robustly extract inquiry_type from CrewAI output (CrewOutput, TaskOutput, dict, or str)."""
+    # CrewOutput or TaskOutput object
+    if hasattr(result, "raw"):
+        try:
+            data = json.loads(result.raw)
+            if "inquiry_type" in data:
+                return data["inquiry_type"]
+        except Exception:
+            pass
+    # tasks_output list
+    if hasattr(result, "tasks_output"):
+        for task in result.tasks_output:
+            if hasattr(task, "raw"):
+                try:
+                    data = json.loads(task.raw)
+                    if "inquiry_type" in data:
+                        return data["inquiry_type"]
+                except Exception:
+                    continue
+    # dict
+    if isinstance(result, dict):
+        if "inquiry_type" in result:
+            return result["inquiry_type"]
+        if "raw" in result:
+            try:
+                data = json.loads(result["raw"])
+                if "inquiry_type" in data:
+                    return data["inquiry_type"]
+            except Exception:
+                pass
+    # string
+    if isinstance(result, str):
+        try:
+            data = json.loads(result)
+            if "inquiry_type" in data:
+                return data["inquiry_type"]
+        except Exception:
+            pass
+    return None
+
+
+def _ensure_serializable(obj):
+    """Ensure the object is JSON serializable"""
+    if hasattr(obj, "dict"):
+        return obj.dict()
+    elif hasattr(obj, "__dict__"):
+        return obj.__dict__
+    elif isinstance(obj, (list, tuple)):
+        return [_ensure_serializable(item) for item in obj]
+    elif isinstance(obj, dict):
+        return {k: _ensure_serializable(v) for k, v in obj.items()}
+    return obj
+
+
 def process_email_with_crew(
     email_content: str,
     email_subject: str,
     agent_properties: List[Dict[str, Any]],
     workflow_actions: Dict[str, Any],
 ) -> Dict[str, Any]:
-    """Process an email and generate a response using CrewAI
-
-    Args:
-        email_content: The body of the email
-        email_subject: The subject of the email
-        agent_properties: List of properties managed by the agent
-        workflow_actions: Actions from the workflow configuration
-
-    Returns:
-        Generated email response and additional details
-    """
+    """Process an email and generate a response using CrewAI"""
     try:
         # Input validation
         if not email_content or not email_subject:
-            raise ValueError("Email content and subject are required")
+            raise ValueError("Missing required email content or subject")
 
         if not agent_properties:
-            raise ValueError("Agent properties list cannot be empty")
+            raise ValueError("No properties provided")
 
         if not workflow_actions:
-            raise ValueError("Workflow actions are required")
+            raise ValueError("No workflow actions provided")
 
         logger.info("Creating EmailResponseCrew instance...")
         crew_instance = EmailResponseCrew(
@@ -633,11 +600,11 @@ def process_email_with_crew(
         logger.info("Starting crew execution...")
         result = crew.kickoff()  # This runs all tasks in sequence
 
-        # CrewAI returns a CrewOutput object; extract the output dict
-        if hasattr(result, "output"):
-            result = result.output
+        # Convert result to serializable format
+        serialized_result = _ensure_serializable(result)
+        logger.info(f"Serialized result: {json.dumps(serialized_result, indent=2)}")
 
-        return result
+        return serialized_result
 
     except ValueError as ve:
         logger.error(f"Validation error in email processing: {str(ve)}")

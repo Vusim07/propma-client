@@ -8,7 +8,6 @@ import logging
 import sys
 import os
 import traceback
-from langfuse import Langfuse
 
 # Configure logging to be more detailed
 logger = logging.getLogger(__name__)
@@ -42,27 +41,7 @@ class AffordabilityAnalysisCrew:
         self.credit_report = credit_report
         # Initialize Langfuse with debug logging
         self.langfuse = None
-        logger.info("[Langfuse] Attempting to initialize Langfuse SDK...")
-        logger.info(f"[Langfuse] LANGFUSE_HOST: {os.getenv('LANGFUSE_HOST')}")
-        logger.info(
-            f"[Langfuse] LANGFUSE_PUBLIC_KEY exists: {bool(os.getenv('LANGFUSE_PUBLIC_KEY'))}"
-        )
-        logger.info(
-            f"[Langfuse] LANGFUSE_SECRET_KEY exists: {bool(os.getenv('LANGFUSE_SECRET_KEY'))}"
-        )
-        logger.info(f"[Langfuse] LANGFUSE_PROJECT: {os.getenv('LANGFUSE_PROJECT')}")
-        logger.info(f"[Langfuse] LANGFUSE_DEBUG: {os.getenv('LANGFUSE_DEBUG')}")
-        try:
-            self.langfuse = Langfuse(
-                public_key=os.getenv("LANGFUSE_PUBLIC_KEY"),
-                secret_key=os.getenv("LANGFUSE_SECRET_KEY"),
-                host=os.getenv("LANGFUSE_HOST", "http://localhost:3000"),
-                # Set debug to False to suppress verbose internal logs
-                debug=False,
-            )
-            logger.info("[Langfuse] Langfuse SDK initialized successfully.")
-        except Exception as e:
-            logger.error(f"[Langfuse] Langfuse initialization failed: {e}")
+        # Langfuse initialization and debug logging removed
         # Prepare data for context immediately
         self.prepare_data()
         logger.info("AffordabilityAnalysisCrew initialized with comprehensive data")
@@ -77,29 +56,7 @@ class AffordabilityAnalysisCrew:
             "data": data,
         }
         logger.info(f"[OBSERVABILITY] {json.dumps(log_entry, default=str)}")
-        # Langfuse trace logging
-        if self.langfuse:
-            try:
-                trace = self.langfuse.trace(
-                    name=step,
-                    input=data,
-                    metadata={"event_type": event_type},
-                )
-                # Try the correct method for Langfuse SDK
-                if hasattr(trace, "flush"):
-                    logger.info("[Langfuse] Calling trace.flush() to finalize trace.")
-                    trace.flush(output=data)
-                elif hasattr(trace, "finalize"):
-                    logger.info(
-                        "[Langfuse] Calling trace.finalize() to finalize trace."
-                    )
-                    trace.finalize(output=data)
-                else:
-                    logger.warning(
-                        "[Langfuse] Trace object has no flush() or finalize() method. Trace may not be finalized."
-                    )
-            except Exception as e:
-                logger.warning(f"Langfuse trace logging failed: {e}")
+        # Langfuse trace logging removed
 
     def parse_net_income_from_payslip_text(self, payslip_text: str) -> float:
         """Extract net income from payslip OCR text using regex heuristics."""
@@ -145,8 +102,7 @@ class AffordabilityAnalysisCrew:
         """Extract transactions from bank statement OCR text using regex heuristics."""
         if not statement_text:
             return []
-        # South African bank statements often have: date, description, amount (may be on separate lines)
-        # We'll look for a date, then scan forward for a negative/positive amount
+
         lines = statement_text.splitlines()
         transactions = []
         date_regex = re.compile(r"(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4})")

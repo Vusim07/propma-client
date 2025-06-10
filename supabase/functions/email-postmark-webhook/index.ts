@@ -282,7 +282,7 @@ serve(async (req) => {
 								to_address: From,
 								subject: aiResult.response.subject || `Re: ${thread.subject}`,
 								body: aiResult.response.body || aiResult.response,
-								status: 'outgoing',
+								status: 'sent',
 								is_read: false,
 								sent_at: null,
 								ai_generated: true,

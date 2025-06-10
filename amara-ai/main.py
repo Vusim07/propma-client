@@ -228,3 +228,5 @@ if __name__ == "__main__":
     host = os.environ.get("HOST", "0.0.0.0")
     # Use reload=True for development
     uvicorn.run(app, host=host, port=port)
+
+# No Langfuse logging or debugging present in this file.

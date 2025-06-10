@@ -23,6 +23,30 @@ class ResponseValidator:
             self.logger.debug(f"Response to validate: {response}")
             self.logger.debug(f"Validation context: {context}")
 
+            # Handle both string and dict responses
+            response_text = response
+            if isinstance(response, dict):
+                response_text = (
+                    response.get("body", "")
+                    if "body" in response
+                    else response.get("response", {}).get("body", "")
+                )
+
+            if not response_text:
+                self.logger.error("Empty response text after extraction")
+                return {
+                    "pass": False,
+                    "confidence": 0.0,
+                    "details": {
+                        "error": "Empty response text",
+                        "factual_pass": False,
+                        "completeness_pass": False,
+                        "tone_pass": False,
+                        "missing_fields": ["Empty response"],
+                        "inquiry_type": context.get("inquiry_type", "unknown"),
+                    },
+                }
+
             property_ctx = context.get("property", {})
             email_ctx = context.get("email", {})
             inquiry_type = context.get("inquiry_type", "")
@@ -36,7 +60,19 @@ class ResponseValidator:
                 property_ctx.get("application_link"),
                 property_ctx.get("web_reference"),
             ]
-            missing = [f for f in required_fields if not f or f not in response]
+
+            # Normalize strings for comparison
+            response_normalized = response_text.lower().strip()
+            missing = []
+
+            for field in required_fields:
+                if field and field.strip():  # Only check non-empty fields
+                    field_normalized = field.lower().strip()
+                    if field_normalized not in response_normalized:
+                        missing.append(field)
+                        self.logger.debug(f"Missing field: {field}")
+                    else:
+                        self.logger.debug(f"Found field: {field}")
 
             # Factual checks
             factual_pass = not missing
