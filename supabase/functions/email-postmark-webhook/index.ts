@@ -3,8 +3,8 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
-import { retryOperation } from '../email-ses-webhook/utils.ts';
-import { amaraAI } from '../email-ses-webhook/amaraAI.ts';
+import { retryOperation } from './utils.ts';
+import { amaraAI } from './amaraAI.ts';
 
 interface PostmarkInboundEmail {
 	FromName: string;
@@ -324,8 +324,6 @@ serve(async (req) => {
 									  ),
 									  JSON.stringify(aiResult.response)),
 							replyTo: To,
-							// Added user_id from emailAddress to satisfy downstream requirements.
-							user_id: emailAddress.user_id || emailAddress.id,
 						};
 						console.log(
 							'Outgoing Postmark payload:',

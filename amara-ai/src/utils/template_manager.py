@@ -15,12 +15,12 @@ class TemplateManager:
         self.logger = logger
         self.default_template = (
             default_template
-            or """
-        Dear {customer_name},
-        Thank you for your inquiry. We will get back to you soon.
-        Best regards,
-        {agent_name}
-        """
+            or """Hi,
+Thank you for your inquiry. We will get back to you soon.
+Best regards,
+{agent_name}
+{agent_contact}
+"""
         )
 
     def get_template(self, inquiry_type: str) -> str:

@@ -15,8 +15,8 @@ setup_config()
 
 # In-memory templates (replace with DB fetch in production)
 TEMPLATES = {
-    "viewing_request": """Subject: Re: Property Viewing - {web_ref}\n\nDear {customer_name},\n\nThank you for your interest in {property_address}. I'd be delighted to arrange a viewing for you.\n\nThis {property_type} features {key_highlights} and is currently {availability_status}.\n\nTo proceed with your application or schedule a viewing, please use this secure link: {application_link}\n\nI look forward to showing you this wonderful property.\n\nBest regards,\n{agent_name}\n{agent_contact}\n""",
-    "availability_check": """Subject: Re: Property Availability - {web_ref}\n\nDear {customer_name},\n\nThank you for your inquiry about {property_address}.\n\n{availability_message}\n\n{property_highlights}\n\nIf you'd like to proceed with an application, please use this link: {application_link}\n\nFeel free to contact me if you have any questions.\n\nBest regards,\n{agent_name}\n{agent_contact}\n""",
+    "viewing_request": """Subject: Re: Property Viewing - {web_ref}\n\nHi,\n\nThank you for your interest in {property_address}. I'd be delighted to arrange a viewing for you.\n\nThis {property_type} features {key_highlights} and is currently {availability_status}.\n\nTo proceed with your application or schedule a viewing, please use this secure link: {application_link}\n\nI look forward to showing you this wonderful property.\n\nBest regards,\n{agent_name}\n{agent_contact}\n""",
+    "availability_check": """Subject: Re: Property Availability - {web_ref}\n\nHi,\n\nThank you for your inquiry about {property_address}.\n\n{availability_message}\n\n{property_highlights}\n\nIf you'd like to proceed with an application, please use this link: {application_link}\n\nFeel free to contact me if you have any questions.\n\nBest regards,\n{agent_name}\n{agent_contact}\n""",
 }
 
 template_manager = TemplateManager(TEMPLATES)

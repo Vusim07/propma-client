@@ -21,7 +21,37 @@ export async function amaraAI({
 	emailAddress: { team_id?: string; user_id?: string };
 	supabaseClient: SupabaseClient;
 }) {
-	// Fetch agent properties for this team/user
+	// Get agent/team details for context
+	let agentName = 'Agent Amara';
+	let agentContact = '';
+
+	try {
+		if (emailAddress.team_id) {
+			const { data: team } = await supabaseClient
+				.from('teams')
+				.select('name, contact_email')
+				.eq('id', emailAddress.team_id)
+				.single();
+			if (team) {
+				agentName = team.name;
+				agentContact = team.contact_email;
+			}
+		} else if (emailAddress.user_id) {
+			const { data: user } = await supabaseClient
+				.from('users')
+				.select('full_name, email')
+				.eq('id', emailAddress.user_id)
+				.single();
+			if (user) {
+				agentName = user.full_name;
+				agentContact = user.email;
+			}
+		}
+	} catch (error) {
+		console.warn('Failed to fetch agent details:', error);
+	}
+
+	// Fetch agent properties
 	let properties, propError;
 	if (emailAddress.team_id) {
 		({ data: properties, error: propError } = await supabaseClient
@@ -51,8 +81,8 @@ export async function amaraAI({
 	}));
 
 	const workflowActions = {
-		agent_name: 'Agent Amara',
-		agent_contact: '', // TODO: fetch from agent/team profile
+		agent_name: agentName,
+		agent_contact: agentContact,
 	};
 
 	const payload = {

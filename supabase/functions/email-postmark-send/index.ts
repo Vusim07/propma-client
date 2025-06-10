@@ -5,11 +5,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { corsHeaders } from '../_shared/cors.ts';
 
 interface SendEmailRequest {
-	messageId: string;
+	messageId: string; // Supabase message ID to lookup the context
 	to: string;
 	subject: string;
 	body: string;
 	htmlBody?: string;
+	replyTo?: string;
 	attachments?: Array<{
 		name: string;
 		content: string; // Base64 encoded
@@ -35,7 +36,6 @@ serve(async (req) => {
 		// Parse the request body
 		const payload: SendEmailRequest = await req.json();
 		console.log('Received payload:', JSON.stringify(payload, null, 2));
-
 		// Validate required fields
 		if (
 			!payload.messageId ||
@@ -44,7 +44,10 @@ serve(async (req) => {
 			!payload.body
 		) {
 			return new Response(
-				JSON.stringify({ error: 'Missing required fields' }),
+				JSON.stringify({
+					error: 'Missing required fields',
+					received: payload,
+				}),
 				{
 					headers: { ...corsHeaders, 'Content-Type': 'application/json' },
 					status: 400,
@@ -62,7 +65,6 @@ serve(async (req) => {
 		if (messageError || !message) {
 			throw new Error(`Message not found: ${messageError?.message}`);
 		}
-
 		// Get the sender's email address based on thread ownership
 		let emailAddress;
 		if (message.thread.team_id) {
@@ -74,13 +76,12 @@ serve(async (req) => {
 				.eq('team_id', message.thread.team_id)
 				.single();
 
-			if (teamEmailError || !teamEmail) {
-				throw new Error(
-					`No primary email address found for team: ${teamEmailError?.message}`,
-				);
+			if (!teamEmailError && teamEmail) {
+				emailAddress = teamEmail.email_address;
 			}
-			emailAddress = teamEmail.email_address;
-		} else {
+		}
+
+		if (!emailAddress && message.thread.user_id) {
 			// If thread belongs to an individual user, get user's primary email
 			const { data: userEmail, error: userEmailError } = await supabaseClient
 				.from('email_addresses')
@@ -89,12 +90,15 @@ serve(async (req) => {
 				.eq('user_id', message.thread.user_id)
 				.single();
 
-			if (userEmailError || !userEmail) {
-				throw new Error(
-					`No primary email address found for user: ${userEmailError?.message}`,
-				);
+			if (!userEmailError && userEmail) {
+				emailAddress = userEmail.email_address;
 			}
-			emailAddress = userEmail.email_address;
+		}
+
+		// If no email address found, use the replyTo from payload or default system email
+		if (!emailAddress) {
+			emailAddress = payload.replyTo || 'noreply@agentamara.com';
+			console.log('Using fallback email address:', emailAddress);
 		}
 
 		// Prepare the email payload for Postmark
