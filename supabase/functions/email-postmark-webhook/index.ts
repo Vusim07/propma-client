@@ -6,6 +6,38 @@ import { corsHeaders } from '../_shared/cors.ts';
 import { retryOperation } from './utils.ts';
 import { amaraAI } from './amaraAI.ts';
 
+// Helper function to sanitize email body content
+function sanitizeEmailBody(body: string): string {
+	// Normalize line endings to \n
+	let normalized = body.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+	// Remove multiple consecutive blank lines
+	normalized = normalized.replace(/\n{3,}/g, '\n\n');
+
+	// Ensure proper paragraph spacing
+	normalized = normalized.replace(/([.!?])\n/g, '$1\n\n');
+
+	// Normalize spaces
+	normalized = normalized.replace(/[ \t]+/g, ' ').trim();
+
+	// Ensure we have a single blank line before greetings and signatures
+	normalized = normalized.replace(
+		/\n(Best regards|Sincerely|Regards|Thank you)/gi,
+		'\n\n$1',
+	);
+
+	// Remove trailing whitespace on each line
+	normalized = normalized
+		.split('\n')
+		.map((line) => line.trimRight())
+		.join('\n');
+
+	// Ensure exactly one newline at the end
+	normalized = normalized.trim() + '\n';
+
+	return normalized;
+}
+
 interface PostmarkInboundEmail {
 	FromName: string;
 	From: string;
@@ -203,7 +235,7 @@ serve(async (req) => {
 					from_name: FromName,
 					to_address: To,
 					subject: Subject || '(No Subject)',
-					body: TextBody,
+					body: sanitizeEmailBody(TextBody),
 					body_html: HtmlBody,
 					status: 'received',
 					is_read: false,
@@ -283,7 +315,7 @@ serve(async (req) => {
 								from_address: To,
 								to_address: From,
 								subject: aiResult.response.subject || `Re: ${thread.subject}`,
-								body:
+								body: sanitizeEmailBody(
 									typeof aiResult.response?.body === 'string'
 										? aiResult.response.body
 										: typeof aiResult.response === 'string'
@@ -292,6 +324,7 @@ serve(async (req) => {
 												'AI response body is not a string, using JSON.stringify fallback',
 										  ),
 										  JSON.stringify(aiResult.response)),
+								),
 								status: 'sent',
 								is_read: false,
 								sent_at: null,
@@ -314,7 +347,7 @@ serve(async (req) => {
 							messageId: outgoingMessageId,
 							to: From,
 							subject: aiResult.response.subject || `Re: ${thread.subject}`,
-							body:
+							body: sanitizeEmailBody(
 								typeof aiResult.response?.body === 'string'
 									? aiResult.response.body
 									: typeof aiResult.response === 'string'
@@ -323,15 +356,20 @@ serve(async (req) => {
 											'AI response body is not a string, using JSON.stringify fallback',
 									  ),
 									  JSON.stringify(aiResult.response)),
+							),
 							replyTo: To,
+							// Add userId and teamId for compliance with send function
+							userId: emailAddress.user_id || undefined,
+							teamId: emailAddress.team_id || undefined,
 						};
 						console.log(
 							'Outgoing Postmark payload:',
 							JSON.stringify(outgoingPayload, null, 2),
 						);
 						const sendRes = await fetch(
-							Deno.env.get('EMAIL_SEND_FUNCTION_URL') ||
-								'http://localhost:54321/functions/v1/email-postmark-send',
+							`${Deno.env.get(
+								'SUPABASE_URL',
+							)}/functions/v1/email-postmark-send`,
 							{
 								method: 'POST',
 								headers: {
@@ -346,6 +384,7 @@ serve(async (req) => {
 						if (!sendRes.ok) {
 							const errText = await sendRes.text();
 							console.error('email-postmark-send failed:', errText);
+							throw new Error(`Failed to send email: ${errText}`); // Throw error to trigger retry
 						}
 					}
 				}

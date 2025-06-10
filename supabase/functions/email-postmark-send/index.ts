@@ -11,6 +11,8 @@ interface SendEmailRequest {
 	body: string;
 	htmlBody?: string;
 	replyTo?: string;
+	userId?: string; // Add userId
+	teamId?: string; // Add teamId
 	attachments?: Array<{
 		name: string;
 		content: string; // Base64 encoded
@@ -36,6 +38,7 @@ serve(async (req) => {
 		// Parse the request body
 		const payload: SendEmailRequest = await req.json();
 		console.log('Received payload:', JSON.stringify(payload, null, 2));
+
 		// Validate required fields
 		if (
 			!payload.messageId ||
@@ -45,7 +48,7 @@ serve(async (req) => {
 		) {
 			return new Response(
 				JSON.stringify({
-					error: 'Missing required fields',
+					error: 'Missing required fields (messageId, to, subject, body)',
 					received: payload,
 				}),
 				{
@@ -58,22 +61,33 @@ serve(async (req) => {
 		// Get the message details from the database
 		const { data: message, error: messageError } = await supabaseClient
 			.from('email_messages')
-			.select('*, thread:email_threads(*)')
+			.select('*, thread:email_threads!inner(*)')
 			.eq('id', payload.messageId)
 			.single();
 
-		if (messageError || !message) {
-			throw new Error(`Message not found: ${messageError?.message}`);
+		if (messageError || !message?.thread) {
+			throw new Error(`Message or thread not found: ${messageError?.message}`);
 		}
-		// Get the sender's email address based on thread ownership
+
+		// Use thread ownership if no explicit userId/teamId provided
+		if (!payload.userId && !payload.teamId) {
+			payload.userId = message.thread.user_id;
+			payload.teamId = message.thread.team_id;
+		}
+
+		// Get the sender's email address based on hierarchy:
+		// 1. Payload teamId/userId
+		// 2. Thread ownership
+		// 3. Default fallback
 		let emailAddress;
-		if (message.thread.team_id) {
-			// If thread belongs to a team, get team's primary email
+
+		// Try payload teamId first
+		if (payload.teamId) {
 			const { data: teamEmail, error: teamEmailError } = await supabaseClient
 				.from('email_addresses')
 				.select('email_address')
 				.eq('is_primary', true)
-				.eq('team_id', message.thread.team_id)
+				.eq('team_id', payload.teamId)
 				.single();
 
 			if (!teamEmailError && teamEmail) {
@@ -81,13 +95,13 @@ serve(async (req) => {
 			}
 		}
 
-		if (!emailAddress && message.thread.user_id) {
-			// If thread belongs to an individual user, get user's primary email
+		// Try payload userId next
+		if (!emailAddress && payload.userId) {
 			const { data: userEmail, error: userEmailError } = await supabaseClient
 				.from('email_addresses')
 				.select('email_address')
 				.eq('is_primary', true)
-				.eq('user_id', message.thread.user_id)
+				.eq('user_id', payload.userId)
 				.single();
 
 			if (!userEmailError && userEmail) {
@@ -95,7 +109,36 @@ serve(async (req) => {
 			}
 		}
 
-		// If no email address found, use the replyTo from payload or default system email
+		// Fall back to thread ownership if no email found yet
+		if (!emailAddress) {
+			if (message.thread.team_id) {
+				const { data: teamEmail, error: teamEmailError } = await supabaseClient
+					.from('email_addresses')
+					.select('email_address')
+					.eq('is_primary', true)
+					.eq('team_id', message.thread.team_id)
+					.single();
+
+				if (!teamEmailError && teamEmail) {
+					emailAddress = teamEmail.email_address;
+				}
+			}
+
+			if (!emailAddress && message.thread.user_id) {
+				const { data: userEmail, error: userEmailError } = await supabaseClient
+					.from('email_addresses')
+					.select('email_address')
+					.eq('is_primary', true)
+					.eq('user_id', message.thread.user_id)
+					.single();
+
+				if (!userEmailError && userEmail) {
+					emailAddress = userEmail.email_address;
+				}
+			}
+		}
+
+		// Final fallback to system default
 		if (!emailAddress) {
 			emailAddress = payload.replyTo || 'noreply@agentamara.com';
 			console.log('Using fallback email address:', emailAddress);
@@ -164,7 +207,9 @@ serve(async (req) => {
 				recipient: payload.to,
 				status: 'sent',
 				raw_data: result,
-			});
+			})
+			.select('id')
+			.single();
 
 		if (logError) {
 			console.error('Error logging delivery:', logError);

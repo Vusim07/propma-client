@@ -20,6 +20,7 @@ Thank you for your inquiry. We will get back to you soon.
 Best regards,
 {agent_name}
 {agent_contact}
+Powered by agentamara.com
 """
         )
 
@@ -27,6 +28,11 @@ Best regards,
         """Get template for inquiry type, or fallback to default."""
         self.logger.info(f"Getting template for inquiry type: {inquiry_type}")
         template = self.templates.get(inquiry_type) or self.default_template
+        # Always append the powered by footer if not present
+        if "Powered by agentamara.com" not in template:
+            if not template.endswith("\n"):
+                template += "\n"
+            template += "Powered by agentamara.com\n"
         self.logger.debug(f"Selected template: {template}")
         return template
 

@@ -33,18 +33,24 @@ export async function amaraAI({
 				.eq('id', emailAddress.team_id)
 				.single();
 			if (team) {
-				agentName = team.name;
-				agentContact = team.contact_email;
+				agentName =
+					team.name && team.name !== 'None' ? team.name : 'Agent Amara';
+				agentContact = team.contact_email || '';
 			}
 		} else if (emailAddress.user_id) {
 			const { data: user } = await supabaseClient
 				.from('users')
-				.select('full_name, email')
+				.select('first_name, phone, email, company_name') // Added company_name instead of company
 				.eq('id', emailAddress.user_id)
 				.single();
 			if (user) {
-				agentName = user.full_name;
-				agentContact = user.email;
+				// Compose agentName and contact details from available fields
+				agentName = user.first_name || user.email || 'Agent Amara';
+				const contactParts = [];
+				if (user.phone) contactParts.push(user.phone);
+				if (user.email) contactParts.push(user.email);
+				if (user.company_name) contactParts.push(user.company_name); // Use company_name
+				agentContact = contactParts.join(' | ');
 			}
 		}
 	} catch (error) {
