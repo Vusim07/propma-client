@@ -1,1233 +1,1163 @@
-2025-06-10 01:27:49.297 | INFO:src.tasks.email*response_agent:Email subject: Fwd: New Private Property enquiry (property RR4379658)
-2025-06-10 01:27:49.297 | 2025-06-09 23:27:49,297 - src.tasks.email_response_agent - INFO - Email subject: Fwd: New Private Property enquiry (property RR4379658)
-2025-06-10 01:27:49.297 | DEBUG:langfuse:Prompt cache initialized.
-2025-06-10 01:27:49.297 | INFO:src.tasks.email_response_agent:Email subject: Fwd: New Private Property enquiry (property RR4379658)
-2025-06-10 01:27:49.297 | 2025-06-09 23:27:49,297 - src.tasks.email_response_agent - INFO - Email content: \_New Property Enquiry on RR4379658*
-2025-06-10 01:27:49.297 |
-2025-06-10 01:27:49.297 | Hi Nozipho, I'm interested in this unit. Is it still available?
-2025-06-10 01:27:49.297 |
-2025-06-10 01:27:49.297 | 2 Bed Apartment In Ferndale
-2025-06-10 01:27:49.297 | R 8250 Per Month
-2025-06-10 01:27:49.297 | Private Property Ref: RR4379658
-2025-06-10 01:27:49.297 | 2025-06-09 23:27:49,297 - src.tasks.email*response_agent - INFO - Number of available properties: 2
-2025-06-10 01:27:49.297 | INFO:src.tasks.email_response_agent:Email content: \_New Property Enquiry on RR4379658*
-2025-06-10 01:27:49.297 |
-2025-06-10 01:27:49.297 | Hi Nozipho, I'm interested in this unit. Is it still available?
-2025-06-10 01:27:49.297 |
-2025-06-10 01:27:49.297 | 2 Bed Apartment In Ferndale
-2025-06-10 01:27:49.297 | R 8250 Per Month
-2025-06-10 01:27:49.297 | Private Property Ref: RR4379658
-2025-06-10 01:27:49.297 | INFO:src.tasks.email*response_agent:Number of available properties: 2
-2025-06-10 01:27:49.297 | INFO:src.tasks.email_response_agent:Workflow actions: {
-2025-06-10 01:27:49.297 | "agent_name": "Agent Amara",
-2025-06-10 01:27:49.297 | "agent_contact": "",
-2025-06-10 01:27:49.297 | "matched_property": {
-2025-06-10 01:27:49.297 | "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
-2025-06-10 01:27:49.297 | "web_reference": "RR4379658",
-2025-06-10 01:27:49.297 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:49.297 | "status": "available",
-2025-06-10 01:27:49.297 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
-2025-06-10 01:27:49.297 | "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
-2025-06-10 01:27:49.297 | },
-2025-06-10 01:27:49.297 | "classification_only": true
-2025-06-10 01:27:49.297 | }
-2025-06-10 01:27:49.297 | INFO:src.tasks.email_response_agent:Matched property provided: {
-2025-06-10 01:27:49.298 | "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
-2025-06-10 01:27:49.298 | "web_reference": "RR4379658",
-2025-06-10 01:27:49.298 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:49.298 | "status": "available",
-2025-06-10 01:27:49.298 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
-2025-06-10 01:27:49.298 | "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
-2025-06-10 01:27:49.298 | }
-2025-06-10 01:27:49.298 | WARNING:src.tasks.email_response_agent:Langfuse trace logging failed: 'Logger' object has no attribute 'catch'
-2025-06-10 01:27:49.297 | 2025-06-09 23:27:49,297 - src.tasks.email_response_agent - INFO - Email subject: Fwd: New Private Property enquiry (property RR4379658)
-2025-06-10 01:27:49.297 | 2025-06-09 23:27:49,297 - src.tasks.email_response_agent - INFO - Email content: \_New Property Enquiry on RR4379658*
-2025-06-10 01:27:49.297 |
-2025-06-10 01:27:49.297 | Hi Nozipho, I'm interested in this unit. Is it still available?
-2025-06-10 01:27:49.297 |
-2025-06-10 01:27:49.297 | 2 Bed Apartment In Ferndale
-2025-06-10 01:27:49.297 | R 8250 Per Month
-2025-06-10 01:27:49.297 | Private Property Ref: RR4379658
-2025-06-10 01:27:49.297 | 2025-06-09 23:27:49,297 - src.tasks.email*response_agent - INFO - Number of available properties: 2
-2025-06-10 01:27:49.297 | 2025-06-09 23:27:49,297 - src.tasks.email_response_agent - INFO - Workflow actions: {
-2025-06-10 01:27:49.297 | "agent_name": "Agent Amara",
-2025-06-10 01:27:49.297 | "agent_contact": "",
-2025-06-10 01:27:49.297 | "matched_property": {
-2025-06-10 01:27:49.297 | "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
-2025-06-10 01:27:49.297 | "web_reference": "RR4379658",
-2025-06-10 01:27:49.297 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:49.297 | "status": "available",
-2025-06-10 01:27:49.297 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
-2025-06-10 01:27:49.297 | "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
-2025-06-10 01:27:49.298 | },
-2025-06-10 01:27:49.298 | "classification_only": true
-2025-06-10 01:27:49.298 | }
-2025-06-10 01:27:49.298 | 2025-06-09 23:27:49,297 - src.tasks.email_response_agent - INFO - Matched property provided: {
-2025-06-10 01:27:49.298 | "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
-2025-06-10 01:27:49.298 | "web_reference": "RR4379658",
-2025-06-10 01:27:49.298 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:49.298 | "status": "available",
-2025-06-10 01:27:49.298 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
-2025-06-10 01:27:49.298 | "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
-2025-06-10 01:27:49.298 | }
-2025-06-10 01:27:49.298 | 2025-06-09 23:27:49,297 - src.tasks.email_response_agent - WARNING - Langfuse trace logging failed: 'Logger' object has no attribute 'catch'
-2025-06-10 01:27:49.297 | 2025-06-09 23:27:49,297 - src.tasks.email_response_agent - INFO - Workflow actions: {
-2025-06-10 01:27:49.297 | "agent_name": "Agent Amara",
-2025-06-10 01:27:49.297 | "agent_contact": "",
-2025-06-10 01:27:49.297 | "matched_property": {
-2025-06-10 01:27:49.297 | "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
-2025-06-10 01:27:49.297 | "web_reference": "RR4379658",
-2025-06-10 01:27:49.297 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:49.297 | "status": "available",
-2025-06-10 01:27:49.297 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
-2025-06-10 01:27:49.297 | "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
-2025-06-10 01:27:49.298 | },
-2025-06-10 01:27:49.298 | "classification_only": true
-2025-06-10 01:27:49.298 | }
-2025-06-10 01:27:49.298 | 2025-06-09 23:27:49,297 - src.tasks.email_response_agent - INFO - Matched property provided: {
-2025-06-10 01:27:49.298 | "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
-2025-06-10 01:27:49.298 | "web_reference": "RR4379658",
-2025-06-10 01:27:49.298 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:49.298 | "status": "available",
-2025-06-10 01:27:49.298 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
-2025-06-10 01:27:49.298 | "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
-2025-06-10 01:27:49.298 | }
-2025-06-10 01:27:49.298 | 2025-06-09 23:27:49,297 - src.tasks.email_response_agent - WARNING - Langfuse trace logging failed: 'Logger' object has no attribute 'catch'
-2025-06-10 01:27:49.297 | INFO:src.tasks.email_response_agent:Email content: \_New Property Enquiry on RR4379658*
-2025-06-10 01:27:49.297 |
-2025-06-10 01:27:49.297 | Hi Nozipho, I'm interested in this unit. Is it still available?
-2025-06-10 01:27:49.297 |
-2025-06-10 01:27:49.297 | 2 Bed Apartment In Ferndale
-2025-06-10 01:27:49.297 | R 8250 Per Month
-2025-06-10 01:27:49.297 | Private Property Ref: RR4379658
-2025-06-10 01:27:49.297 | INFO:src.tasks.email_response_agent:Number of available properties: 2
-2025-06-10 01:27:49.297 | INFO:src.tasks.email_response_agent:Workflow actions: {
-2025-06-10 01:27:49.297 | "agent_name": "Agent Amara",
-2025-06-10 01:27:49.297 | "agent_contact": "",
-2025-06-10 01:27:49.297 | "matched_property": {
-2025-06-10 01:27:49.297 | "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
-2025-06-10 01:27:49.297 | "web_reference": "RR4379658",
-2025-06-10 01:27:49.297 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:49.297 | "status": "available",
-2025-06-10 01:27:49.297 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
-2025-06-10 01:27:49.297 | "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
-2025-06-10 01:27:49.297 | },
-2025-06-10 01:27:49.297 | "classification_only": true
-2025-06-10 01:27:49.297 | }
-2025-06-10 01:27:49.297 | INFO:src.tasks.email_response_agent:Matched property provided: {
-2025-06-10 01:27:49.298 | "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
-2025-06-10 01:27:49.298 | "web_reference": "RR4379658",
-2025-06-10 01:27:49.298 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:49.298 | "status": "available",
-2025-06-10 01:27:49.298 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
-2025-06-10 01:27:49.298 | "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
-2025-06-10 01:27:49.298 | }
-2025-06-10 01:27:49.298 | WARNING:src.tasks.email_response_agent:Langfuse trace logging failed: 'Logger' object has no attribute 'catch'
-2025-06-10 01:27:49.306 | INFO:src.tasks.email_response_agent:Initializing crew...
-2025-06-10 01:27:49.306 | INFO:src.tasks.email_response_agent:Task context created: [
-2025-06-10 01:27:49.306 | {
-2025-06-10 01:27:49.306 | "role": "system",
-2025-06-10 01:27:49.306 | "content": "You are an expert at classifying property inquiries.",
-2025-06-10 01:27:49.306 | "description": "System prompt for classification",
-2025-06-10 01:27:49.306 | "expected_output": "A valid JSON object containing the inquiry_type."
-2025-06-10 01:27:49.306 | },
-2025-06-10 01:27:49.306 | {
-2025-06-10 01:27:49.306 | "role": "user",
-2025-06-10 01:27:49.306 | "content": "Subject: Fwd: New Private Property enquiry (property RR4379658)\nContent: *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658",
-2025-06-10 01:27:49.306 | "description": "Property inquiry details for classification",
-2025-06-10 01:27:49.306 | "expected_output": "A valid JSON object containing the inquiry_type."
-2025-06-10 01:27:49.306 | }
-2025-06-10 01:27:49.306 | ]
-2025-06-10 01:27:49.306 | INFO:src.tasks.email_response_agent:Initializing crew...
-2025-06-10 01:27:49.306 | INFO:src.tasks.email_response_agent:Task context created: [
-2025-06-10 01:27:49.306 | {
-2025-06-10 01:27:49.306 | "role": "system",
-2025-06-10 01:27:49.306 | "content": "You are an expert at classifying property inquiries.",
-2025-06-10 01:27:49.306 | "description": "System prompt for classification",
-2025-06-10 01:27:49.306 | "expected_output": "A valid JSON object containing the inquiry_type."
-2025-06-10 01:27:49.306 | },
-2025-06-10 01:27:49.306 | {
-2025-06-10 01:27:49.306 | "role": "user",
-2025-06-10 01:27:49.306 | "content": "Subject: Fwd: New Private Property enquiry (property RR4379658)\nContent: *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658",
-2025-06-10 01:27:49.306 | "description": "Property inquiry details for classification",
-2025-06-10 01:27:49.306 | "expected_output": "A valid JSON object containing the inquiry_type."
-2025-06-10 01:27:49.306 | }
-2025-06-10 01:27:49.306 | ]
-2025-06-10 01:27:49.306 | 2025-06-09 23:27:49,306 - src.tasks.email_response_agent - INFO - Initializing crew...
-2025-06-10 01:27:49.306 | 2025-06-09 23:27:49,306 - src.tasks.email_response_agent - INFO - Task context created: [
-2025-06-10 01:27:49.306 | {
-2025-06-10 01:27:49.306 | "role": "system",
-2025-06-10 01:27:49.306 | "content": "You are an expert at classifying property inquiries.",
-2025-06-10 01:27:49.306 | "description": "System prompt for classification",
-2025-06-10 01:27:49.306 | "expected_output": "A valid JSON object containing the inquiry_type."
-2025-06-10 01:27:49.306 | },
-2025-06-10 01:27:49.306 | {
-2025-06-10 01:27:49.306 | "role": "user",
-2025-06-10 01:27:49.306 | "content": "Subject: Fwd: New Private Property enquiry (property RR4379658)\nContent: *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658",
-2025-06-10 01:27:49.306 | "description": "Property inquiry details for classification",
-2025-06-10 01:27:49.306 | "expected_output": "A valid JSON object containing the inquiry_type."
-2025-06-10 01:27:49.306 | }
-2025-06-10 01:27:49.306 | ]
-2025-06-10 01:27:49.306 | 2025-06-09 23:27:49,306 - src.tasks.email_response_agent - INFO - Initializing crew...
-2025-06-10 01:27:49.306 | 2025-06-09 23:27:49,306 - src.tasks.email_response_agent - INFO - Task context created: [
-2025-06-10 01:27:49.306 | {
-2025-06-10 01:27:49.306 | "role": "system",
-2025-06-10 01:27:49.306 | "content": "You are an expert at classifying property inquiries.",
-2025-06-10 01:27:49.306 | "description": "System prompt for classification",
-2025-06-10 01:27:49.306 | "expected_output": "A valid JSON object containing the inquiry_type."
-2025-06-10 01:27:49.306 | },
-2025-06-10 01:27:49.306 | {
-2025-06-10 01:27:49.306 | "role": "user",
-2025-06-10 01:27:49.306 | "content": "Subject: Fwd: New Private Property enquiry (property RR4379658)\nContent: *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658",
-2025-06-10 01:27:49.306 | "description": "Property inquiry details for classification",
-2025-06-10 01:27:49.306 | "expected_output": "A valid JSON object containing the inquiry_type."
-2025-06-10 01:27:49.306 | }
-2025-06-10 01:27:49.306 | ]
-2025-06-10 01:27:49.309 | INFO:src.tasks.email_response_agent:Classification task created successfully
-2025-06-10 01:27:49.309 | WARNING:src.tasks.email_response_agent:Langfuse trace logging failed: 'Logger' object has no attribute 'catch'
-2025-06-10 01:27:49.309 | INFO:src.tasks.email_response_agent:Creating response generation task...
-2025-06-10 01:27:49.309 | INFO:src.tasks.email_response_agent:Response task context created: [
-2025-06-10 01:27:49.309 | {
-2025-06-10 01:27:49.309 | "role": "system",
-2025-06-10 01:27:49.309 | "content": "You are an expert at writing professional property inquiry responses.",
-2025-06-10 01:27:49.309 | "description": "System prompt for response generation",
-2025-06-10 01:27:49.309 | "expected_output": "A valid JSON object with response.subject and response.body"
-2025-06-10 01:27:49.309 | },
-2025-06-10 01:27:49.309 | {
-2025-06-10 01:27:49.309 | "role": "user",
-2025-06-10 01:27:49.309 | "content": "Property Details: {\n \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n \"web_reference\": \"RR4379658\",\n \"status\": \"available\",\n \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\"\n}\nInquiry Type: None",
-2025-06-10 01:27:49.309 | "description": "Property details and inquiry type for response generation",
-2025-06-10 01:27:49.309 | "expected_output": "A valid JSON object with response.subject and response.body"
-2025-06-10 01:27:49.309 | }
-2025-06-10 01:27:49.309 | ]
-2025-06-10 01:27:49.309 | 2025-06-09 23:27:49,308 - src.tasks.email_response_agent - INFO - Classification task created successfully
-2025-06-10 01:27:49.309 | 2025-06-09 23:27:49,309 - src.tasks.email_response_agent - WARNING - Langfuse trace logging failed: 'Logger' object has no attribute 'catch'
-2025-06-10 01:27:49.309 | 2025-06-09 23:27:49,309 - src.tasks.email_response_agent - INFO - Creating response generation task...
-2025-06-10 01:27:49.309 | 2025-06-09 23:27:49,309 - src.tasks.email_response_agent - INFO - Response task context created: [
-2025-06-10 01:27:49.309 | {
-2025-06-10 01:27:49.309 | "role": "system",
-2025-06-10 01:27:49.309 | "content": "You are an expert at writing professional property inquiry responses.",
-2025-06-10 01:27:49.309 | "description": "System prompt for response generation",
-2025-06-10 01:27:49.309 | "expected_output": "A valid JSON object with response.subject and response.body"
-2025-06-10 01:27:49.309 | },
-2025-06-10 01:27:49.309 | {
-2025-06-10 01:27:49.309 | "role": "user",
-2025-06-10 01:27:49.309 | "content": "Property Details: {\n \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n \"web_reference\": \"RR4379658\",\n \"status\": \"available\",\n \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\"\n}\nInquiry Type: None",
-2025-06-10 01:27:49.309 | "description": "Property details and inquiry type for response generation",
-2025-06-10 01:27:49.309 | "expected_output": "A valid JSON object with response.subject and response.body"
-2025-06-10 01:27:49.309 | }
-2025-06-10 01:27:49.309 | ]
-2025-06-10 01:27:49.309 | INFO:src.tasks.email_response_agent:Classification task created successfully
-2025-06-10 01:27:49.309 | WARNING:src.tasks.email_response_agent:Langfuse trace logging failed: 'Logger' object has no attribute 'catch'
-2025-06-10 01:27:49.309 | INFO:src.tasks.email_response_agent:Creating response generation task...
-2025-06-10 01:27:49.309 | INFO:src.tasks.email_response_agent:Response task context created: [
-2025-06-10 01:27:49.309 | {
-2025-06-10 01:27:49.309 | "role": "system",
-2025-06-10 01:27:49.309 | "content": "You are an expert at writing professional property inquiry responses.",
-2025-06-10 01:27:49.309 | "description": "System prompt for response generation",
-2025-06-10 01:27:49.309 | "expected_output": "A valid JSON object with response.subject and response.body"
-2025-06-10 01:27:49.309 | },
-2025-06-10 01:27:49.309 | {
-2025-06-10 01:27:49.309 | "role": "user",
-2025-06-10 01:27:49.309 | "content": "Property Details: {\n \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n \"web_reference\": \"RR4379658\",\n \"status\": \"available\",\n \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\"\n}\nInquiry Type: None",
-2025-06-10 01:27:49.309 | "description": "Property details and inquiry type for response generation",
-2025-06-10 01:27:49.309 | "expected_output": "A valid JSON object with response.subject and response.body"
-2025-06-10 01:27:49.309 | }
-...
-2025-06-10 01:27:49.309 | 2025-06-09 23:27:49,309 - src.tasks.email_response_agent - INFO - Response task context created: [
-2025-06-10 01:27:49.309 | {
-2025-06-10 01:27:49.309 | "role": "system",
-2025-06-10 01:27:49.309 | "content": "You are an expert at writing professional property inquiry responses.",
-2025-06-10 01:27:49.309 | "description": "System prompt for response generation",
-2025-06-10 01:27:49.309 | "expected_output": "A valid JSON object with response.subject and response.body"
-2025-06-10 01:27:49.309 | },
-2025-06-10 01:27:49.309 | {
-2025-06-10 01:27:49.309 | "role": "user",
-2025-06-10 01:27:49.309 | "content": "Property Details: {\n \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n \"web_reference\": \"RR4379658\",\n \"status\": \"available\",\n \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\"\n}\nInquiry Type: None",
-2025-06-10 01:27:49.309 | "description": "Property details and inquiry type for response generation",
-2025-06-10 01:27:49.309 | "expected_output": "A valid JSON object with response.subject and response.body"
-2025-06-10 01:27:49.309 | }
-2025-06-10 01:27:49.309 | ]
-
-2025-06-10 01:27:49.311 | 2025-06-09 23:27:49,311 - src.tasks.email*response_agent - INFO - Validation task context created: [
-2025-06-10 01:27:49.311 | {
-2025-06-10 01:27:49.311 | "role": "system",
-2025-06-10 01:27:49.311 | "content": "You are an expert at validating property inquiry responses.",
-2025-06-10 01:27:49.311 | "description": "System prompt for response validation",
-2025-06-10 01:27:49.311 | "expected_output": "A valid JSON object with validation results"
-2025-06-10 01:27:49.311 | },
-2025-06-10 01:27:49.311 | {
-2025-06-10 01:27:49.311 | "role": "user",
-2025-06-10 01:27:49.311 | "content": "Property Details: {\n \"id\": \"dc11889a-e21e-42a7-8c17-cc7b3a395131\",\n \"web_reference\": \"RR4379658\",\n \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n \"status\": \"available\",\n \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\",\n \"agent_id\": \"77dff4d2-f083-493b-9060-ab1220d8763a\"\n}\nInquiry Type: None",
-2025-06-10 01:27:49.311 | "description": "Property details and inquiry type for validation",
-2025-06-10 01:27:49.311 | "expected_output": "A valid JSON object with validation results"
-2025-06-10 01:27:49.311 | }
-2025-06-10 01:27:49.311 | ]
-2025-06-10 01:27:49.311 | INFO:src.tasks.email_response_agent:Response generation task created successfully
-2025-06-10 01:27:49.311 | WARNING:src.tasks.email_response_agent:Langfuse trace logging failed: 'Logger' object has no attribute 'catch'
-2025-06-10 01:27:49.311 | INFO:src.tasks.email_response_agent:Creating validation task...
-2025-06-10 01:27:49.311 | INFO:src.tasks.email_response_agent:Validation task context created: [
-2025-06-10 01:27:49.311 | {
-2025-06-10 01:27:49.311 | "role": "system",
-2025-06-10 01:27:49.311 | "content": "You are an expert at validating property inquiry responses.",
-2025-06-10 01:27:49.312 | "description": "System prompt for response validation",
-2025-06-10 01:27:49.312 | "expected_output": "A valid JSON object with validation results"
-2025-06-10 01:27:49.312 | },
-2025-06-10 01:27:49.312 | {
-2025-06-10 01:27:49.312 | "role": "user",
-2025-06-10 01:27:49.312 | "content": "Property Details: {\n \"id\": \"dc11889a-e21e-42a7-8c17-cc7b3a395131\",\n \"web_reference\": \"RR4379658\",\n \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n \"status\": \"available\",\n \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\",\n \"agent_id\": \"77dff4d2-f083-493b-9060-ab1220d8763a\"\n}\nInquiry Type: None",
-2025-06-10 01:27:49.312 | "description": "Property details and inquiry type for validation",
-2025-06-10 01:27:49.312 | "expected_output": "A valid JSON object with validation results"
-2025-06-10 01:27:49.312 | }
-2025-06-10 01:27:49.312 | ]
-...
-2025-06-10 01:27:49.311 | INFO:src.tasks.email_response_agent:Validation task context created: [
-2025-06-10 01:27:49.311 | {
-2025-06-10 01:27:49.311 | "role": "system",
-2025-06-10 01:27:49.311 | "content": "You are an expert at validating property inquiry responses.",
-2025-06-10 01:27:49.312 | "description": "System prompt for response validation",
-2025-06-10 01:27:49.312 | "expected_output": "A valid JSON object with validation results"
-2025-06-10 01:27:49.312 | },
-2025-06-10 01:27:49.312 | {
-2025-06-10 01:27:49.312 | "role": "user",
-2025-06-10 01:27:49.312 | "content": "Property Details: {\n \"id\": \"dc11889a-e21e-42a7-8c17-cc7b3a395131\",\n \"web_reference\": \"RR4379658\",\n \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n \"status\": \"available\",\n \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\",\n \"agent_id\": \"77dff4d2-f083-493b-9060-ab1220d8763a\"\n}\nInquiry Type: None",
-2025-06-10 01:27:49.312 | "description": "Property details and inquiry type for validation",
-2025-06-10 01:27:49.312 | "expected_output": "A valid JSON object with validation results"
-2025-06-10 01:27:49.312 | }
-2025-06-10 01:27:49.312 | ]
-...
-2025-06-10 01:27:49.311 | 2025-06-09 23:27:49,311 - src.tasks.email_response_agent - INFO - Validation task context created: [
-2025-06-10 01:27:49.311 | {
-2025-06-10 01:27:49.311 | "role": "system",
-2025-06-10 01:27:49.311 | "content": "You are an expert at validating property inquiry responses.",
-2025-06-10 01:27:49.311 | "description": "System prompt for response validation",
-2025-06-10 01:27:49.311 | "expected_output": "A valid JSON object with validation results"
-2025-06-10 01:27:49.311 | },
-2025-06-10 01:27:49.311 | {
-2025-06-10 01:27:49.311 | "role": "user",
-2025-06-10 01:27:49.311 | "content": "Property Details: {\n \"id\": \"dc11889a-e21e-42a7-8c17-cc7b3a395131\",\n \"web_reference\": \"RR4379658\",\n \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n \"status\": \"available\",\n \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\",\n \"agent_id\": \"77dff4d2-f083-493b-9060-ab1220d8763a\"\n}\nInquiry Type: None",
-2025-06-10 01:27:49.311 | "description": "Property details and inquiry type for validation",
-2025-06-10 01:27:49.311 | "expected_output": "A valid JSON object with validation results"
-2025-06-10 01:27:49.311 | }
-2025-06-10 01:27:49.311 | ]
-...
-2025-06-10 01:27:49.333 | # Agent: Inquiry Classifier
-2025-06-10 01:27:49.333 | ## Task: Classify the type of property inquiry from this email exchange.
-2025-06-10 01:27:49.333 | Subject: Fwd: New Private Property enquiry (property RR4379658)
-2025-06-10 01:27:49.333 | Content: \_New Property Enquiry on RR4379658*
-2025-06-10 01:27:49.333 |
-2025-06-10 01:27:49.333 | Hi Nozipho, I'm interested in this unit. Is it still available?
-2025-06-10 01:27:49.333 |
-2025-06-10 01:27:49.333 | 2 Bed Apartment In Ferndale
-2025-06-10 01:27:49.333 | R 8250 Per Month
-2025-06-10 01:27:49.333 | Private Property Ref: RR4379658
-2025-06-10 01:27:49.333 |
-2025-06-10 01:27:49.333 | Analyze the email content and determine if this is:
-2025-06-10 01:27:49.333 | 1. viewing*request: Customer wants to view the property
-2025-06-10 01:27:49.333 | 2. availability_check: Customer is asking about availability
-2025-06-10 01:27:49.333 | 3. general_info: General inquiry about the property
-2025-06-10 01:27:49.333 |
-2025-06-10 01:27:49.333 | IMPORTANT: Return ONLY a valid JSON object with this exact format:
-2025-06-10 01:27:49.333 | {"inquiry_type": "viewing_request" | "availability_check" | "general_info"}
-2025-06-10 01:27:49.333 | # Agent: Inquiry Classifier
-2025-06-10 01:27:49.333 | ## Task: Classify the type of property inquiry from this email exchange.
-2025-06-10 01:27:49.333 | Subject: Fwd: New Private Property enquiry (property RR4379658)
-2025-06-10 01:27:49.333 | Content: \_New Property Enquiry on RR4379658*
-2025-06-10 01:27:49.333 |
-2025-06-10 01:27:49.333 | Hi Nozipho, I'm interested in this unit. Is it still available?
-2025-06-10 01:27:49.333 |
-2025-06-10 01:27:49.333 | 2 Bed Apartment In Ferndale
-2025-06-10 01:27:49.333 | R 8250 Per Month
-2025-06-10 01:27:49.333 | Private Property Ref: RR4379658
-2025-06-10 01:27:49.333 |
-2025-06-10 01:27:49.333 | Analyze the email content and determine if this is:
-2025-06-10 01:27:49.333 | 1. viewing*request: Customer wants to view the property
-2025-06-10 01:27:49.333 | 2. availability_check: Customer is asking about availability
-2025-06-10 01:27:49.333 | 3. general_info: General inquiry about the property
-2025-06-10 01:27:49.333 |
-2025-06-10 01:27:49.333 | IMPORTANT: Return ONLY a valid JSON object with this exact format:
-2025-06-10 01:27:49.333 | {"inquiry_type": "viewing_request" | "availability_check" | "general_info"}
-2025-06-10 01:27:49.333 | 🤖 Agent: Inquiry Classifier
-2025-06-10 01:27:49.333 | Status: In Progress
-2025-06-10 01:27:49.333 | └── 🧠 Thinking...
-2025-06-10 01:27:49.334 |
-2025-06-10 01:27:49.333 | 🤖 Agent: Inquiry Classifier
-2025-06-10 01:27:49.333 | Status: In Progress
-2025-06-10 01:27:49.333 | └── 🧠 Thinking...
-2025-06-10 01:27:49.334 |
-...
-2025-06-10 01:27:51.324 | 🤖 Agent: Inquiry Classifier
-2025-06-10 01:27:51.324 | Status: In Progress
-2025-06-10 01:27:51.324 |
-2025-06-10 01:27:51.325 |
-2025-06-10 01:27:51.325 |
-2025-06-10 01:27:51.325 | # Agent: Inquiry Classifier
-2025-06-10 01:27:51.325 | ## Final Answer:
-2025-06-10 01:27:51.325 | {"inquiry_type": "availability_check"}
-2025-06-10 01:27:51.325 |
-2025-06-10 01:27:51.325 |
-2025-06-10 01:27:51.324 | 🤖 Agent: Inquiry Classifier
-2025-06-10 01:27:51.324 | Status: In Progress
-2025-06-10 01:27:51.324 |
-2025-06-10 01:27:51.325 |
-2025-06-10 01:27:51.325 |
-2025-06-10 01:27:51.325 | # Agent: Inquiry Classifier
-2025-06-10 01:27:51.325 | ## Final Answer:
-2025-06-10 01:27:51.325 | {"inquiry_type": "availability_check"}
-2025-06-10 01:27:51.325 |
-...
-2025-06-10 01:27:51.340 | # Agent: Response Writer
-2025-06-10 01:27:51.340 | ## Task: Generate a professional, POPI-compliant response to this property inquiry.
-2025-06-10 01:27:51.340 |
-2025-06-10 01:27:51.340 | Email Subject: Fwd: New Private Property enquiry (property RR4379658)
-2025-06-10 01:27:51.340 | Email Content: \_New Property Enquiry on RR4379658*
-2025-06-10 01:27:51.340 |
-2025-06-10 01:27:51.340 | Hi Nozipho, I'm interested in this unit. Is it still available?
-2025-06-10 01:27:51.340 |
-2025-06-10 01:27:51.340 | 2 Bed Apartment In Ferndale
-2025-06-10 01:27:51.340 | R 8250 Per Month
-2025-06-10 01:27:51.340 | Private Property Ref: RR4379658
-2025-06-10 01:27:51.340 | Inquiry Type: None
-2025-06-10 01:27:51.340 |
-2025-06-10 01:27:51.340 | Property Details:
-2025-06-10 01:27:51.340 | {
-2025-06-10 01:27:51.340 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:51.340 | "web*reference": "RR4379658",
-2025-06-10 01:27:51.340 | "status": "available",
-2025-06-10 01:27:51.340 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv"
-2025-06-10 01:27:51.340 | }
-...
-2025-06-10 01:27:51.340 | # Agent: Response Writer
-2025-06-10 01:27:51.340 | ## Task: Generate a professional, POPI-compliant response to this property inquiry.
-2025-06-10 01:27:51.340 |
-2025-06-10 01:27:51.340 | Email Subject: Fwd: New Private Property enquiry (property RR4379658)
-2025-06-10 01:27:51.340 | Email Content: \_New Property Enquiry on RR4379658*
-2025-06-10 01:27:51.340 |
-2025-06-10 01:27:51.340 | Hi Nozipho, I'm interested in this unit. Is it still available?
-2025-06-10 01:27:51.340 |
-2025-06-10 01:27:51.340 | 2 Bed Apartment In Ferndale
-2025-06-10 01:27:51.340 | R 8250 Per Month
-2025-06-10 01:27:51.340 | Private Property Ref: RR4379658
-2025-06-10 01:27:51.340 | Inquiry Type: None
-2025-06-10 01:27:51.340 |
-2025-06-10 01:27:51.340 | Property Details:
-2025-06-10 01:27:51.340 | {
-2025-06-10 01:27:51.340 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:51.340 | "web*reference": "RR4379658",
-2025-06-10 01:27:51.340 | "status": "available",
-2025-06-10 01:27:51.340 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv"
-2025-06-10 01:27:51.340 | }
-2025-06-10 01:27:51.340 |
-2025-06-10 01:27:51.340 | Response Requirements (MUST INCLUDE ALL):
-2025-06-10 01:27:51.340 | 1. Address: 175 304 Main Avenue, 304 Main Avenue
-2025-06-10 01:27:51.340 | 2. Property reference: RR4379658
-2025-06-10 01:27:51.340 | 3. Application link: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv
-2025-06-10 01:27:51.340 | 4. Be friendly and professional
-2025-06-10 01:27:51.340 | 5. Follow South African business etiquette
-2025-06-10 01:27:51.340 |
-2025-06-10 01:27:51.340 | IMPORTANT: You MUST copy and paste the address, property reference, and application link EXACTLY as provided above into the response body. Do not paraphrase or omit them.
-2025-06-10 01:27:51.340 |
-2025-06-10 01:27:51.340 | EXAMPLE RESPONSE (format):
-2025-06-10 01:27:51.340 | {
-2025-06-10 01:27:51.340 | "response": {
-2025-06-10 01:27:51.340 | "subject": "Re: Property Inquiry - RR4379658",
-2025-06-10 01:27:51.340 | "body": "Dear [Name],\n\nThank you for your interest in the property at 175 304 Main Avenue, 304 Main Avenue (Reference: RR4379658).\n\nThe property is available. You can apply here: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\n\nBest regards,\n[Agent Name]"
-2025-06-10 01:27:51.340 | }
-2025-06-10 01:27:51.340 | }
-2025-06-10 01:27:51.340 |
-2025-06-10 01:27:51.340 | IMPORTANT: Return ONLY a valid JSON object with this exact format:
-2025-06-10 01:27:51.340 | {
-2025-06-10 01:27:51.340 | "response": {
-2025-06-10 01:27:51.340 | "subject": "Re: ...",
-2025-06-10 01:27:51.340 | "body": "Dear [Name],\n\nThank you... [INCLUDE address, web reference, and application link here]"
-2025-06-10 01:27:51.340 | }
-2025-06-10 01:27:51.340 | }
-2025-06-10 01:27:51.340 |
-2025-06-10 01:27:51.340 | Response Requirements (MUST INCLUDE ALL):
-2025-06-10 01:27:51.340 | 1. Address: 175 304 Main Avenue, 304 Main Avenue
-2025-06-10 01:27:51.340 | 2. Property reference: RR4379658
-2025-06-10 01:27:51.340 | 3. Application link: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv
-2025-06-10 01:27:51.340 | 4. Be friendly and professional
-2025-06-10 01:27:51.340 | 5. Follow South African business etiquette
-2025-06-10 01:27:51.340 |
-2025-06-10 01:27:51.340 | IMPORTANT: You MUST copy and paste the address, property reference, and application link EXACTLY as provided above into the response body. Do not paraphrase or omit them.
-2025-06-10 01:27:51.340 |
-2025-06-10 01:27:51.340 | EXAMPLE RESPONSE (format):
-2025-06-10 01:27:51.340 | {
-2025-06-10 01:27:51.340 | "response": {
-2025-06-10 01:27:51.340 | "subject": "Re: Property Inquiry - RR4379658",
-2025-06-10 01:27:51.340 | "body": "Dear [Name],\n\nThank you for your interest in the property at 175 304 Main Avenue, 304 Main Avenue (Reference: RR4379658).\n\nThe property is available. You can apply here: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\n\nBest regards,\n[Agent Name]"
-2025-06-10 01:27:51.340 | }
-2025-06-10 01:27:51.340 | }
-2025-06-10 01:27:51.340 |
-2025-06-10 01:27:51.340 | IMPORTANT: Return ONLY a valid JSON object with this exact format:
-2025-06-10 01:27:51.340 | {
-2025-06-10 01:27:51.340 | "response": {
-2025-06-10 01:27:51.340 | "subject": "Re: ...",
-2025-06-10 01:27:51.340 | "body": "Dear [Name],\n\nThank you... [INCLUDE address, web reference, and application link here]"
-2025-06-10 01:27:51.340 | }
-2025-06-10 01:27:51.340 | }
-...
-2025-06-10 01:27:54.549 | # Agent: Response Writer
-2025-06-10 01:27:54.549 | ## Final Answer:
-2025-06-10 01:27:54.549 | {
-2025-06-10 01:27:54.549 | # Agent: Response Writer
-2025-06-10 01:27:54.549 | ## Final Answer:
-2025-06-10 01:27:54.549 | {
-2025-06-10 01:27:54.549 | "response": {
-2025-06-10 01:27:54.549 | "subject": "Re: Property Inquiry - RR4379658",
-2025-06-10 01:27:54.549 | "body": "Dear [Name],\n\nThank you for your interest in the property at 175 304 Main Avenue, 304 Main Avenue (Reference: RR4379658).\n\nThe property is available. You can apply here: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\n\nBest regards,\nNozipho"
-2025-06-10 01:27:54.549 | }
-2025-06-10 01:27:54.549 | }
-2025-06-10 01:27:54.549 |
-2025-06-10 01:27:54.549 |
-2025-06-10 01:27:54.549 | "response": {
-2025-06-10 01:27:54.549 | "subject": "Re: Property Inquiry - RR4379658",
-2025-06-10 01:27:54.549 | "body": "Dear [Name],\n\nThank you for your interest in the property at 175 304 Main Avenue, 304 Main Avenue (Reference: RR4379658).\n\nThe property is available. You can apply here: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\n\nBest regards,\nNozipho"
-2025-06-10 01:27:54.549 | }
-2025-06-10 01:27:54.549 | }
-...
-2025-06-10 01:27:54.565 | # Agent: Response Validator
-2025-06-10 01:27:54.565 | ## Task: Validate this email response for accuracy, professionalism, and completeness.
-2025-06-10 01:27:54.565 |
-2025-06-10 01:27:54.565 | Original Email:
-2025-06-10 01:27:54.565 | \_New Property Enquiry on RR4379658*
-2025-06-10 01:27:54.565 |
-2025-06-10 01:27:54.565 | Hi Nozipho, I'm interested in this unit. Is it still available?
-2025-06-10 01:27:54.565 |
-2025-06-10 01:27:54.565 | 2 Bed Apartment In Ferndale
-2025-06-10 01:27:54.565 | R 8250 Per Month
-2025-06-10 01:27:54.565 | Private Property Ref: RR4379658
-2025-06-10 01:27:54.565 |
-2025-06-10 01:27:54.565 | Property Details:
-2025-06-10 01:27:54.565 | {
-2025-06-10 01:27:54.565 | "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
-2025-06-10 01:27:54.565 | "web*reference": "RR4379658",
-2025-06-10 01:27:54.565 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:54.565 | "status": "available",
-2025-06-10 01:27:54.565 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
-2025-06-10 01:27:54.565 | "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
-2025-06-10 01:27:54.565 | }
-2025-06-10 01:27:54.565 |
-2025-06-10 01:27:54.565 | Validation Requirements:
-2025-06-10 01:27:54.565 | 1. Address included: 175 304 Main Avenue, 304 Main Avenue
-2025-06-10 01:27:54.565 | 2. Property reference included: RR4379658
-2025-06-10 01:27:54.565 | 3. Application link included: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv
-2025-06-10 01:27:54.565 |
-2025-06-10 01:27:54.565 | IMPORTANT: Return ONLY a valid JSON object with this exact format:
-2025-06-10 01:27:54.565 | {
-2025-06-10 01:27:54.565 | "pass": true/false,
-2025-06-10 01:27:54.565 | "confidence": 0.0-1.0,
-2025-06-10 01:27:54.565 | "details": {
-2025-06-10 01:27:54.565 | "factual_pass": true/false,
-2025-06-10 01:27:54.565 | "completeness_pass": true/false,
-2025-06-10 01:27:54.565 | "tone_pass": true/false,
-2025-06-10 01:27:54.565 | "missing_fields": [...],
-2025-06-10 01:27:54.565 | "inquiry_type": "None"
-2025-06-10 01:27:54.565 | }
-2025-06-10 01:27:54.565 | }
-2025-06-10 01:27:54.565 | # Agent: Response Validator
-2025-06-10 01:27:54.565 | ## Task: Validate this email response for accuracy, professionalism, and completeness.
-2025-06-10 01:27:54.565 |
-2025-06-10 01:27:54.565 | Original Email:
-2025-06-10 01:27:54.565 | \_New Property Enquiry on RR4379658*
-2025-06-10 01:27:54.565 |
-2025-06-10 01:27:54.565 | Hi Nozipho, I'm interested in this unit. Is it still available?
-2025-06-10 01:27:54.565 |
-2025-06-10 01:27:54.565 | 2 Bed Apartment In Ferndale
-2025-06-10 01:27:54.565 | R 8250 Per Month
-2025-06-10 01:27:54.565 | Private Property Ref: RR4379658
-2025-06-10 01:27:54.565 |
-2025-06-10 01:27:54.565 | Property Details:
-2025-06-10 01:27:54.565 | {
-2025-06-10 01:27:54.565 | "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
-2025-06-10 01:27:54.565 | "web_reference": "RR4379658",
-2025-06-10 01:27:54.565 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:54.565 | "status": "available",
-2025-06-10 01:27:54.565 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
-2025-06-10 01:27:54.565 | "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
-2025-06-10 01:27:54.565 | }
-2025-06-10 01:27:54.565 |
-2025-06-10 01:27:54.565 | Validation Requirements:
-2025-06-10 01:27:54.565 | 1. Address included: 175 304 Main Avenue, 304 Main Avenue
-2025-06-10 01:27:54.565 | 2. Property reference included: RR4379658
-2025-06-10 01:27:54.565 | 3. Application link included: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv
-2025-06-10 01:27:54.565 |
-2025-06-10 01:27:54.565 | IMPORTANT: Return ONLY a valid JSON object with this exact format:
-2025-06-10 01:27:54.565 | {
-2025-06-10 01:27:54.565 | "pass": true/false,
-2025-06-10 01:27:54.565 | "confidence": 0.0-1.0,
-2025-06-10 01:27:54.565 | "details": {
-2025-06-10 01:27:54.565 | "factual_pass": true/false,
-2025-06-10 01:27:54.565 | "completeness_pass": true/false,
-2025-06-10 01:27:54.565 | "tone_pass": true/false,
-2025-06-10 01:27:54.565 | "missing_fields": [...],
-2025-06-10 01:27:54.565 | "inquiry_type": "None"
-2025-06-10 01:27:54.565 | }
-2025-06-10 01:27:54.565 | }
-
-2025-06-10 01:27:56.944 | # Agent: Response Validator
-2025-06-10 01:27:56.944 | ## Final Answer:
-2025-06-10 01:27:56.944 | {
-2025-06-10 01:27:56.944 | "pass": true,
-2025-06-10 01:27:56.944 | "confidence": 1.0,
-2025-06-10 01:27:56.944 | "details": {
-2025-06-10 01:27:56.944 | "factual*pass": true,
-2025-06-10 01:27:56.944 | "completeness_pass": true,
-2025-06-10 01:27:56.944 | "tone_pass": true,
-2025-06-10 01:27:56.944 | "missing_fields": [],
-2025-06-10 01:27:56.944 | "inquiry_type": "Availability Inquiry"
-2025-06-10 01:27:56.944 | }
-2025-06-10 01:27:56.944 | }
-2025-06-10 01:27:56.944 |
-2025-06-10 01:27:56.944 |
-2025-06-10 01:27:56.944 | # Agent: Response Validator
-2025-06-10 01:27:56.944 | ## Final Answer:
-2025-06-10 01:27:56.944 | {
-2025-06-10 01:27:56.944 | "pass": true,
-2025-06-10 01:27:56.944 | "confidence": 1.0,
-2025-06-10 01:27:56.944 | "details": {
-2025-06-10 01:27:56.944 | "factual_pass": true,
-2025-06-10 01:27:56.944 | "completeness_pass": true,
-2025-06-10 01:27:56.944 | "tone_pass": true,
-2025-06-10 01:27:56.944 | "missing_fields": [],
-2025-06-10 01:27:56.944 | "inquiry_type": "Availability Inquiry"
-2025-06-10 01:27:56.944 | }
-2025-06-10 01:27:56.944 | }
-2025-06-10 01:27:56.944 |  
-...
-2025-06-10 01:27:57.012 | INFO:src.tasks.email_response_agent:Email subject: Fwd: New Private Property enquiry (property RR4379658)
-2025-06-10 01:27:57.012 | DEBUG:langfuse:Prompt cache initialized.
-2025-06-10 01:27:57.012 | INFO:src.tasks.email_response_agent:Email subject: Fwd: New Private Property enquiry (property RR4379658)
-2025-06-10 01:27:57.012 | INFO:src.tasks.email_response_agent:Email content: \_New Property Enquiry on RR4379658*
-2025-06-10 01:27:57.012 |
-2025-06-10 01:27:57.012 | Hi Nozipho, I'm interested in this unit. Is it still available?
-2025-06-10 01:27:57.012 |
-2025-06-10 01:27:57.012 | 2 Bed Apartment In Ferndale
-2025-06-10 01:27:57.012 | R 8250 Per Month
-2025-06-10 01:27:57.012 | Private Property Ref: RR4379658
-2025-06-10 01:27:57.012 | INFO:src.tasks.email*response_agent:Number of available properties: 2
-2025-06-10 01:27:57.013 | INFO:src.tasks.email_response_agent:Workflow actions: {
-2025-06-10 01:27:57.012 | 2025-06-09 23:27:57,012 - src.tasks.email_response_agent - INFO - Email subject: Fwd: New Private Property enquiry (property RR4379658)
-2025-06-10 01:27:57.012 | 2025-06-09 23:27:57,012 - src.tasks.email_response_agent - INFO - Email content: \_New Property Enquiry on RR4379658*
-2025-06-10 01:27:57.012 |
-2025-06-10 01:27:57.012 | Hi Nozipho, I'm interested in this unit. Is it still available?
-2025-06-10 01:27:57.012 |
-2025-06-10 01:27:57.012 | 2 Bed Apartment In Ferndale
-2025-06-10 01:27:57.013 | R 8250 Per Month
-2025-06-10 01:27:57.013 | Private Property Ref: RR4379658
-2025-06-10 01:27:57.013 | 2025-06-09 23:27:57,012 - src.tasks.email*response_agent - INFO - Number of available properties: 2
-2025-06-10 01:27:57.013 | 2025-06-09 23:27:57,012 - src.tasks.email_response_agent - INFO - Workflow actions: {
-2025-06-10 01:27:57.013 | "agent_name": "Agent Amara",
-2025-06-10 01:27:57.013 | "agent_contact": "",
-2025-06-10 01:27:57.013 | "matched_property": {
-2025-06-10 01:27:57.013 | "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
-2025-06-10 01:27:57.013 | "web_reference": "RR4379658",
-2025-06-10 01:27:57.013 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:57.013 | "status": "available",
-2025-06-10 01:27:57.013 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
-2025-06-10 01:27:57.013 | "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
-2025-06-10 01:27:57.013 | },
-2025-06-10 01:27:57.013 | "inquiry_type": "availability_check"
-2025-06-10 01:27:57.013 | }
-2025-06-10 01:27:57.012 | 2025-06-09 23:27:57,012 - src.tasks.email_response_agent - INFO - Email subject: Fwd: New Private Property enquiry (property RR4379658)
-2025-06-10 01:27:57.012 | 2025-06-09 23:27:57,012 - src.tasks.email_response_agent - INFO - Email content: \_New Property Enquiry on RR4379658*
-2025-06-10 01:27:57.012 |
-2025-06-10 01:27:57.012 | Hi Nozipho, I'm interested in this unit. Is it still available?
-2025-06-10 01:27:57.012 |
-2025-06-10 01:27:57.012 | 2 Bed Apartment In Ferndale
-2025-06-10 01:27:57.013 | R 8250 Per Month
-2025-06-10 01:27:57.013 | Private Property Ref: RR4379658
-2025-06-10 01:27:57.013 | 2025-06-09 23:27:57,012 - src.tasks.email*response_agent - INFO - Number of available properties: 2
-2025-06-10 01:27:57.013 | 2025-06-09 23:27:57,012 - src.tasks.email_response_agent - INFO - Workflow actions: {
-2025-06-10 01:27:57.013 | "agent_name": "Agent Amara",
-2025-06-10 01:27:57.013 | "agent_contact": "",
-2025-06-10 01:27:57.013 | "matched_property": {
-2025-06-10 01:27:57.013 | "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
-2025-06-10 01:27:57.013 | "web_reference": "RR4379658",
-2025-06-10 01:27:57.013 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:57.013 | "status": "available",
-2025-06-10 01:27:57.013 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
-2025-06-10 01:27:57.013 | "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
-2025-06-10 01:27:57.013 | },
-2025-06-10 01:27:57.013 | "inquiry_type": "availability_check"
-2025-06-10 01:27:57.013 | }
-2025-06-10 01:27:57.013 | "agent_name": "Agent Amara",
-2025-06-10 01:27:57.013 | "agent_contact": "",
-2025-06-10 01:27:57.013 | "matched_property": {
-2025-06-10 01:27:57.013 | "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
-2025-06-10 01:27:57.013 | "web_reference": "RR4379658",
-2025-06-10 01:27:57.013 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:57.013 | "status": "available",
-2025-06-10 01:27:57.013 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
-2025-06-10 01:27:57.013 | "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
-2025-06-10 01:27:57.013 | },
-2025-06-10 01:27:57.013 | "inquiry_type": "availability_check"
-2025-06-10 01:27:57.013 | }
-2025-06-10 01:27:57.015 | INFO:src.tasks.email_response_agent:Matched property provided: {
-2025-06-10 01:27:57.015 | "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
-2025-06-10 01:27:57.015 | "web_reference": "RR4379658",
-2025-06-10 01:27:57.015 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:57.015 | "status": "available",
-2025-06-10 01:27:57.015 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
-2025-06-10 01:27:57.015 | "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
-2025-06-10 01:27:57.015 | }
-2025-06-10 01:27:57.015 | WARNING:src.tasks.email_response_agent:Langfuse trace logging failed: 'Logger' object has no attribute 'catch'
-2025-06-10 01:27:57.015 | 2025-06-09 23:27:57,015 - src.tasks.email_response_agent - INFO - Matched property provided: {
-2025-06-10 01:27:57.015 | "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
-2025-06-10 01:27:57.015 | "web_reference": "RR4379658",
-2025-06-10 01:27:57.015 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:57.015 | "status": "available",
-2025-06-10 01:27:57.015 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
-2025-06-10 01:27:57.015 | "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
-2025-06-10 01:27:57.015 | }
-2025-06-10 01:27:57.015 | 2025-06-09 23:27:57,015 - src.tasks.email_response_agent - WARNING - Langfuse trace logging failed: 'Logger' object has no attribute 'catch'
-2025-06-10 01:27:57.015 | 2025-06-09 23:27:57,015 - src.tasks.email_response_agent - INFO - Matched property provided: {
-2025-06-10 01:27:57.015 | "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
-2025-06-10 01:27:57.015 | "web_reference": "RR4379658",
-2025-06-10 01:27:57.015 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:57.015 | "status": "available",
-2025-06-10 01:27:57.015 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
-2025-06-10 01:27:57.015 | "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
-2025-06-10 01:27:57.015 | }
-2025-06-10 01:27:57.015 | 2025-06-09 23:27:57,015 - src.tasks.email_response_agent - WARNING - Langfuse trace logging failed: 'Logger' object has no attribute 'catch'
-2025-06-10 01:27:57.012 | INFO:src.tasks.email_response_agent:Email content: \_New Property Enquiry on RR4379658*
-2025-06-10 01:27:57.012 |
-2025-06-10 01:27:57.012 | Hi Nozipho, I'm interested in this unit. Is it still available?
-2025-06-10 01:27:57.012 |
-2025-06-10 01:27:57.012 | 2 Bed Apartment In Ferndale
-2025-06-10 01:27:57.012 | R 8250 Per Month
-2025-06-10 01:27:57.012 | Private Property Ref: RR4379658
-2025-06-10 01:27:57.012 | INFO:src.tasks.email_response_agent:Number of available properties: 2
-2025-06-10 01:27:57.013 | INFO:src.tasks.email_response_agent:Workflow actions: {
-2025-06-10 01:27:57.013 | "agent_name": "Agent Amara",
-2025-06-10 01:27:57.013 | "agent_contact": "",
-2025-06-10 01:27:57.013 | "matched_property": {
-2025-06-10 01:27:57.013 | "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
-2025-06-10 01:27:57.013 | "web_reference": "RR4379658",
-2025-06-10 01:27:57.013 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:57.013 | "status": "available",
-2025-06-10 01:27:57.013 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
-2025-06-10 01:27:57.013 | "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
-2025-06-10 01:27:57.013 | },
-2025-06-10 01:27:57.013 | "inquiry_type": "availability_check"
-2025-06-10 01:27:57.013 | }
-2025-06-10 01:27:57.015 | INFO:src.tasks.email_response_agent:Matched property provided: {
-2025-06-10 01:27:57.015 | "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
-2025-06-10 01:27:57.015 | "web_reference": "RR4379658",
-2025-06-10 01:27:57.015 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:57.015 | "status": "available",
-2025-06-10 01:27:57.015 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
-2025-06-10 01:27:57.015 | "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
-2025-06-10 01:27:57.015 | }
-2025-06-10 01:27:57.015 | WARNING:src.tasks.email_response_agent:Langfuse trace logging failed: 'Logger' object has no attribute 'catch'
-2025-06-10 01:27:57.024 | INFO:src.tasks.email_response_agent:Initializing crew...
-2025-06-10 01:27:57.024 | INFO:src.tasks.email_response_agent:Task context created: [
-2025-06-10 01:27:57.024 | {
-2025-06-10 01:27:57.024 | "role": "system",
-2025-06-10 01:27:57.024 | "content": "You are an expert at classifying property inquiries.",
-2025-06-10 01:27:57.024 | "description": "System prompt for classification",
-2025-06-10 01:27:57.024 | "expected_output": "A valid JSON object containing the inquiry_type."
-2025-06-10 01:27:57.024 | },
-2025-06-10 01:27:57.024 | {
-2025-06-10 01:27:57.024 | "role": "user",
-2025-06-10 01:27:57.024 | "content": "Subject: Fwd: New Private Property enquiry (property RR4379658)\nContent: *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658",
-2025-06-10 01:27:57.024 | "description": "Property inquiry details for classification",
-2025-06-10 01:27:57.024 | "expected_output": "A valid JSON object containing the inquiry_type."
-2025-06-10 01:27:57.024 | }
-2025-06-10 01:27:57.024 | ]
-2025-06-10 01:27:57.024 | 2025-06-09 23:27:57,023 - src.tasks.email_response_agent - INFO - Initializing crew...
-2025-06-10 01:27:57.024 | 2025-06-09 23:27:57,024 - src.tasks.email_response_agent - INFO - Task context created: [
-2025-06-10 01:27:57.024 | {
-2025-06-10 01:27:57.024 | "role": "system",
-2025-06-10 01:27:57.024 | "content": "You are an expert at classifying property inquiries.",
-2025-06-10 01:27:57.024 | "description": "System prompt for classification",
-2025-06-10 01:27:57.024 | "expected_output": "A valid JSON object containing the inquiry_type."
-2025-06-10 01:27:57.024 | },
-2025-06-10 01:27:57.024 | {
-2025-06-10 01:27:57.024 | "role": "user",
-2025-06-10 01:27:57.024 | "content": "Subject: Fwd: New Private Property enquiry (property RR4379658)\nContent: *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658",
-2025-06-10 01:27:57.024 | "description": "Property inquiry details for classification",
-2025-06-10 01:27:57.024 | "expected_output": "A valid JSON object containing the inquiry_type."
-2025-06-10 01:27:57.024 | }
-2025-06-10 01:27:57.024 | ]
-2025-06-10 01:27:57.024 | INFO:src.tasks.email_response_agent:Initializing crew...
-2025-06-10 01:27:57.024 | INFO:src.tasks.email_response_agent:Task context created: [
-2025-06-10 01:27:57.024 | {
-2025-06-10 01:27:57.024 | "role": "system",
-2025-06-10 01:27:57.024 | "content": "You are an expert at classifying property inquiries.",
-2025-06-10 01:27:57.024 | "description": "System prompt for classification",
-2025-06-10 01:27:57.024 | "expected_output": "A valid JSON object containing the inquiry_type."
-2025-06-10 01:27:57.024 | },
-2025-06-10 01:27:57.024 | {
-2025-06-10 01:27:57.024 | "role": "user",
-2025-06-10 01:27:57.024 | "content": "Subject: Fwd: New Private Property enquiry (property RR4379658)\nContent: *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658",
-2025-06-10 01:27:57.024 | "description": "Property inquiry details for classification",
-2025-06-10 01:27:57.024 | "expected_output": "A valid JSON object containing the inquiry_type."
-2025-06-10 01:27:57.024 | }
-2025-06-10 01:27:57.024 | ]
-2025-06-10 01:27:57.024 | 2025-06-09 23:27:57,023 - src.tasks.email_response_agent - INFO - Initializing crew...
-2025-06-10 01:27:57.024 | 2025-06-09 23:27:57,024 - src.tasks.email_response_agent - INFO - Task context created: [
-2025-06-10 01:27:57.024 | {
-2025-06-10 01:27:57.024 | "role": "system",
-2025-06-10 01:27:57.024 | "content": "You are an expert at classifying property inquiries.",
-2025-06-10 01:27:57.024 | "description": "System prompt for classification",
-2025-06-10 01:27:57.024 | "expected_output": "A valid JSON object containing the inquiry_type."
-2025-06-10 01:27:57.024 | },
-2025-06-10 01:27:57.024 | {
-2025-06-10 01:27:57.024 | "role": "user",
-2025-06-10 01:27:57.024 | "content": "Subject: Fwd: New Private Property enquiry (property RR4379658)\nContent: *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658",
-2025-06-10 01:27:57.024 | "description": "Property inquiry details for classification",
-2025-06-10 01:27:57.024 | "expected_output": "A valid JSON object containing the inquiry_type."
-2025-06-10 01:27:57.024 | }
-2025-06-10 01:27:57.024 | ]
-
-2025-06-10 01:27:57.026 | 2025-06-09 23:27:57,026 - src.tasks.email*response_agent - INFO - Response task context created: [
-2025-06-10 01:27:57.026 | {
-2025-06-10 01:27:57.026 | "role": "system",
-2025-06-10 01:27:57.026 | "content": "You are an expert at writing professional property inquiry responses.",
-2025-06-10 01:27:57.026 | "description": "System prompt for response generation",
-2025-06-10 01:27:57.026 | "expected_output": "A valid JSON object with response.subject and response.body"
-2025-06-10 01:27:57.026 | },
-2025-06-10 01:27:57.027 | {
-2025-06-10 01:27:57.026 | INFO:src.tasks.email_response_agent:Classification task created successfully
-2025-06-10 01:27:57.026 | WARNING:src.tasks.email_response_agent:Langfuse trace logging failed: 'Logger' object has no attribute 'catch'
-2025-06-10 01:27:57.026 | INFO:src.tasks.email_response_agent:Creating response generation task...
-2025-06-10 01:27:57.026 | INFO:src.tasks.email_response_agent:Response task context created: [
-2025-06-10 01:27:57.026 | {
-2025-06-10 01:27:57.026 | "role": "system",
-2025-06-10 01:27:57.026 | "content": "You are an expert at writing professional property inquiry responses.",
-2025-06-10 01:27:57.026 | "description": "System prompt for response generation",
-2025-06-10 01:27:57.026 | "expected_output": "A valid JSON object with response.subject and response.body"
-2025-06-10 01:27:57.026 | },
-2025-06-10 01:27:57.026 | {
-2025-06-10 01:27:57.026 | "role": "user",
-2025-06-10 01:27:57.026 | "content": "Property Details: {\n \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n \"web_reference\": \"RR4379658\",\n \"status\": \"available\",\n \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\"\n}\nInquiry Type: None",
-2025-06-10 01:27:57.026 | "description": "Property details and inquiry type for response generation",
-2025-06-10 01:27:57.026 | "expected_output": "A valid JSON object with response.subject and response.body"
-2025-06-10 01:27:57.026 | }
-2025-06-10 01:27:57.026 | ]
-2025-06-10 01:27:57.026 | 2025-06-09 23:27:57,026 - src.tasks.email_response_agent - INFO - Classification task created successfully
-2025-06-10 01:27:57.026 | 2025-06-09 23:27:57,026 - src.tasks.email_response_agent - WARNING - Langfuse trace logging failed: 'Logger' object has no attribute 'catch'
-2025-06-10 01:27:57.026 | 2025-06-09 23:27:57,026 - src.tasks.email_response_agent - INFO - Creating response generation task...
-2025-06-10 01:27:57.026 | 2025-06-09 23:27:57,026 - src.tasks.email_response_agent - INFO - Response task context created: [
-2025-06-10 01:27:57.026 | {
-2025-06-10 01:27:57.026 | "role": "system",
-2025-06-10 01:27:57.026 | "content": "You are an expert at writing professional property inquiry responses.",
-2025-06-10 01:27:57.026 | "description": "System prompt for response generation",
-2025-06-10 01:27:57.026 | "expected_output": "A valid JSON object with response.subject and response.body"
-2025-06-10 01:27:57.026 | },
-2025-06-10 01:27:57.027 | {
-2025-06-10 01:27:57.027 | "role": "user",
-2025-06-10 01:27:57.027 | "content": "Property Details: {\n \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n \"web_reference\": \"RR4379658\",\n \"status\": \"available\",\n \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\"\n}\nInquiry Type: None",
-2025-06-10 01:27:57.027 | "description": "Property details and inquiry type for response generation",
-2025-06-10 01:27:57.027 | "expected_output": "A valid JSON object with response.subject and response.body"
-2025-06-10 01:27:57.027 | }
-2025-06-10 01:27:57.027 | ]
-2025-06-10 01:27:57.028 | 2025-06-09 23:27:57,028 - src.tasks.email_response_agent - INFO - Response generation task created successfully
-2025-06-10 01:27:57.029 | 2025-06-09 23:27:57,028 - src.tasks.email_response_agent - WARNING - Langfuse trace logging failed: 'Logger' object has no attribute 'catch'
-2025-06-10 01:27:57.029 | 2025-06-09 23:27:57,028 - src.tasks.email_response_agent - INFO - Creating validation task...
-2025-06-10 01:27:57.029 | 2025-06-09 23:27:57,029 - src.tasks.email_response_agent - INFO - Validation task context created: [
-2025-06-10 01:27:57.029 | {
-2025-06-10 01:27:57.029 | "role": "system",
-2025-06-10 01:27:57.029 | "content": "You are an expert at validating property inquiry responses.",
-2025-06-10 01:27:57.029 | "description": "System prompt for response validation",
-2025-06-10 01:27:57.029 | "expected_output": "A valid JSON object with validation results"
-2025-06-10 01:27:57.029 | },
-2025-06-10 01:27:57.029 | {
-2025-06-10 01:27:57.029 | "role": "user",
-2025-06-10 01:27:57.029 | "content": "Property Details: {\n \"id\": \"dc11889a-e21e-42a7-8c17-cc7b3a395131\",\n \"web_reference\": \"RR4379658\",\n \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n \"status\": \"available\",\n \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\",\n \"agent_id\": \"77dff4d2-f083-493b-9060-ab1220d8763a\"\n}\nInquiry Type: None",
-2025-06-10 01:27:57.029 | "description": "Property details and inquiry type for validation",
-2025-06-10 01:27:57.029 | "expected_output": "A valid JSON object with validation results"
-2025-06-10 01:27:57.029 | }
-2025-06-10 01:27:57.029 | ]
-2025-06-10 01:27:57.026 | INFO:src.tasks.email_response_agent:Classification task created successfully
-2025-06-10 01:27:57.026 | WARNING:src.tasks.email_response_agent:Langfuse trace logging failed: 'Logger' object has no attribute 'catch'
-2025-06-10 01:27:57.026 | INFO:src.tasks.email_response_agent:Creating response generation task...
-2025-06-10 01:27:57.026 | INFO:src.tasks.email_response_agent:Response task context created: [
-2025-06-10 01:27:57.026 | {
-2025-06-10 01:27:57.026 | "role": "system",
-2025-06-10 01:27:57.026 | "content": "You are an expert at writing professional property inquiry responses.",
-2025-06-10 01:27:57.026 | "description": "System prompt for response generation",
-2025-06-10 01:27:57.026 | "expected_output": "A valid JSON object with response.subject and response.body"
-2025-06-10 01:27:57.026 | },
-2025-06-10 01:27:57.026 | {
-2025-06-10 01:27:57.026 | "role": "user",
-2025-06-10 01:27:57.026 | "content": "Property Details: {\n \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n \"web_reference\": \"RR4379658\",\n \"status\": \"available\",\n \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\"\n}\nInquiry Type: None",
-2025-06-10 01:27:57.026 | "description": "Property details and inquiry type for response generation",
-2025-06-10 01:27:57.026 | "expected_output": "A valid JSON object with response.subject and response.body"
-2025-06-10 01:27:57.026 | }
-2025-06-10 01:27:57.026 | ]
-2025-06-10 01:27:57.029 | INFO:src.tasks.email_response_agent:Response generation task created successfully
-2025-06-10 01:27:57.029 | WARNING:src.tasks.email_response_agent:Langfuse trace logging failed: 'Logger' object has no attribute 'catch'
-2025-06-10 01:27:57.029 | INFO:src.tasks.email_response_agent:Creating validation task...
-2025-06-10 01:27:57.029 | INFO:src.tasks.email_response_agent:Validation task context created: [
-2025-06-10 01:27:57.029 | {
-2025-06-10 01:27:57.029 | "role": "system",
-2025-06-10 01:27:57.029 | "content": "You are an expert at validating property inquiry responses.",
-2025-06-10 01:27:57.029 | "description": "System prompt for response validation",
-2025-06-10 01:27:57.029 | "expected_output": "A valid JSON object with validation results"
-2025-06-10 01:27:57.029 | },
-2025-06-10 01:27:57.029 | {
-2025-06-10 01:27:57.029 | "role": "user",
-2025-06-10 01:27:57.029 | "content": "Property Details: {\n \"id\": \"dc11889a-e21e-42a7-8c17-cc7b3a395131\",\n \"web_reference\": \"RR4379658\",\n \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n \"status\": \"available\",\n \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\",\n \"agent_id\": \"77dff4d2-f083-493b-9060-ab1220d8763a\"\n}\nInquiry Type: None",
-2025-06-10 01:27:57.029 | "description": "Property details and inquiry type for validation",
-2025-06-10 01:27:57.029 | "expected_output": "A valid JSON object with validation results"
-2025-06-10 01:27:57.029 | }
-2025-06-10 01:27:57.029 | ]
-...
-2025-06-10 01:27:57.027 | "role": "user",
-2025-06-10 01:27:57.027 | "content": "Property Details: {\n \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n \"web_reference\": \"RR4379658\",\n \"status\": \"available\",\n \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\"\n}\nInquiry Type: None",
-2025-06-10 01:27:57.027 | "description": "Property details and inquiry type for response generation",
-2025-06-10 01:27:57.027 | "expected_output": "A valid JSON object with response.subject and response.body"
-2025-06-10 01:27:57.027 | }
-2025-06-10 01:27:57.027 | ]
-2025-06-10 01:27:57.028 | 2025-06-09 23:27:57,028 - src.tasks.email_response_agent - INFO - Response generation task created successfully
-2025-06-10 01:27:57.029 | 2025-06-09 23:27:57,028 - src.tasks.email_response_agent - WARNING - Langfuse trace logging failed: 'Logger' object has no attribute 'catch'
-2025-06-10 01:27:57.029 | 2025-06-09 23:27:57,028 - src.tasks.email_response_agent - INFO - Creating validation task...
-2025-06-10 01:27:57.029 | 2025-06-09 23:27:57,029 - src.tasks.email_response_agent - INFO - Validation task context created: [
-2025-06-10 01:27:57.029 | {
-2025-06-10 01:27:57.029 | "role": "system",
-2025-06-10 01:27:57.029 | "content": "You are an expert at validating property inquiry responses.",
-2025-06-10 01:27:57.029 | "description": "System prompt for response validation",
-2025-06-10 01:27:57.029 | "expected_output": "A valid JSON object with validation results"
-2025-06-10 01:27:57.029 | },
-2025-06-10 01:27:57.029 | {
-2025-06-10 01:27:57.029 | "role": "user",
-2025-06-10 01:27:57.029 | "content": "Property Details: {\n \"id\": \"dc11889a-e21e-42a7-8c17-cc7b3a395131\",\n \"web_reference\": \"RR4379658\",\n \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n \"status\": \"available\",\n \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\",\n \"agent_id\": \"77dff4d2-f083-493b-9060-ab1220d8763a\"\n}\nInquiry Type: None",
-2025-06-10 01:27:57.029 | "description": "Property details and inquiry type for validation",
-2025-06-10 01:27:57.029 | "expected_output": "A valid JSON object with validation results"
-2025-06-10 01:27:57.029 | }
-2025-06-10 01:27:57.029 | ]
-2025-06-10 01:27:57.031 | 2025-06-09 23:27:57,030 - src.tasks.email_response_agent - INFO - Validation task created successfully
-...
-2025-06-10 01:27:57.029 | INFO:src.tasks.email_response_agent:Creating validation task...
-2025-06-10 01:27:57.029 | INFO:src.tasks.email_response_agent:Validation task context created: [
-2025-06-10 01:27:57.029 | {
-2025-06-10 01:27:57.029 | "role": "system",
-2025-06-10 01:27:57.029 | "content": "You are an expert at validating property inquiry responses.",
-2025-06-10 01:27:57.029 | "description": "System prompt for response validation",
-2025-06-10 01:27:57.029 | "expected_output": "A valid JSON object with validation results"
-2025-06-10 01:27:57.029 | },
-2025-06-10 01:27:57.029 | {
-2025-06-10 01:27:57.029 | "role": "user",
-2025-06-10 01:27:57.029 | "content": "Property Details: {\n \"id\": \"dc11889a-e21e-42a7-8c17-cc7b3a395131\",\n \"web_reference\": \"RR4379658\",\n \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n \"status\": \"available\",\n \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\",\n \"agent_id\": \"77dff4d2-f083-493b-9060-ab1220d8763a\"\n}\nInquiry Type: None",
-2025-06-10 01:27:57.029 | "description": "Property details and inquiry type for validation",
-2025-06-10 01:27:57.029 | "expected_output": "A valid JSON object with validation results"
-2025-06-10 01:27:57.029 | }
-2025-06-10 01:27:57.029 | ]
-...
-2025-06-10 01:27:57.034 | INFO:src.tasks.email_response_agent:Starting crew execution...
-2025-06-10 01:27:57.046 | 🚀 Crew: crew
-2025-06-10 01:27:57.046 | └── 📋 Task: f368e150-8e0e-4d07-b469-34c27ef18409
-2025-06-10 01:27:57.046 | Status: Executing Task...
-2025-06-10 01:27:57.046 |
-2025-06-10 01:27:57.046 | 🚀 Crew: crew
-2025-06-10 01:27:57.046 | └── 📋 Task: f368e150-8e0e-4d07-b469-34c27ef18409
-2025-06-10 01:27:57.046 | Status: Executing Task...
-2025-06-10 01:27:57.046 |
-2025-06-10 01:27:57.048 | 🚀 Crew: crew
-2025-06-10 01:27:57.048 | └── 📋 Task: f368e150-8e0e-4d07-b469-34c27ef18409
-2025-06-10 01:27:57.048 | Status: Executing Task...
-2025-06-10 01:27:57.048 | └── 🤖 Agent: Inquiry Classifier
-2025-06-10 01:27:57.048 | Status: In Progress
-2025-06-10 01:27:57.048 |
-2025-06-10 01:27:57.048 | # Agent: Inquiry Classifier
-2025-06-10 01:27:57.048 | ## Task: Classify the type of property inquiry from this email exchange.
-2025-06-10 01:27:57.048 | Subject: Fwd: New Private Property enquiry (property RR4379658)
-2025-06-10 01:27:57.048 | Content: \_New Property Enquiry on RR4379658*
-2025-06-10 01:27:57.048 |
-2025-06-10 01:27:57.048 | Hi Nozipho, I'm interested in this unit. Is it still available?
-2025-06-10 01:27:57.048 |
-2025-06-10 01:27:57.048 | 2 Bed Apartment In Ferndale
-2025-06-10 01:27:57.048 | R 8250 Per Month
-2025-06-10 01:27:57.048 | Private Property Ref: RR4379658
-2025-06-10 01:27:57.048 |
-2025-06-10 01:27:57.048 | Analyze the email content and determine if this is:
-2025-06-10 01:27:57.048 | 1. viewing*request: Customer wants to view the property
-2025-06-10 01:27:57.049 | 2. availability_check: Customer is asking about availability
-2025-06-10 01:27:57.049 | 3. general_info: General inquiry about the property
-2025-06-10 01:27:57.049 |
-2025-06-10 01:27:57.049 | IMPORTANT: Return ONLY a valid JSON object with this exact format:
-2025-06-10 01:27:57.049 | {"inquiry_type": "viewing_request" | "availability_check" | "general_info"}
-2025-06-10 01:27:57.048 | 🚀 Crew: crew
-2025-06-10 01:27:57.048 | └── 📋 Task: f368e150-8e0e-4d07-b469-34c27ef18409
-2025-06-10 01:27:57.048 | Status: Executing Task...
-2025-06-10 01:27:57.048 | └── 🤖 Agent: Inquiry Classifier
-2025-06-10 01:27:57.048 | Status: In Progress
-2025-06-10 01:27:57.048 |
-2025-06-10 01:27:57.048 | # Agent: Inquiry Classifier
-2025-06-10 01:27:57.048 | ## Task: Classify the type of property inquiry from this email exchange.
-2025-06-10 01:27:57.048 | Subject: Fwd: New Private Property enquiry (property RR4379658)
-2025-06-10 01:27:57.048 | Content: \_New Property Enquiry on RR4379658*
-2025-06-10 01:27:57.048 |
-2025-06-10 01:27:57.048 | Hi Nozipho, I'm interested in this unit. Is it still available?
-2025-06-10 01:27:57.048 |
-2025-06-10 01:27:57.048 | 2 Bed Apartment In Ferndale
-2025-06-10 01:27:57.048 | R 8250 Per Month
-2025-06-10 01:27:57.048 | Private Property Ref: RR4379658
-2025-06-10 01:27:57.048 |
-2025-06-10 01:27:57.048 | Analyze the email content and determine if this is:
-2025-06-10 01:27:57.048 | 1. viewing*request: Customer wants to view the property
-2025-06-10 01:27:57.049 | 2. availability_check: Customer is asking about availability
-2025-06-10 01:27:57.049 | 3. general_info: General inquiry about the property
-2025-06-10 01:27:57.049 |
-2025-06-10 01:27:57.049 | IMPORTANT: Return ONLY a valid JSON object with this exact format:
-2025-06-10 01:27:57.049 | {"inquiry_type": "viewing_request" | "availability_check" | "general_info"}
-...
-2025-06-10 01:27:58.632 | # Agent: Inquiry Classifier
-2025-06-10 01:27:58.632 | ## Final Answer:
-2025-06-10 01:27:58.632 | {"inquiry_type": "availability_check"}
-2025-06-10 01:27:58.632 |
-2025-06-10 01:27:58.632 |
-2025-06-10 01:27:58.632 | # Agent: Inquiry Classifier
-2025-06-10 01:27:58.632 | ## Final Answer:
-2025-06-10 01:27:58.632 | {"inquiry_type": "availability_check"}
-..
-2025-06-10 01:27:58.645 | # Agent: Response Writer
-2025-06-10 01:27:58.645 | ## Task: Generate a professional, POPI-compliant response to this property inquiry.
-2025-06-10 01:27:58.645 |
-2025-06-10 01:27:58.645 | Email Subject: Fwd: New Private Property enquiry (property RR4379658)
-2025-06-10 01:27:58.645 | Email Content: \_New Property Enquiry on RR4379658*
-2025-06-10 01:27:58.645 |
-2025-06-10 01:27:58.645 | Hi Nozipho, I'm interested in this unit. Is it still available?
-2025-06-10 01:27:58.645 |
-2025-06-10 01:27:58.645 | 2 Bed Apartment In Ferndale
-2025-06-10 01:27:58.645 | R 8250 Per Month
-2025-06-10 01:27:58.645 | Private Property Ref: RR4379658
-2025-06-10 01:27:58.645 | Inquiry Type: None
-2025-06-10 01:27:58.645 |
-2025-06-10 01:27:58.645 | Property Details:
-2025-06-10 01:27:58.645 | {
-2025-06-10 01:27:58.645 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:58.645 | "web*reference": "RR4379658",
-2025-06-10 01:27:58.645 | "status": "available",
-2025-06-10 01:27:58.645 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv"
-2025-06-10 01:27:58.645 | }
-2025-06-10 01:27:58.645 |
-2025-06-10 01:27:58.645 | Response Requirements (MUST INCLUDE ALL):
-2025-06-10 01:27:58.645 | 1. Address: 175 304 Main Avenue, 304 Main Avenue
-2025-06-10 01:27:58.645 | 2. Property reference: RR4379658
-2025-06-10 01:27:58.645 | 3. Application link: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv
-2025-06-10 01:27:58.645 | 4. Be friendly and professional
-2025-06-10 01:27:58.645 | 5. Follow South African business etiquette
-2025-06-10 01:27:58.645 |
-2025-06-10 01:27:58.645 | IMPORTANT: You MUST copy and paste the address, property reference, and application link EXACTLY as provided above into the response body. Do not paraphrase or omit them.
-2025-06-10 01:27:58.645 |
-2025-06-10 01:27:58.645 | EXAMPLE RESPONSE (format):
-2025-06-10 01:27:58.645 | {
-2025-06-10 01:27:58.645 | "response": {
-2025-06-10 01:27:58.645 | "subject": "Re: Property Inquiry - RR4379658",
-2025-06-10 01:27:58.645 | "body": "Dear [Name],\n\nThank you for your interest in the property at 175 304 Main Avenue, 304 Main Avenue (Reference: RR4379658).\n\nThe property is available. You can apply here: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\n\nBest regards,\n[Agent Name]"
-2025-06-10 01:27:58.645 | }
-2025-06-10 01:27:58.645 | }
-2025-06-10 01:27:58.645 |
-2025-06-10 01:27:58.645 | IMPORTANT: Return ONLY a valid JSON object with this exact format:
-2025-06-10 01:27:58.645 | {
-2025-06-10 01:27:58.645 | "response": {
-2025-06-10 01:27:58.645 | 🚀 Crew: crew
-2025-06-10 01:27:58.645 | ├── 📋 Task: f368e150-8e0e-4d07-b469-34c27ef18409
-2025-06-10 01:27:58.645 | │ Assigned to: Inquiry Classifier
-2025-06-10 01:27:58.645 | │ Status: ✅ Completed
-2025-06-10 01:27:58.645 | │ └── 🤖 Agent: Inquiry Classifier
-2025-06-10 01:27:58.645 | │ Status: ✅ Completed
-2025-06-10 01:27:58.645 | └── 📋 Task: ff2592a3-114a-4ef2-84fa-dc0fb26d7dd0
-2025-06-10 01:27:58.645 | Status: Executing Task...
-2025-06-10 01:27:58.645 | └── 🤖 Agent: Response Writer
-2025-06-10 01:27:58.645 | Status: In Progress
-2025-06-10 01:27:58.645 |
-2025-06-10 01:27:58.645 | # Agent: Response Writer
-2025-06-10 01:27:58.645 | ## Task: Generate a professional, POPI-compliant response to this property inquiry.
-2025-06-10 01:27:58.645 |
-2025-06-10 01:27:58.645 | Email Subject: Fwd: New Private Property enquiry (property RR4379658)
-2025-06-10 01:27:58.645 | Email Content: \_New Property Enquiry on RR4379658*
-2025-06-10 01:27:58.645 |
-2025-06-10 01:27:58.645 | Hi Nozipho, I'm interested in this unit. Is it still available?
-2025-06-10 01:27:58.645 |
-2025-06-10 01:27:58.645 | 2 Bed Apartment In Ferndale
-2025-06-10 01:27:58.645 | R 8250 Per Month
-2025-06-10 01:27:58.645 | Private Property Ref: RR4379658
-2025-06-10 01:27:58.645 | Inquiry Type: None
-2025-06-10 01:27:58.645 |
-2025-06-10 01:27:58.645 | Property Details:
-2025-06-10 01:27:58.645 | {
-2025-06-10 01:27:58.645 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:27:58.645 | "web_reference": "RR4379658",
-2025-06-10 01:27:58.645 | "status": "available",
-2025-06-10 01:27:58.645 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv"
-2025-06-10 01:27:58.645 | }
-2025-06-10 01:27:58.645 |
-2025-06-10 01:27:58.645 | Response Requirements (MUST INCLUDE ALL):
-2025-06-10 01:27:58.645 | 1. Address: 175 304 Main Avenue, 304 Main Avenue
-2025-06-10 01:27:58.645 | 2. Property reference: RR4379658
-2025-06-10 01:27:58.645 | 3. Application link: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv
-2025-06-10 01:27:58.645 | 4. Be friendly and professional
-2025-06-10 01:27:58.645 | 5. Follow South African business etiquette
-2025-06-10 01:27:58.645 |
-2025-06-10 01:27:58.645 | IMPORTANT: You MUST copy and paste the address, property reference, and application link EXACTLY as provided above into the response body. Do not paraphrase or omit them.
-2025-06-10 01:27:58.645 |
-2025-06-10 01:27:58.645 | EXAMPLE RESPONSE (format):
-2025-06-10 01:27:58.645 | {
-2025-06-10 01:27:58.645 | "response": {
-2025-06-10 01:27:58.645 | "subject": "Re: Property Inquiry - RR4379658",
-2025-06-10 01:27:58.645 | "body": "Dear [Name],\n\nThank you for your interest in the property at 175 304 Main Avenue, 304 Main Avenue (Reference: RR4379658).\n\nThe property is available. You can apply here: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\n\nBest regards,\n[Agent Name]"
-2025-06-10 01:27:58.645 | }
-2025-06-10 01:27:58.645 | }
-2025-06-10 01:27:58.645 |
-2025-06-10 01:27:58.645 | IMPORTANT: Return ONLY a valid JSON object with this exact format:
-2025-06-10 01:27:58.645 | {
-2025-06-10 01:27:58.645 | "response": {
-2025-06-10 01:27:58.645 | "subject": "Re: ...",
-2025-06-10 01:27:58.645 | "body": "Dear [Name],\n\nThank you... [INCLUDE address, web reference, and application link here]"
-2025-06-10 01:27:58.645 | }
-2025-06-10 01:27:58.645 | }
-2025-06-10 01:27:58.645 | "subject": "Re: ...",
-2025-06-10 01:27:58.645 | "body": "Dear [Name],\n\nThank you... [INCLUDE address, web reference, and application link here]"
-2025-06-10 01:27:58.645 | }
-2025-06-10 01:27:58.645 | }
-
-2025-06-10 01:28:01.791 | # Agent: Response Writer
-2025-06-10 01:28:01.791 | ## Final Answer:
-2025-06-10 01:28:01.791 | {
-2025-06-10 01:28:01.791 | "response": {
-2025-06-10 01:28:01.791 | "subject": "Re: Property Inquiry - RR4379658",
-2025-06-10 01:28:01.791 | "body": "Dear [Name],\n\nThank you for your interest in the property at 175 304 Main Avenue, 304 Main Avenue (Reference: RR4379658).\n\nI'm pleased to confirm that the property is still available. If you would like to proceed with the application, you can apply here: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv.\n\nPlease let me know if you have any further questions or if there’s anything else I can assist you with.\n\nBest regards,\nNozipho"
-2025-06-10 01:28:01.791 | }
-2025-06-10 01:28:01.791 | }
-2025-06-10 01:28:01.791 |
-2025-06-10 01:28:01.791 |
-2025-06-10 01:28:01.791 | # Agent: Response Writer
-2025-06-10 01:28:01.791 | ## Final Answer:
-2025-06-10 01:28:01.791 | {
-2025-06-10 01:28:01.791 | "response": {
-2025-06-10 01:28:01.791 | "subject": "Re: Property Inquiry - RR4379658",
-2025-06-10 01:28:01.791 | "body": "Dear [Name],\n\nThank you for your interest in the property at 175 304 Main Avenue, 304 Main Avenue (Reference: RR4379658).\n\nI'm pleased to confirm that the property is still available. If you would like to proceed with the application, you can apply here: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv.\n\nPlease let me know if you have any further questions or if there’s anything else I can assist you with.\n\nBest regards,\nNozipho"
-2025-06-10 01:28:01.791 | }
-2025-06-10 01:28:01.791 | }
-
-2025-06-10 01:28:01.808 | # Agent: Response Validator
-2025-06-10 01:28:01.808 | ## Task: Validate this email response for accuracy, professionalism, and completeness.
-2025-06-10 01:28:01.808 |
-2025-06-10 01:28:01.808 | Original Email:
-2025-06-10 01:28:01.808 | _New Property Enquiry on RR4379658_
-2025-06-10 01:28:01.808 |
-2025-06-10 01:28:01.808 | Hi Nozipho, I'm interested in this unit. Is it still available?
-2025-06-10 01:28:01.808 |
-2025-06-10 01:28:01.808 | 2 Bed Apartment In Ferndale
-2025-06-10 01:28:01.808 | R 8250 Per Month
-2025-06-10 01:28:01.808 | Private Property Ref: RR4379658
-2025-06-10 01:28:01.808 |
-2025-06-10 01:28:01.808 | Property Details:
-2025-06-10 01:28:01.808 | {
-2025-06-10 01:28:01.808 | "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
-2025-06-10 01:28:01.808 | "web*reference": "RR4379658",
-2025-06-10 01:28:01.808 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:28:01.808 | "status": "available",
-2025-06-10 01:28:01.808 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
-2025-06-10 01:28:01.808 | "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
-2025-06-10 01:28:01.808 | }
-2025-06-10 01:28:01.808 |
-2025-06-10 01:28:01.808 | Validation Requirements:
-2025-06-10 01:28:01.808 | 1. Address included: 175 304 Main Avenue, 304 Main Avenue
-2025-06-10 01:28:01.808 | 2. Property reference included: RR4379658
-2025-06-10 01:28:01.808 | 3. Application link included: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv
-2025-06-10 01:28:01.808 |
-2025-06-10 01:28:01.808 | IMPORTANT: Return ONLY a valid JSON object with this exact format:
-2025-06-10 01:28:01.808 | {
-2025-06-10 01:28:01.808 | "pass": true/false,
-2025-06-10 01:28:01.808 | "confidence": 0.0-1.0,
-2025-06-10 01:28:01.808 | "details": {
-2025-06-10 01:28:01.808 | "factual_pass": true/false,
-2025-06-10 01:28:01.808 | "completeness_pass": true/false,
-2025-06-10 01:28:01.808 | "tone_pass": true/false,
-2025-06-10 01:28:01.808 | "missing_fields": [...],
-2025-06-10 01:28:01.808 | "inquiry_type": "None"
-2025-06-10 01:28:01.808 | }
-2025-06-10 01:28:01.808 | }
-2025-06-10 01:28:01.808 | # Agent: Response Validator
-2025-06-10 01:28:01.808 | ## Task: Validate this email response for accuracy, professionalism, and completeness.
-2025-06-10 01:28:01.808 |
-2025-06-10 01:28:01.808 | Original Email:
-2025-06-10 01:28:01.808 | \_New Property Enquiry on RR4379658*
-2025-06-10 01:28:01.808 |
-2025-06-10 01:28:01.808 | Hi Nozipho, I'm interested in this unit. Is it still available?
-2025-06-10 01:28:01.808 |
-2025-06-10 01:28:01.808 | 2 Bed Apartment In Ferndale
-2025-06-10 01:28:01.808 | R 8250 Per Month
-2025-06-10 01:28:01.808 | Private Property Ref: RR4379658
-2025-06-10 01:28:01.808 |
-2025-06-10 01:28:01.808 | Property Details:
-2025-06-10 01:28:01.808 | {
-2025-06-10 01:28:01.808 | "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
-2025-06-10 01:28:01.808 | "web_reference": "RR4379658",
-2025-06-10 01:28:01.808 | "address": "175 304 Main Avenue, 304 Main Avenue",
-2025-06-10 01:28:01.808 | "status": "available",
-2025-06-10 01:28:01.808 | "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
-2025-06-10 01:28:01.808 | "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
-2025-06-10 01:28:01.808 | }
-2025-06-10 01:28:01.808 |
-2025-06-10 01:28:01.808 | Validation Requirements:
-2025-06-10 01:28:01.808 | 1. Address included: 175 304 Main Avenue, 304 Main Avenue
-2025-06-10 01:28:01.808 | 2. Property reference included: RR4379658
-2025-06-10 01:28:01.808 | 3. Application link included: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv
-2025-06-10 01:28:01.808 |
-2025-06-10 01:28:01.808 | IMPORTANT: Return ONLY a valid JSON object with this exact format:
-2025-06-10 01:28:01.808 | {
-2025-06-10 01:28:01.808 | "pass": true/false,
-2025-06-10 01:28:01.808 | "confidence": 0.0-1.0,
-2025-06-10 01:28:01.808 | "details": {
-2025-06-10 01:28:01.808 | "factual_pass": true/false,
-2025-06-10 01:28:01.808 | "completeness_pass": true/false,
-2025-06-10 01:28:01.808 | "tone_pass": true/false,
-2025-06-10 01:28:01.808 | "missing_fields": [...],
-2025-06-10 01:28:01.808 | "inquiry_type": "None"
-2025-06-10 01:28:01.808 | }
-2025-06-10 01:28:01.808 | }
-
-2025-06-10 01:28:04.801 | # Agent: Response Validator
-2025-06-10 01:28:04.801 | ## Final Answer:
-2025-06-10 01:28:04.801 | {
-2025-06-10 01:28:04.801 | "pass": true,
-2025-06-10 01:28:04.801 | "confidence": 1.0,
-2025-06-10 01:28:04.801 | "details": {
-2025-06-10 01:28:04.801 | "factual_pass": true,
-2025-06-10 01:28:04.801 | "completeness_pass": true,
-2025-06-10 01:28:04.801 | "tone_pass": true,
-2025-06-10 01:28:04.801 | "missing_fields": [],
-2025-06-10 01:28:04.801 | "inquiry_type": "Property Availability"
-2025-06-10 01:28:04.801 | }
-2025-06-10 01:28:04.801 | }
-2025-06-10 01:28:04.801 |
-2025-06-10 01:28:04.801 |
-2025-06-10 01:28:04.801 | # Agent: Response Validator
-2025-06-10 01:28:04.801 | ## Final Answer:
-2025-06-10 01:28:04.801 | {
-2025-06-10 01:28:04.801 | "pass": true,
-2025-06-10 01:28:04.801 | "confidence": 1.0,
-2025-06-10 01:28:04.801 | "details": {
-2025-06-10 01:28:04.801 | "factual_pass": true,
-2025-06-10 01:28:04.801 | "completeness_pass": true,
-2025-06-10 01:28:04.801 | "tone_pass": true,
-2025-06-10 01:28:04.801 | "missing_fields": [],
-2025-06-10 01:28:04.801 | "inquiry_type": "Property Availability"
-2025-06-10 01:28:04.801 | }
-2025-06-10 01:28:04.801 | }
-...
-2025-06-10 01:28:04.817 |
-2025-06-10 01:28:04.818 | WARNING:src.utils.validators:Missing required fields: ['175 304 Main Avenue, 304 Main Avenue', 'https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv', 'RR4379658']
-2025-06-10 01:28:04.818 | ERROR:src.email_connector:Workflow failed: {'success': False, 'reason': 'validation_failed', 'validation': {'pass': False, 'confidence': 0.2, 'details': {'missing_fields': ['175 304 Main Avenue, 304 Main Avenue', 'https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv', 'RR4379658'], 'factual_pass': False, 'completeness_pass': False, 'tone_pass': True, 'inquiry_type': 'availability_check'}}}
-2025-06-10 01:28:04.818 | ERROR:src.email_connector:Email processing failed: 400: {'success': False, 'reason': 'validation_failed', 'validation': {'pass': False, 'confidence': 0.2, 'details': {'missing_fields': ['175 304 Main Avenue, 304 Main Avenue', 'https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv', 'RR4379658'], 'factual_pass': False, 'completeness_pass': False, 'tone_pass': True, 'inquiry_type': 'availability_check'}}}
-2025-06-10 01:28:04.817 | ╭────────────────────────────── Crew Completion ───────────────────────────────╮
-2025-06-10 01:28:04.817 | │ │
-2025-06-10 01:28:04.817 | │ Crew Execution Completed │
-2025-06-10 01:28:04.817 | │ Name: crew │
-2025-06-10 01:28:04.817 | │ ID: 88aeb545-9995-4568-8725-1e34311133b7 │
-2025-06-10 01:28:04.817 | │ │
-2025-06-10 01:28:04.817 | │ │
-2025-06-10 01:28:04.817 | ╰──────────────────────────────────────────────────────────────────────────────╯
-2025-06-10 01:28:04.817 |
-2025-06-10 01:28:04.818 | INFO: 172.19.0.1:44482 - "POST /api/v1/process-email HTTP/1.1" 500 Internal Server Error
-2025-06-10 01:28:04.818 | WARNING:src.utils.validators:Missing required fields: ['175 304 Main Avenue, 304 Main Avenue', 'https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv', 'RR4379658']
-2025-06-10 01:28:04.818 | ERROR:src.email_connector:Workflow failed: {'success': False, 'reason': 'validation_failed', 'validation': {'pass': False, 'confidence': 0.2, 'details': {'missing_fields': ['175 304 Main Avenue, 304 Main Avenue', 'https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv', 'RR4379658'], 'factual_pass': False, 'completeness_pass': False, 'tone_pass': True, 'inquiry_type': 'availability_check'}}}
-2025-06-10 01:28:04.818 | ERROR:src.email_connector:Email processing failed: 400: {'success': False, 'reason': 'validation_failed', 'validation': {'pass': False, 'confidence': 0.2, 'details': {'missing_fields': ['175 304 Main Avenue, 304 Main Avenue', 'https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv', 'RR4379658'], 'factual_pass': False, 'completeness_pass': False, 'tone_pass': True, 'inquiry_type': 'availability_check'}}}
-2025-06-10 01:28:04.818 | INFO: 172.19.0.1:44482 - "POST /api/v1/process-email HTTP/1.1" 500 Internal Server Error
+2025-06-10 21:11:05.894 | 2025-06-10 19:11:05,891 - src.tasks.email_response_agent - INFO - Creating EmailResponseCrew instance...
+2025-06-10 21:11:05.895 | 2025-06-10 19:11:05,895 - src.tasks.email_response_agent - INFO - Initializing EmailResponseCrew
+2025-06-10 21:11:05.896 | 2025-06-10 19:11:05,895 - src.tasks.email_response_agent - INFO - Email subject: New Private Property enquiry (property RR4379658)
+2025-06-10 21:11:05.896 | 2025-06-10 19:11:05,896 - src.tasks.email_response_agent - INFO - Email content: *New Property Enquiry on RR4379658*
+2025-06-10 21:11:05.896 | 
+2025-06-10 21:11:05.896 | Hi Nozipho, I'm interested in this unit. Is it still available?
+2025-06-10 21:11:05.896 | 
+2025-06-10 21:11:05.896 | 2 Bed Apartment In Ferndale
+2025-06-10 21:11:05.896 | R 8250 Per Month
+2025-06-10 21:11:05.896 | Private Property Ref: RR4379658
+2025-06-10 21:11:05.894 | INFO:src.tasks.email_response_agent:Creating EmailResponseCrew instance...
+2025-06-10 21:11:05.895 | INFO:src.tasks.email_response_agent:Initializing EmailResponseCrew
+2025-06-10 21:11:05.896 | INFO:src.tasks.email_response_agent:Email subject: New Private Property enquiry (property RR4379658)
+2025-06-10 21:11:05.896 | INFO:src.tasks.email_response_agent:Email content: *New Property Enquiry on RR4379658*
+2025-06-10 21:11:05.896 | 
+2025-06-10 21:11:05.896 | Hi Nozipho, I'm interested in this unit. Is it still available?
+2025-06-10 21:11:05.896 | 
+2025-06-10 21:11:05.896 | 2 Bed Apartment In Ferndale
+2025-06-10 21:11:05.896 | R 8250 Per Month
+2025-06-10 21:11:05.896 | Private Property Ref: RR4379658
+2025-06-10 21:11:05.898 | INFO:src.tasks.email_response_agent:Number of available properties: 2
+2025-06-10 21:11:05.897 | 2025-06-10 19:11:05,896 - src.tasks.email_response_agent - INFO - Number of available properties: 2
+2025-06-10 21:11:05.901 | INFO:src.tasks.email_response_agent:Workflow actions: {
+2025-06-10 21:11:05.901 |   "agent_name": "Agent Amara",
+2025-06-10 21:11:05.901 |   "agent_contact": "",
+2025-06-10 21:11:05.901 |   "matched_property": {
+2025-06-10 21:11:05.901 |     "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
+2025-06-10 21:11:05.901 |     "web_reference": "RR4379658",
+2025-06-10 21:11:05.901 |     "address": "175 304 Main Avenue, 304 Main Avenue",
+2025-06-10 21:11:05.901 |     "status": "available",
+2025-06-10 21:11:05.901 |     "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
+2025-06-10 21:11:05.901 |     "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
+2025-06-10 21:11:05.901 |   },
+2025-06-10 21:11:05.901 |   "classification_only": true
+2025-06-10 21:11:05.901 | }
+2025-06-10 21:11:05.901 | 2025-06-10 19:11:05,900 - src.tasks.email_response_agent - INFO - Workflow actions: {
+2025-06-10 21:11:05.901 |   "agent_name": "Agent Amara",
+2025-06-10 21:11:05.901 |   "agent_contact": "",
+2025-06-10 21:11:05.901 |   "matched_property": {
+2025-06-10 21:11:05.901 |     "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
+2025-06-10 21:11:05.901 |     "web_reference": "RR4379658",
+2025-06-10 21:11:05.901 |     "address": "175 304 Main Avenue, 304 Main Avenue",
+2025-06-10 21:11:05.901 |     "status": "available",
+2025-06-10 21:11:05.901 |     "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
+2025-06-10 21:11:05.901 |     "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
+2025-06-10 21:11:05.901 |   },
+2025-06-10 21:11:05.901 |   "classification_only": true
+2025-06-10 21:11:05.901 | }
+2025-06-10 21:11:06.529 | INFO:src.tasks.email_response_agent:Matched property provided: {
+2025-06-10 21:11:06.529 |   "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
+2025-06-10 21:11:06.529 |   "web_reference": "RR4379658",
+2025-06-10 21:11:06.529 |   "address": "175 304 Main Avenue, 304 Main Avenue",
+2025-06-10 21:11:06.529 |   "status": "available",
+2025-06-10 21:11:06.529 |   "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
+2025-06-10 21:11:06.529 |   "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
+2025-06-10 21:11:06.529 | }
+2025-06-10 21:11:06.529 | 2025-06-10 19:11:06,529 - src.tasks.email_response_agent - INFO - Matched property provided: {
+2025-06-10 21:11:06.529 |   "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
+2025-06-10 21:11:06.529 |   "web_reference": "RR4379658",
+2025-06-10 21:11:06.529 |   "address": "175 304 Main Avenue, 304 Main Avenue",
+2025-06-10 21:11:06.529 |   "status": "available",
+2025-06-10 21:11:06.529 |   "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
+2025-06-10 21:11:06.529 |   "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
+2025-06-10 21:11:06.529 | }
+2025-06-10 21:11:06.551 | INFO:src.tasks.email_response_agent:Initializing crew...
+2025-06-10 21:11:06.551 | INFO:src.tasks.email_response_agent:Task context created: [
+2025-06-10 21:11:06.551 |   {
+2025-06-10 21:11:06.551 |     "role": "system",
+2025-06-10 21:11:06.551 |     "content": "You are an expert at classifying property inquiries.",
+2025-06-10 21:11:06.551 |     "description": "System prompt for classification",
+2025-06-10 21:11:06.551 |     "expected_output": "A valid JSON object containing the inquiry_type."
+2025-06-10 21:11:06.551 |   },
+2025-06-10 21:11:06.551 |   {
+2025-06-10 21:11:06.551 |     "role": "user",
+2025-06-10 21:11:06.551 |     "content": "Subject: New Private Property enquiry (property RR4379658)\nContent: *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658",
+2025-06-10 21:11:06.551 |     "description": "Property inquiry details for classification",
+2025-06-10 21:11:06.551 |     "expected_output": "A valid JSON object containing the inquiry_type."
+2025-06-10 21:11:06.551 | 2025-06-10 19:11:06,550 - src.tasks.email_response_agent - INFO - Initializing crew...
+2025-06-10 21:11:06.551 | 2025-06-10 19:11:06,550 - src.tasks.email_response_agent - INFO - Task context created: [
+2025-06-10 21:11:06.551 |   {
+2025-06-10 21:11:06.551 |     "role": "system",
+2025-06-10 21:11:06.551 |     "content": "You are an expert at classifying property inquiries.",
+2025-06-10 21:11:06.551 |     "description": "System prompt for classification",
+2025-06-10 21:11:06.551 |     "expected_output": "A valid JSON object containing the inquiry_type."
+2025-06-10 21:11:06.551 |   },
+2025-06-10 21:11:06.551 |   {
+2025-06-10 21:11:06.551 |     "role": "user",
+2025-06-10 21:11:06.551 |     "content": "Subject: New Private Property enquiry (property RR4379658)\nContent: *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658",
+2025-06-10 21:11:06.551 |     "description": "Property inquiry details for classification",
+2025-06-10 21:11:06.551 |     "expected_output": "A valid JSON object containing the inquiry_type."
+2025-06-10 21:11:06.551 |   }
+2025-06-10 21:11:06.551 | ]
+2025-06-10 21:11:06.551 |   }
+2025-06-10 21:11:06.551 | ]
+2025-06-10 21:11:06.562 | 2025-06-10 19:11:06,561 - src.tasks.email_response_agent - INFO - Classification task created successfully
+2025-06-10 21:11:06.562 | 2025-06-10 19:11:06,562 - src.tasks.email_response_agent - INFO - Creating response generation task...
+2025-06-10 21:11:06.562 | 2025-06-10 19:11:06,562 - src.tasks.email_response_agent - INFO - Response task context created: [
+2025-06-10 21:11:06.562 |   {
+2025-06-10 21:11:06.562 |     "role": "system",
+2025-06-10 21:11:06.562 |     "content": "You are an expert at writing professional property inquiry responses.",
+2025-06-10 21:11:06.562 |     "description": "System prompt for response generation",
+2025-06-10 21:11:06.562 |     "expected_output": "A valid JSON object with response.subject and response.body"
+2025-06-10 21:11:06.562 |   },
+2025-06-10 21:11:06.562 |   {
+2025-06-10 21:11:06.562 |     "role": "user",
+2025-06-10 21:11:06.562 |     "content": "Property Details: {\n  \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n  \"web_reference\": \"RR4379658\",\n  \"status\": \"available\",\n  \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\"\n}\nInquiry Type: None",
+2025-06-10 21:11:06.562 |     "description": "Property details and inquiry type for response generation",
+2025-06-10 21:11:06.562 |     "expected_output": "A valid JSON object with response.subject and response.body"
+2025-06-10 21:11:06.562 |   }
+2025-06-10 21:11:06.562 | ]
+2025-06-10 21:11:06.562 | INFO:src.tasks.email_response_agent:Classification task created successfully
+2025-06-10 21:11:06.562 | INFO:src.tasks.email_response_agent:Creating response generation task...
+2025-06-10 21:11:06.563 | INFO:src.tasks.email_response_agent:Response task context created: [
+2025-06-10 21:11:06.563 |   {
+2025-06-10 21:11:06.563 |     "role": "system",
+2025-06-10 21:11:06.563 |     "content": "You are an expert at writing professional property inquiry responses.",
+2025-06-10 21:11:06.563 |     "description": "System prompt for response generation",
+2025-06-10 21:11:06.563 |     "expected_output": "A valid JSON object with response.subject and response.body"
+2025-06-10 21:11:06.563 |   },
+2025-06-10 21:11:06.563 |   {
+2025-06-10 21:11:06.563 |     "role": "user",
+2025-06-10 21:11:06.563 |     "content": "Property Details: {\n  \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n  \"web_reference\": \"RR4379658\",\n  \"status\": \"available\",\n  \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\"\n}\nInquiry Type: None",
+2025-06-10 21:11:06.563 |     "description": "Property details and inquiry type for response generation",
+2025-06-10 21:11:06.563 |     "expected_output": "A valid JSON object with response.subject and response.body"
+2025-06-10 21:11:06.563 |   }
+2025-06-10 21:11:06.563 | ]
+2025-06-10 21:11:06.569 | INFO:src.tasks.email_response_agent:Response generation task created successfully
+2025-06-10 21:11:06.569 | INFO:src.tasks.email_response_agent:Creating validation task...
+2025-06-10 21:11:06.570 | INFO:src.tasks.email_response_agent:Validation task context created: [
+2025-06-10 21:11:06.570 |   {
+2025-06-10 21:11:06.570 |     "role": "system",
+2025-06-10 21:11:06.570 |     "content": "You are an expert at validating property inquiry responses.",
+2025-06-10 21:11:06.570 |     "description": "System prompt for response validation",
+2025-06-10 21:11:06.570 |     "expected_output": "A valid JSON object with validation results"
+2025-06-10 21:11:06.570 |   },
+2025-06-10 21:11:06.570 |   {
+2025-06-10 21:11:06.570 |     "role": "user",
+2025-06-10 21:11:06.570 |     "content": "Property Details: {\n  \"id\": \"dc11889a-e21e-42a7-8c17-cc7b3a395131\",\n  \"web_reference\": \"RR4379658\",\n  \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n  \"status\": \"available\",\n  \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\",\n  \"agent_id\": \"77dff4d2-f083-493b-9060-ab1220d8763a\"\n}\nInquiry Type: None",
+2025-06-10 21:11:06.570 |     "description": "Property details and inquiry type for validation",
+2025-06-10 21:11:06.569 | 2025-06-10 19:11:06,568 - src.tasks.email_response_agent - INFO - Response generation task created successfully
+2025-06-10 21:11:06.569 | 2025-06-10 19:11:06,568 - src.tasks.email_response_agent - INFO - Creating validation task...
+2025-06-10 21:11:06.570 | 2025-06-10 19:11:06,569 - src.tasks.email_response_agent - INFO - Validation task context created: [
+2025-06-10 21:11:06.570 |   {
+2025-06-10 21:11:06.570 |     "role": "system",
+2025-06-10 21:11:06.570 |     "content": "You are an expert at validating property inquiry responses.",
+2025-06-10 21:11:06.570 |     "description": "System prompt for response validation",
+2025-06-10 21:11:06.570 |     "expected_output": "A valid JSON object with validation results"
+2025-06-10 21:11:06.570 |   },
+2025-06-10 21:11:06.570 |   {
+2025-06-10 21:11:06.570 |     "role": "user",
+2025-06-10 21:11:06.570 |     "content": "Property Details: {\n  \"id\": \"dc11889a-e21e-42a7-8c17-cc7b3a395131\",\n  \"web_reference\": \"RR4379658\",\n  \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n  \"status\": \"available\",\n  \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\",\n  \"agent_id\": \"77dff4d2-f083-493b-9060-ab1220d8763a\"\n}\nInquiry Type: None",
+2025-06-10 21:11:06.570 |     "description": "Property details and inquiry type for validation",
+2025-06-10 21:11:06.570 |     "expected_output": "A valid JSON object with validation results"
+2025-06-10 21:11:06.570 |   }
+2025-06-10 21:11:06.570 | ]
+2025-06-10 21:11:06.570 |     "expected_output": "A valid JSON object with validation results"
+2025-06-10 21:11:06.571 |   }
+2025-06-10 21:11:06.571 | ]
+2025-06-10 21:11:06.575 | INFO:src.tasks.email_response_agent:Validation task created successfully
+2025-06-10 21:11:06.575 | INFO:src.tasks.email_response_agent:Starting crew setup...
+2025-06-10 21:11:06.575 | 2025-06-10 19:11:06,574 - src.tasks.email_response_agent - INFO - Validation task created successfully
+2025-06-10 21:11:06.575 | 2025-06-10 19:11:06,575 - src.tasks.email_response_agent - INFO - Starting crew setup...
+2025-06-10 21:11:06.576 | 2025-06-10 19:11:06,575 - src.tasks.email_response_agent - INFO - Classification task created successfully
+2025-06-10 21:11:06.576 | 2025-06-10 19:11:06,575 - src.tasks.email_response_agent - INFO - Response task created successfully
+2025-06-10 21:11:06.576 | INFO:src.tasks.email_response_agent:Classification task created successfully
+2025-06-10 21:11:06.576 | INFO:src.tasks.email_response_agent:Response task created successfully
+2025-06-10 21:11:06.577 | 2025-06-10 19:11:06,576 - src.tasks.email_response_agent - INFO - Validation task created successfully
+2025-06-10 21:11:06.578 | 2025-06-10 19:11:06,578 - src.tasks.email_response_agent - INFO - All agents created successfully
+2025-06-10 21:11:06.578 | INFO:src.tasks.email_response_agent:Validation task created successfully
+2025-06-10 21:11:06.579 | INFO:src.tasks.email_response_agent:All agents created successfully
+2025-06-10 21:11:06.605 | 2025-06-10 19:11:06,604 - src.tasks.email_response_agent - INFO - Created crew with 3 tasks
+2025-06-10 21:11:06.605 | 2025-06-10 19:11:06,604 - src.tasks.email_response_agent - INFO - Starting crew execution...
+2025-06-10 21:11:06.604 | INFO:src.tasks.email_response_agent:Created crew with 3 tasks
+2025-06-10 21:11:06.604 | INFO:src.tasks.email_response_agent:Starting crew execution...
+2025-06-10 21:11:06.609 | ╭─────────────────────────── Crew Execution Started ───────────────────────────╮
+2025-06-10 21:11:06.609 | │                                                                              │
+2025-06-10 21:11:06.609 | │  Crew Execution Started                                                      │
+2025-06-10 21:11:06.609 | │  Name: crew                                                                  │
+2025-06-10 21:11:06.609 | │  ID: 443c94e7-8ea9-46ca-a4ff-d3a4b7500795                                    │
+2025-06-10 21:11:06.609 | │                                                                              │
+2025-06-10 21:11:06.609 | │                                                                              │
+2025-06-10 21:11:06.609 | ╰──────────────────────────────────────────────────────────────────────────────╯
+2025-06-10 21:11:06.610 | 
+2025-06-10 21:11:06.644 | 🚀 Crew: crew
+2025-06-10 21:11:06.644 | └── 📋 Task: 4c7c3137-7934-4c67-ad46-d6d635d2e6ba
+2025-06-10 21:11:06.644 |        Status: Executing Task...
+2025-06-10 21:11:06.644 | 
+2025-06-10 21:11:06.648 | 🚀 Crew: crew
+2025-06-10 21:11:06.648 | └── 📋 Task: 4c7c3137-7934-4c67-ad46-d6d635d2e6ba
+2025-06-10 21:11:06.648 |        Status: Executing Task...
+2025-06-10 21:11:06.648 |     └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:06.648 |             Status: In Progress
+2025-06-10 21:11:06.648 | 
+2025-06-10 21:11:06.649 | # Agent: Inquiry Classifier
+2025-06-10 21:11:06.649 | ## Task: Classify the type of property inquiry from this email exchange.
+2025-06-10 21:11:06.649 | Subject: New Private Property enquiry (property RR4379658)
+2025-06-10 21:11:06.649 | Content: *New Property Enquiry on RR4379658*
+2025-06-10 21:11:06.649 | 
+2025-06-10 21:11:06.649 | Hi Nozipho, I'm interested in this unit. Is it still available?
+2025-06-10 21:11:06.649 | 
+2025-06-10 21:11:06.649 | 2 Bed Apartment In Ferndale
+2025-06-10 21:11:06.649 | R 8250 Per Month
+2025-06-10 21:11:06.649 | Private Property Ref: RR4379658
+2025-06-10 21:11:06.649 | 
+2025-06-10 21:11:06.649 | Analyze the email content and determine if this is:
+2025-06-10 21:11:06.649 | 1. viewing_request: Customer wants to view the property
+2025-06-10 21:11:06.649 | 2. availability_check: Customer is asking about availability
+2025-06-10 21:11:06.649 | 3. general_info: General inquiry about the property
+2025-06-10 21:11:06.649 | 
+2025-06-10 21:11:06.649 | IMPORTANT: Return ONLY a valid JSON object with this exact format:
+2025-06-10 21:11:06.649 | {"inquiry_type": "viewing_request" | "availability_check" | "general_info"}
+2025-06-10 21:11:06.652 | 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:06.652 |     Status: In Progress
+2025-06-10 21:11:06.652 | └── 🧠 Thinking...
+2025-06-10 21:11:06.652 | 
+2025-06-10 21:11:10.342 | 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:10.342 |     Status: In Progress
+2025-06-10 21:11:10.342 | 
+2025-06-10 21:11:10.343 | 
+2025-06-10 21:11:10.343 | 
+2025-06-10 21:11:10.343 | # Agent: Inquiry Classifier
+2025-06-10 21:11:10.343 | ## Final Answer: 
+2025-06-10 21:11:10.343 | {"inquiry_type": "availability_check"}
+2025-06-10 21:11:10.343 | 
+2025-06-10 21:11:10.343 | 
+2025-06-10 21:11:10.345 | 🚀 Crew: crew
+2025-06-10 21:11:10.346 | └── 📋 Task: 4c7c3137-7934-4c67-ad46-d6d635d2e6ba
+2025-06-10 21:11:10.346 |        Status: Executing Task...
+2025-06-10 21:11:10.346 |     └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:10.346 |             Status: ✅ Completed
+2025-06-10 21:11:10.346 | 
+2025-06-10 21:11:10.348 | 🚀 Crew: crew
+2025-06-10 21:11:10.348 | └── 📋 Task: 4c7c3137-7934-4c67-ad46-d6d635d2e6ba
+2025-06-10 21:11:10.348 |        Assigned to: Inquiry Classifier
+2025-06-10 21:11:10.348 |        Status: ✅ Completed
+2025-06-10 21:11:10.348 |     └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:10.348 |             Status: ✅ Completed
+2025-06-10 21:11:10.349 | ╭────────────────────────────── Task Completion ───────────────────────────────╮
+2025-06-10 21:11:10.349 | │                                                                              │
+2025-06-10 21:11:10.349 | │  Task Completed                                                              │
+2025-06-10 21:11:10.349 | │  Name: 4c7c3137-7934-4c67-ad46-d6d635d2e6ba                                  │
+2025-06-10 21:11:10.349 | │  Agent: Inquiry Classifier                                                   │
+2025-06-10 21:11:10.349 | │                                                                              │
+2025-06-10 21:11:10.349 | │                                                                              │
+2025-06-10 21:11:10.349 | ╰──────────────────────────────────────────────────────────────────────────────╯
+2025-06-10 21:11:10.349 | 
+2025-06-10 21:11:10.403 | 🚀 Crew: crew
+2025-06-10 21:11:10.403 | ├── 📋 Task: 4c7c3137-7934-4c67-ad46-d6d635d2e6ba
+2025-06-10 21:11:10.403 | │      Assigned to: Inquiry Classifier
+2025-06-10 21:11:10.403 | │      Status: ✅ Completed
+2025-06-10 21:11:10.403 | │   └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:10.403 | │           Status: ✅ Completed
+2025-06-10 21:11:10.403 | └── 📋 Task: 08243765-324c-4828-933c-c530830e736d
+2025-06-10 21:11:10.403 |        Status: Executing Task...
+2025-06-10 21:11:10.404 | 
+2025-06-10 21:11:10.410 | 🚀 Crew: crew
+2025-06-10 21:11:10.410 | ├── 📋 Task: 4c7c3137-7934-4c67-ad46-d6d635d2e6ba
+2025-06-10 21:11:10.410 | │      Assigned to: Inquiry Classifier
+2025-06-10 21:11:10.410 | │      Status: ✅ Completed
+2025-06-10 21:11:10.410 | │   └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:10.410 | │           Status: ✅ Completed
+2025-06-10 21:11:10.410 | └── 📋 Task: 08243765-324c-4828-933c-c530830e736d
+2025-06-10 21:11:10.410 |        Status: Executing Task...
+2025-06-10 21:11:10.410 |     └── 🤖 Agent: Response Writer
+2025-06-10 21:11:10.410 |             Status: In Progress
+2025-06-10 21:11:10.412 | 
+2025-06-10 21:11:10.413 | # Agent: Response Writer
+2025-06-10 21:11:10.413 | ## Task: Generate a professional, POPI-compliant response to this property inquiry.
+2025-06-10 21:11:10.413 | 
+2025-06-10 21:11:10.413 | Email Subject: New Private Property enquiry (property RR4379658)
+2025-06-10 21:11:10.413 | Email Content: *New Property Enquiry on RR4379658*
+2025-06-10 21:11:10.413 | 
+2025-06-10 21:11:10.413 | Hi Nozipho, I'm interested in this unit. Is it still available?
+2025-06-10 21:11:10.413 | 
+2025-06-10 21:11:10.413 | 2 Bed Apartment In Ferndale
+2025-06-10 21:11:10.413 | R 8250 Per Month
+2025-06-10 21:11:10.413 | Private Property Ref: RR4379658
+2025-06-10 21:11:10.413 | Inquiry Type: None
+2025-06-10 21:11:10.413 | 
+2025-06-10 21:11:10.413 | Property Details:
+2025-06-10 21:11:10.413 | {
+2025-06-10 21:11:10.413 |   "address": "175 304 Main Avenue, 304 Main Avenue",
+2025-06-10 21:11:10.413 |   "web_reference": "RR4379658",
+2025-06-10 21:11:10.413 |   "status": "available",
+2025-06-10 21:11:10.413 |   "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv"
+2025-06-10 21:11:10.413 | }
+2025-06-10 21:11:10.413 | 
+2025-06-10 21:11:10.413 | Response Requirements (MUST INCLUDE ALL):
+2025-06-10 21:11:10.413 | 1. Address: 175 304 Main Avenue, 304 Main Avenue
+2025-06-10 21:11:10.413 | 2. Property reference: RR4379658
+2025-06-10 21:11:10.413 | 3. Application link: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv
+2025-06-10 21:11:10.413 | 4. Be friendly and professional
+2025-06-10 21:11:10.413 | 5. Follow South African business etiquette
+2025-06-10 21:11:10.413 | 
+2025-06-10 21:11:10.413 | IMPORTANT: You MUST copy and paste the address, property reference, and application link EXACTLY as provided above into the response body. Do not paraphrase or omit them.
+2025-06-10 21:11:10.413 | 
+2025-06-10 21:11:10.413 | EXAMPLE RESPONSE (format):
+2025-06-10 21:11:10.413 | {
+2025-06-10 21:11:10.413 |     "response": {
+2025-06-10 21:11:10.413 |         "subject": "Re: Property Inquiry - RR4379658",
+2025-06-10 21:11:10.413 |         "body": "Dear [Name],\n\nThank you for your interest in the property at 175 304 Main Avenue, 304 Main Avenue (Reference: RR4379658).\n\nThe property is available. You can apply here: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\n\nBest regards,\n[Agent Name]"
+2025-06-10 21:11:10.413 |     }
+2025-06-10 21:11:10.413 | }
+2025-06-10 21:11:10.413 | 
+2025-06-10 21:11:10.413 | IMPORTANT: Return ONLY a valid JSON object with this exact format:
+2025-06-10 21:11:10.413 | {
+2025-06-10 21:11:10.413 |     "response": {
+2025-06-10 21:11:10.413 |         "subject": "Re: ...",
+2025-06-10 21:11:10.413 |         "body": "Dear [Name],\n\nThank you... [INCLUDE address, web reference, and application link here]"
+2025-06-10 21:11:10.413 |     }
+2025-06-10 21:11:10.413 | }
+2025-06-10 21:11:15.447 | 
+2025-06-10 21:11:15.447 | 
+2025-06-10 21:11:15.447 | # Agent: Response Writer
+2025-06-10 21:11:15.447 | ## Final Answer: 
+2025-06-10 21:11:15.447 | {
+2025-06-10 21:11:15.447 |     "response": {
+2025-06-10 21:11:15.447 |         "subject": "Re: Property Inquiry - RR4379658",
+2025-06-10 21:11:15.447 |         "body": "Dear [Name],\n\nThank you for your interest in the property at 175 304 Main Avenue, 304 Main Avenue (Reference: RR4379658).\n\nThe property is available. You can apply here: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\n\nBest regards,\nNozipho"
+2025-06-10 21:11:15.447 |     }
+2025-06-10 21:11:15.447 | }
+2025-06-10 21:11:15.447 | 
+2025-06-10 21:11:15.447 | 
+2025-06-10 21:11:15.451 | 🚀 Crew: crew
+2025-06-10 21:11:15.452 | ├── 📋 Task: 4c7c3137-7934-4c67-ad46-d6d635d2e6ba
+2025-06-10 21:11:15.452 | │      Assigned to: Inquiry Classifier
+2025-06-10 21:11:15.452 | │      Status: ✅ Completed
+2025-06-10 21:11:15.452 | │   └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:15.452 | │           Status: ✅ Completed
+2025-06-10 21:11:15.452 | └── 📋 Task: 08243765-324c-4828-933c-c530830e736d
+2025-06-10 21:11:15.452 |        Status: Executing Task...
+2025-06-10 21:11:15.452 |     └── 🤖 Agent: Response Writer
+2025-06-10 21:11:15.452 |             Status: ✅ Completed
+2025-06-10 21:11:15.452 | 
+2025-06-10 21:11:15.458 | 🚀 Crew: crew
+2025-06-10 21:11:15.458 | ├── 📋 Task: 4c7c3137-7934-4c67-ad46-d6d635d2e6ba
+2025-06-10 21:11:15.458 | │      Assigned to: Inquiry Classifier
+2025-06-10 21:11:15.458 | │      Status: ✅ Completed
+2025-06-10 21:11:15.458 | │   └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:15.458 | │           Status: ✅ Completed
+2025-06-10 21:11:15.458 | └── 📋 Task: 08243765-324c-4828-933c-c530830e736d
+2025-06-10 21:11:15.458 |        Assigned to: Response Writer
+2025-06-10 21:11:15.458 |        Status: ✅ Completed
+2025-06-10 21:11:15.458 |     └── 🤖 Agent: Response Writer
+2025-06-10 21:11:15.458 |             Status: ✅ Completed
+2025-06-10 21:11:15.459 | ╭────────────────────────────── Task Completion ───────────────────────────────╮
+2025-06-10 21:11:15.459 | │                                                                              │
+2025-06-10 21:11:15.459 | │  Task Completed                                                              │
+2025-06-10 21:11:15.459 | │  Name: 08243765-324c-4828-933c-c530830e736d                                  │
+2025-06-10 21:11:15.459 | │  Agent: Response Writer                                                      │
+2025-06-10 21:11:15.459 | │                                                                              │
+2025-06-10 21:11:15.459 | │                                                                              │
+2025-06-10 21:11:15.459 | ╰──────────────────────────────────────────────────────────────────────────────╯
+2025-06-10 21:11:15.460 | 
+2025-06-10 21:11:15.505 | 🚀 Crew: crew
+2025-06-10 21:11:15.505 | ├── 📋 Task: 4c7c3137-7934-4c67-ad46-d6d635d2e6ba
+2025-06-10 21:11:15.505 | │      Assigned to: Inquiry Classifier
+2025-06-10 21:11:15.505 | │      Status: ✅ Completed
+2025-06-10 21:11:15.505 | │   └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:15.505 | │           Status: ✅ Completed
+2025-06-10 21:11:15.505 | ├── 📋 Task: 08243765-324c-4828-933c-c530830e736d
+2025-06-10 21:11:15.505 | │      Assigned to: Response Writer
+2025-06-10 21:11:15.506 | │      Status: ✅ Completed
+2025-06-10 21:11:15.506 | │   └── 🤖 Agent: Response Writer
+2025-06-10 21:11:15.506 | │           Status: ✅ Completed
+2025-06-10 21:11:15.506 | └── 📋 Task: 3ff24980-fe84-4c40-9bdb-acf0aa441a10
+2025-06-10 21:11:15.506 |        Status: Executing Task...
+2025-06-10 21:11:15.506 | 
+2025-06-10 21:11:15.511 | 🚀 Crew: crew
+2025-06-10 21:11:15.511 | ├── 📋 Task: 4c7c3137-7934-4c67-ad46-d6d635d2e6ba
+2025-06-10 21:11:15.511 | │      Assigned to: Inquiry Classifier
+2025-06-10 21:11:15.511 | │      Status: ✅ Completed
+2025-06-10 21:11:15.511 | │   └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:15.511 | │           Status: ✅ Completed
+2025-06-10 21:11:15.511 | ├── 📋 Task: 08243765-324c-4828-933c-c530830e736d
+2025-06-10 21:11:15.511 | │      Assigned to: Response Writer
+2025-06-10 21:11:15.511 | │      Status: ✅ Completed
+2025-06-10 21:11:15.511 | │   └── 🤖 Agent: Response Writer
+2025-06-10 21:11:15.511 | │           Status: ✅ Completed
+2025-06-10 21:11:15.511 | └── 📋 Task: 3ff24980-fe84-4c40-9bdb-acf0aa441a10
+2025-06-10 21:11:15.511 |        Status: Executing Task...
+2025-06-10 21:11:15.511 |     └── 🤖 Agent: Response Validator
+2025-06-10 21:11:15.511 |             Status: In Progress
+2025-06-10 21:11:15.511 | 
+2025-06-10 21:11:15.511 | # Agent: Response Validator
+2025-06-10 21:11:15.511 | ## Task: Validate this email response for accuracy, professionalism, and completeness.
+2025-06-10 21:11:15.511 | 
+2025-06-10 21:11:15.511 |                     Original Email: 
+2025-06-10 21:11:15.511 |                     *New Property Enquiry on RR4379658*
+2025-06-10 21:11:15.511 | 
+2025-06-10 21:11:15.511 | Hi Nozipho, I'm interested in this unit. Is it still available?
+2025-06-10 21:11:15.511 | 
+2025-06-10 21:11:15.511 | 2 Bed Apartment In Ferndale
+2025-06-10 21:11:15.511 | R 8250 Per Month
+2025-06-10 21:11:15.511 | Private Property Ref: RR4379658
+2025-06-10 21:11:15.511 | 
+2025-06-10 21:11:15.511 |                     Property Details:
+2025-06-10 21:11:15.511 |                     {
+2025-06-10 21:11:15.511 |   "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
+2025-06-10 21:11:15.511 |   "web_reference": "RR4379658",
+2025-06-10 21:11:15.511 |   "address": "175 304 Main Avenue, 304 Main Avenue",
+2025-06-10 21:11:15.511 |   "status": "available",
+2025-06-10 21:11:15.511 |   "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
+2025-06-10 21:11:15.511 |   "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
+2025-06-10 21:11:15.511 | }
+2025-06-10 21:11:15.511 | 
+2025-06-10 21:11:15.511 |                     Validation Requirements:
+2025-06-10 21:11:15.511 |                     1. Address included: 175 304 Main Avenue, 304 Main Avenue
+2025-06-10 21:11:15.511 |                     2. Property reference included: RR4379658
+2025-06-10 21:11:15.511 |                     3. Application link included: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv
+2025-06-10 21:11:15.511 | 
+2025-06-10 21:11:15.511 |                     IMPORTANT: Return ONLY a valid JSON object with this exact format:
+2025-06-10 21:11:15.511 |                     {
+2025-06-10 21:11:15.511 |                         "pass": true/false,
+2025-06-10 21:11:15.511 |                         "confidence": 0.0-1.0,
+2025-06-10 21:11:15.511 |                         "details": {
+2025-06-10 21:11:15.511 |                             "factual_pass": true/false,
+2025-06-10 21:11:15.511 |                             "completeness_pass": true/false,
+2025-06-10 21:11:15.511 |                             "tone_pass": true/false,
+2025-06-10 21:11:15.511 |                             "missing_fields": [...],
+2025-06-10 21:11:15.511 |                             "inquiry_type": "None"
+2025-06-10 21:11:15.511 |                         }
+2025-06-10 21:11:15.511 |                     }
+2025-06-10 21:11:19.237 | 
+2025-06-10 21:11:19.237 | 
+2025-06-10 21:11:19.238 | # Agent: Response Validator
+2025-06-10 21:11:19.238 | ## Final Answer: 
+2025-06-10 21:11:19.238 | {
+2025-06-10 21:11:19.238 |     "pass": true,
+2025-06-10 21:11:19.238 |     "confidence": 1.0,
+2025-06-10 21:11:19.238 |     "details": {
+2025-06-10 21:11:19.238 |         "factual_pass": true,
+2025-06-10 21:11:19.238 |         "completeness_pass": true,
+2025-06-10 21:11:19.238 |         "tone_pass": true,
+2025-06-10 21:11:19.238 |         "missing_fields": [],
+2025-06-10 21:11:19.238 |         "inquiry_type": "Property Availability Inquiry"
+2025-06-10 21:11:19.238 |     }
+2025-06-10 21:11:19.238 | }
+2025-06-10 21:11:19.238 | 
+2025-06-10 21:11:19.238 | 
+2025-06-10 21:11:19.242 | 🚀 Crew: crew
+2025-06-10 21:11:19.243 | ├── 📋 Task: 4c7c3137-7934-4c67-ad46-d6d635d2e6ba
+2025-06-10 21:11:19.243 | │      Assigned to: Inquiry Classifier
+2025-06-10 21:11:19.243 | │      Status: ✅ Completed
+2025-06-10 21:11:19.243 | │   └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:19.243 | │           Status: ✅ Completed
+2025-06-10 21:11:19.243 | ├── 📋 Task: 08243765-324c-4828-933c-c530830e736d
+2025-06-10 21:11:19.243 | │      Assigned to: Response Writer
+2025-06-10 21:11:19.243 | │      Status: ✅ Completed
+2025-06-10 21:11:19.243 | │   └── 🤖 Agent: Response Writer
+2025-06-10 21:11:19.243 | │           Status: ✅ Completed
+2025-06-10 21:11:19.243 | └── 📋 Task: 3ff24980-fe84-4c40-9bdb-acf0aa441a10
+2025-06-10 21:11:19.243 |        Status: Executing Task...
+2025-06-10 21:11:19.243 |     └── 🤖 Agent: Response Validator
+2025-06-10 21:11:19.243 |             Status: ✅ Completed
+2025-06-10 21:11:19.243 | 
+2025-06-10 21:11:19.247 | 🚀 Crew: crew
+2025-06-10 21:11:19.247 | ├── 📋 Task: 4c7c3137-7934-4c67-ad46-d6d635d2e6ba
+2025-06-10 21:11:19.247 | │      Assigned to: Inquiry Classifier
+2025-06-10 21:11:19.247 | │      Status: ✅ Completed
+2025-06-10 21:11:19.247 | │   └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:19.247 | │           Status: ✅ Completed
+2025-06-10 21:11:19.247 | ├── 📋 Task: 08243765-324c-4828-933c-c530830e736d
+2025-06-10 21:11:19.247 | │      Assigned to: Response Writer
+2025-06-10 21:11:19.247 | │      Status: ✅ Completed
+2025-06-10 21:11:19.247 | │   └── 🤖 Agent: Response Writer
+2025-06-10 21:11:19.247 | │           Status: ✅ Completed
+2025-06-10 21:11:19.247 | └── 📋 Task: 3ff24980-fe84-4c40-9bdb-acf0aa441a10
+2025-06-10 21:11:19.247 |        Assigned to: Response Validator
+2025-06-10 21:11:19.247 |        Status: ✅ Completed
+2025-06-10 21:11:19.247 |     └── 🤖 Agent: Response Validator
+2025-06-10 21:11:19.247 |             Status: ✅ Completed
+2025-06-10 21:11:19.248 | ╭────────────────────────────── Task Completion ───────────────────────────────╮
+2025-06-10 21:11:19.248 | │                                                                              │
+2025-06-10 21:11:19.248 | │  Task Completed                                                              │
+2025-06-10 21:11:19.248 | │  Name: 3ff24980-fe84-4c40-9bdb-acf0aa441a10                                  │
+2025-06-10 21:11:19.248 | │  Agent: Response Validator                                                   │
+2025-06-10 21:11:19.248 | │                                                                              │
+2025-06-10 21:11:19.248 | │                                                                              │
+2025-06-10 21:11:19.248 | ╰──────────────────────────────────────────────────────────────────────────────╯
+2025-06-10 21:11:19.249 | 
+2025-06-10 21:11:19.301 | ╭────────────────────────────── Crew Completion ───────────────────────────────╮
+2025-06-10 21:11:19.301 | │                                                                              │
+2025-06-10 21:11:19.301 | │  Crew Execution Completed                                                    │
+2025-06-10 21:11:19.302 | │  Name: crew                                                                  │
+2025-06-10 21:11:19.302 | │  ID: 443c94e7-8ea9-46ca-a4ff-d3a4b7500795                                    │
+2025-06-10 21:11:19.302 | │                                                                              │
+2025-06-10 21:11:19.302 | │                                                                              │
+2025-06-10 21:11:19.302 | ╰──────────────────────────────────────────────────────────────────────────────╯
+2025-06-10 21:11:19.302 | 
+2025-06-10 21:11:19.305 | 2025-06-10 19:11:19,303 - src.tasks.email_response_agent - INFO - Serialized result: {
+2025-06-10 21:11:19.305 |   "raw": "{\n    \"pass\": true,\n    \"confidence\": 1.0,\n    \"details\": {\n        \"factual_pass\": true,\n        \"completeness_pass\": true,\n        \"tone_pass\": true,\n        \"missing_fields\": [],\n        \"inquiry_type\": \"Property Availability Inquiry\"\n    }\n}",
+2025-06-10 21:11:19.305 |   "pydantic": null,
+2025-06-10 21:11:19.305 |   "json_dict": null,
+2025-06-10 21:11:19.305 |   "tasks_output": [
+2025-06-10 21:11:19.305 |     {
+2025-06-10 21:11:19.305 |       "description": "Classify the type of property inquiry from this email exchange.\nSubject: New Private Property enquiry (property RR4379658)\nContent: *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658\n\nAnalyze the email content and determine if this is:\n1. viewing_request: Customer wants to view the property\n2. availability_check: Customer is asking about availability\n3. general_info: General inquiry about the property\n\nIMPORTANT: Return ONLY a valid JSON object with this exact format:\n{\"inquiry_type\": \"viewing_request\" | \"availability_check\" | \"general_info\"}",
+2025-06-10 21:11:19.305 |       "name": "classify_inquiry_task",
+2025-06-10 21:11:19.305 |       "expected_output": "A valid JSON object containing the inquiry_type.",
+2025-06-10 21:11:19.305 |       "summary": "Classify the type of property inquiry from this email exchange.\nSubject:...",
+2025-06-10 21:11:19.305 |       "raw": "{\"inquiry_type\": \"availability_check\"}",
+2025-06-10 21:11:19.305 |       "pydantic": null,
+2025-06-10 21:11:19.305 |       "json_dict": null,
+2025-06-10 21:11:19.305 |       "agent": "Inquiry Classifier",
+2025-06-10 21:11:19.305 |       "output_format": "raw"
+2025-06-10 21:11:19.305 |     },
+2025-06-10 21:11:19.305 |     {
+2025-06-10 21:11:19.305 |       "description": "Generate a professional, POPI-compliant response to this property inquiry.\n\nEmail Subject: New Private Property enquiry (property RR4379658)\nEmail Content: *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658\nInquiry Type: None\n\nProperty Details:\n{\n  \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n  \"web_reference\": \"RR4379658\",\n  \"status\": \"available\",\n  \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\"\n}\n\nResponse Requirements (MUST INCLUDE ALL):\n1. Address: 175 304 Main Avenue, 304 Main Avenue\n2. Property reference: RR4379658\n3. Application link: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\n4. Be friendly and professional\n5. Follow South African business etiquette\n\nIMPORTANT: You MUST copy and paste the address, property reference, and application link EXACTLY as provided above into the response body. Do not paraphrase or omit them.\n\nEXAMPLE RESPONSE (format):\n{\n    \"response\": {\n        \"subject\": \"Re: Property Inquiry - RR4379658\",\n        \"body\": \"Dear [Name],\\n\\nThank you for your interest in the property at 175 304 Main Avenue, 304 Main Avenue (Reference: RR4379658).\\n\\nThe property is available. You can apply here: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\\n\\nBest regards,\\n[Agent Name]\"\n    }\n}\n\nIMPORTANT: Return ONLY a valid JSON object with this exact format:\n{\n    \"response\": {\n        \"subject\": \"Re: ...\",\n        \"body\": \"Dear [Name],\\n\\nThank you... [INCLUDE address, web reference, and application link here]\"\n    }\n}",
+2025-06-10 21:11:19.306 |       "name": "generate_response_task",
+2025-06-10 21:11:19.306 |       "expected_output": "A valid JSON object with response.subject and response.body",
+2025-06-10 21:11:19.306 |       "summary": "Generate a professional, POPI-compliant response to this property inquiry.\n\nEmail Subject:...",
+2025-06-10 21:11:19.306 |       "raw": "{\n    \"response\": {\n        \"subject\": \"Re: Property Inquiry - RR4379658\",\n        \"body\": \"Dear [Name],\\n\\nThank you for your interest in the property at 175 304 Main Avenue, 304 Main Avenue (Reference: RR4379658).\\n\\nThe property is available. You can apply here: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\\n\\nBest regards,\\nNozipho\"\n    }\n}",
+2025-06-10 21:11:19.306 |       "pydantic": null,
+2025-06-10 21:11:19.306 |       "json_dict": null,
+2025-06-10 21:11:19.306 |       "agent": "Response Writer",
+2025-06-10 21:11:19.306 |       "output_format": "raw"
+2025-06-10 21:11:19.306 |     },
+2025-06-10 21:11:19.306 |     {
+2025-06-10 21:11:19.306 |       "description": "Validate this email response for accuracy, professionalism, and completeness.\n\n                    Original Email: \n                    *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658\n\n                    Property Details:\n                    {\n  \"id\": \"dc11889a-e21e-42a7-8c17-cc7b3a395131\",\n  \"web_reference\": \"RR4379658\",\n  \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n  \"status\": \"available\",\n  \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\",\n  \"agent_id\": \"77dff4d2-f083-493b-9060-ab1220d8763a\"\n}\n\n                    Validation Requirements:\n                    1. Address included: 175 304 Main Avenue, 304 Main Avenue\n                    2. Property reference included: RR4379658\n                    3. Application link included: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\n\n                    IMPORTANT: Return ONLY a valid JSON object with this exact format:\n                    {\n                        \"pass\": true/false,\n                        \"confidence\": 0.0-1.0,\n                        \"details\": {\n                            \"factual_pass\": true/false,\n                            \"completeness_pass\": true/false,\n                            \"tone_pass\": true/false,\n                            \"missing_fields\": [...],\n                            \"inquiry_type\": \"None\"\n                        }\n                    }",
+2025-06-10 21:11:19.306 |       "name": "validate_response_task",
+2025-06-10 21:11:19.306 |       "expected_output": "A valid JSON object with validation results",
+2025-06-10 21:11:19.306 |       "summary": "Validate this email response for accuracy, professionalism, and completeness.\n\n ...",
+2025-06-10 21:11:19.306 |       "raw": "{\n    \"pass\": true,\n    \"confidence\": 1.0,\n    \"details\": {\n        \"factual_pass\": true,\n        \"completeness_pass\": true,\n        \"tone_pass\": true,\n        \"missing_fields\": [],\n        \"inquiry_type\": \"Property Availability Inquiry\"\n    }\n}",
+2025-06-10 21:11:19.306 |       "pydantic": null,
+2025-06-10 21:11:19.306 |       "json_dict": null,
+2025-06-10 21:11:19.306 |       "agent": "Response Validator",
+2025-06-10 21:11:19.306 |       "output_format": "raw"
+2025-06-10 21:11:19.306 |     }
+2025-06-10 21:11:19.306 |   ],
+2025-06-10 21:11:19.306 |   "token_usage": {
+2025-06-10 21:11:19.306 |     "total_tokens": 1756,
+2025-06-10 21:11:19.306 |     "prompt_tokens": 1536,
+2025-06-10 21:11:19.306 |     "cached_prompt_tokens": 0,
+2025-06-10 21:11:19.306 |     "completion_tokens": 220,
+2025-06-10 21:11:19.306 |     "successful_requests": 3
+2025-06-10 21:11:19.306 |   }
+2025-06-10 21:11:19.306 | }
+2025-06-10 21:11:19.306 | 2025-06-10 19:11:19,305 - src.tasks.email_response_agent - INFO - Creating EmailResponseCrew instance...
+2025-06-10 21:11:19.306 | 2025-06-10 19:11:19,305 - src.tasks.email_response_agent - INFO - Initializing EmailResponseCrew
+2025-06-10 21:11:19.306 | 2025-06-10 19:11:19,305 - src.tasks.email_response_agent - INFO - Email subject: New Private Property enquiry (property RR4379658)
+2025-06-10 21:11:19.306 | 2025-06-10 19:11:19,305 - src.tasks.email_response_agent - INFO - Email content: *New Property Enquiry on RR4379658*
+2025-06-10 21:11:19.306 | 
+2025-06-10 21:11:19.306 | Hi Nozipho, I'm interested in this unit. Is it still available?
+2025-06-10 21:11:19.306 | 
+2025-06-10 21:11:19.306 | 2 Bed Apartment In Ferndale
+2025-06-10 21:11:19.306 | R 8250 Per Month
+2025-06-10 21:11:19.306 | Private Property Ref: RR4379658
+2025-06-10 21:11:19.306 | 2025-06-10 19:11:19,306 - src.tasks.email_response_agent - INFO - Number of available properties: 2
+2025-06-10 21:11:19.306 | 2025-06-10 19:11:19,306 - src.tasks.email_response_agent - INFO - Workflow actions: {
+2025-06-10 21:11:19.306 |   "agent_name": "Agent Amara",
+2025-06-10 21:11:19.306 |   "agent_contact": "",
+2025-06-10 21:11:19.306 |   "matched_property": {
+2025-06-10 21:11:19.306 |     "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
+2025-06-10 21:11:19.306 |     "web_reference": "RR4379658",
+2025-06-10 21:11:19.306 |     "address": "175 304 Main Avenue, 304 Main Avenue",
+2025-06-10 21:11:19.306 |     "status": "available",
+2025-06-10 21:11:19.306 |     "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
+2025-06-10 21:11:19.306 |     "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
+2025-06-10 21:11:19.306 |   },
+2025-06-10 21:11:19.306 |   "inquiry_type": "availability_check"
+2025-06-10 21:11:19.306 | }
+2025-06-10 21:11:19.309 | 2025-06-10 19:11:19,308 - src.tasks.email_response_agent - INFO - Matched property provided: {
+2025-06-10 21:11:19.309 |   "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
+2025-06-10 21:11:19.309 |   "web_reference": "RR4379658",
+2025-06-10 21:11:19.309 |   "address": "175 304 Main Avenue, 304 Main Avenue",
+2025-06-10 21:11:19.309 |   "status": "available",
+2025-06-10 21:11:19.309 |   "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
+2025-06-10 21:11:19.309 |   "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
+2025-06-10 21:11:19.309 | }
+2025-06-10 21:11:19.305 | INFO:src.tasks.email_response_agent:Serialized result: {
+2025-06-10 21:11:19.305 |   "raw": "{\n    \"pass\": true,\n    \"confidence\": 1.0,\n    \"details\": {\n        \"factual_pass\": true,\n        \"completeness_pass\": true,\n        \"tone_pass\": true,\n        \"missing_fields\": [],\n        \"inquiry_type\": \"Property Availability Inquiry\"\n    }\n}",
+2025-06-10 21:11:19.305 |   "pydantic": null,
+2025-06-10 21:11:19.305 |   "json_dict": null,
+2025-06-10 21:11:19.305 |   "tasks_output": [
+2025-06-10 21:11:19.305 |     {
+2025-06-10 21:11:19.305 |       "description": "Classify the type of property inquiry from this email exchange.\nSubject: New Private Property enquiry (property RR4379658)\nContent: *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658\n\nAnalyze the email content and determine if this is:\n1. viewing_request: Customer wants to view the property\n2. availability_check: Customer is asking about availability\n3. general_info: General inquiry about the property\n\nIMPORTANT: Return ONLY a valid JSON object with this exact format:\n{\"inquiry_type\": \"viewing_request\" | \"availability_check\" | \"general_info\"}",
+2025-06-10 21:11:19.305 |       "name": "classify_inquiry_task",
+2025-06-10 21:11:19.305 |       "expected_output": "A valid JSON object containing the inquiry_type.",
+2025-06-10 21:11:19.305 |       "summary": "Classify the type of property inquiry from this email exchange.\nSubject:...",
+2025-06-10 21:11:19.305 |       "raw": "{\"inquiry_type\": \"availability_check\"}",
+2025-06-10 21:11:19.305 |       "pydantic": null,
+2025-06-10 21:11:19.305 |       "json_dict": null,
+2025-06-10 21:11:19.305 |       "agent": "Inquiry Classifier",
+2025-06-10 21:11:19.305 |       "output_format": "raw"
+2025-06-10 21:11:19.305 |     },
+2025-06-10 21:11:19.305 |     {
+2025-06-10 21:11:19.305 |       "description": "Generate a professional, POPI-compliant response to this property inquiry.\n\nEmail Subject: New Private Property enquiry (property RR4379658)\nEmail Content: *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658\nInquiry Type: None\n\nProperty Details:\n{\n  \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n  \"web_reference\": \"RR4379658\",\n  \"status\": \"available\",\n  \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\"\n}\n\nResponse Requirements (MUST INCLUDE ALL):\n1. Address: 175 304 Main Avenue, 304 Main Avenue\n2. Property reference: RR4379658\n3. Application link: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\n4. Be friendly and professional\n5. Follow South African business etiquette\n\nIMPORTANT: You MUST copy and paste the address, property reference, and application link EXACTLY as provided above into the response body. Do not paraphrase or omit them.\n\nEXAMPLE RESPONSE (format):\n{\n    \"response\": {\n        \"subject\": \"Re: Property Inquiry - RR4379658\",\n        \"body\": \"Dear [Name],\\n\\nThank you for your interest in the property at 175 304 Main Avenue, 304 Main Avenue (Reference: RR4379658).\\n\\nThe property is available. You can apply here: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\\n\\nBest regards,\\n[Agent Name]\"\n    }\n}\n\nIMPORTANT: Return ONLY a valid JSON object with this exact format:\n{\n    \"response\": {\n        \"subject\": \"Re: ...\",\n        \"body\": \"Dear [Name],\\n\\nThank you... [INCLUDE address, web reference, and application link here]\"\n    }\n}",
+2025-06-10 21:11:19.305 |       "name": "generate_response_task",
+2025-06-10 21:11:19.305 |       "expected_output": "A valid JSON object with response.subject and response.body",
+2025-06-10 21:11:19.305 |       "summary": "Generate a professional, POPI-compliant response to this property inquiry.\n\nEmail Subject:...",
+2025-06-10 21:11:19.305 |       "raw": "{\n    \"response\": {\n        \"subject\": \"Re: Property Inquiry - RR4379658\",\n        \"body\": \"Dear [Name],\\n\\nThank you for your interest in the property at 175 304 Main Avenue, 304 Main Avenue (Reference: RR4379658).\\n\\nThe property is available. You can apply here: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\\n\\nBest regards,\\nNozipho\"\n    }\n}",
+2025-06-10 21:11:19.305 |       "pydantic": null,
+2025-06-10 21:11:19.305 |       "json_dict": null,
+2025-06-10 21:11:19.305 |       "agent": "Response Writer",
+2025-06-10 21:11:19.305 |       "output_format": "raw"
+2025-06-10 21:11:19.305 |     },
+2025-06-10 21:11:19.305 |     {
+2025-06-10 21:11:19.305 |       "description": "Validate this email response for accuracy, professionalism, and completeness.\n\n                    Original Email: \n                    *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658\n\n                    Property Details:\n                    {\n  \"id\": \"dc11889a-e21e-42a7-8c17-cc7b3a395131\",\n  \"web_reference\": \"RR4379658\",\n  \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n  \"status\": \"available\",\n  \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\",\n  \"agent_id\": \"77dff4d2-f083-493b-9060-ab1220d8763a\"\n}\n\n                    Validation Requirements:\n                    1. Address included: 175 304 Main Avenue, 304 Main Avenue\n                    2. Property reference included: RR4379658\n                    3. Application link included: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\n\n                    IMPORTANT: Return ONLY a valid JSON object with this exact format:\n                    {\n                        \"pass\": true/false,\n                        \"confidence\": 0.0-1.0,\n                        \"details\": {\n                            \"factual_pass\": true/false,\n                            \"completeness_pass\": true/false,\n                            \"tone_pass\": true/false,\n                            \"missing_fields\": [...],\n                            \"inquiry_type\": \"None\"\n                        }\n                    }",
+2025-06-10 21:11:19.305 |       "name": "validate_response_task",
+2025-06-10 21:11:19.305 |       "expected_output": "A valid JSON object with validation results",
+2025-06-10 21:11:19.305 |       "summary": "Validate this email response for accuracy, professionalism, and completeness.\n\n ...",
+2025-06-10 21:11:19.305 |       "raw": "{\n    \"pass\": true,\n    \"confidence\": 1.0,\n    \"details\": {\n        \"factual_pass\": true,\n        \"completeness_pass\": true,\n        \"tone_pass\": true,\n        \"missing_fields\": [],\n        \"inquiry_type\": \"Property Availability Inquiry\"\n    }\n}",
+2025-06-10 21:11:19.305 |       "pydantic": null,
+2025-06-10 21:11:19.305 |       "json_dict": null,
+2025-06-10 21:11:19.305 |       "agent": "Response Validator",
+2025-06-10 21:11:19.305 |       "output_format": "raw"
+2025-06-10 21:11:19.305 |     }
+2025-06-10 21:11:19.305 |   ],
+2025-06-10 21:11:19.305 |   "token_usage": {
+2025-06-10 21:11:19.305 |     "total_tokens": 1756,
+2025-06-10 21:11:19.305 |     "prompt_tokens": 1536,
+2025-06-10 21:11:19.305 |     "cached_prompt_tokens": 0,
+2025-06-10 21:11:19.305 |     "completion_tokens": 220,
+2025-06-10 21:11:19.305 |     "successful_requests": 3
+2025-06-10 21:11:19.305 |   }
+2025-06-10 21:11:19.305 | }
+2025-06-10 21:11:19.306 | INFO:src.tasks.email_response_agent:Creating EmailResponseCrew instance...
+2025-06-10 21:11:19.306 | INFO:src.tasks.email_response_agent:Initializing EmailResponseCrew
+2025-06-10 21:11:19.306 | INFO:src.tasks.email_response_agent:Email subject: New Private Property enquiry (property RR4379658)
+2025-06-10 21:11:19.306 | INFO:src.tasks.email_response_agent:Email content: *New Property Enquiry on RR4379658*
+2025-06-10 21:11:19.306 | 
+2025-06-10 21:11:19.306 | Hi Nozipho, I'm interested in this unit. Is it still available?
+2025-06-10 21:11:19.306 | 
+2025-06-10 21:11:19.306 | 2 Bed Apartment In Ferndale
+2025-06-10 21:11:19.306 | R 8250 Per Month
+2025-06-10 21:11:19.306 | Private Property Ref: RR4379658
+2025-06-10 21:11:19.306 | INFO:src.tasks.email_response_agent:Number of available properties: 2
+2025-06-10 21:11:19.306 | INFO:src.tasks.email_response_agent:Workflow actions: {
+2025-06-10 21:11:19.306 |   "agent_name": "Agent Amara",
+2025-06-10 21:11:19.306 |   "agent_contact": "",
+2025-06-10 21:11:19.306 |   "matched_property": {
+2025-06-10 21:11:19.306 |     "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
+2025-06-10 21:11:19.306 |     "web_reference": "RR4379658",
+2025-06-10 21:11:19.306 |     "address": "175 304 Main Avenue, 304 Main Avenue",
+2025-06-10 21:11:19.306 |     "status": "available",
+2025-06-10 21:11:19.306 |     "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
+2025-06-10 21:11:19.306 |     "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
+2025-06-10 21:11:19.306 |   },
+2025-06-10 21:11:19.306 |   "inquiry_type": "availability_check"
+2025-06-10 21:11:19.306 | }
+2025-06-10 21:11:19.309 | INFO:src.tasks.email_response_agent:Matched property provided: {
+2025-06-10 21:11:19.309 |   "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
+2025-06-10 21:11:19.309 |   "web_reference": "RR4379658",
+2025-06-10 21:11:19.309 |   "address": "175 304 Main Avenue, 304 Main Avenue",
+2025-06-10 21:11:19.309 |   "status": "available",
+2025-06-10 21:11:19.309 |   "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
+2025-06-10 21:11:19.309 |   "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
+2025-06-10 21:11:19.309 | }
+2025-06-10 21:11:19.329 | 2025-06-10 19:11:19,329 - src.tasks.email_response_agent - INFO - Initializing crew...
+2025-06-10 21:11:19.329 | 2025-06-10 19:11:19,329 - src.tasks.email_response_agent - INFO - Task context created: [
+2025-06-10 21:11:19.330 |   {
+2025-06-10 21:11:19.330 |     "role": "system",
+2025-06-10 21:11:19.330 |     "content": "You are an expert at classifying property inquiries.",
+2025-06-10 21:11:19.330 |     "description": "System prompt for classification",
+2025-06-10 21:11:19.330 |     "expected_output": "A valid JSON object containing the inquiry_type."
+2025-06-10 21:11:19.330 |   },
+2025-06-10 21:11:19.330 |   {
+2025-06-10 21:11:19.330 |     "role": "user",
+2025-06-10 21:11:19.330 |     "content": "Subject: New Private Property enquiry (property RR4379658)\nContent: *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658",
+2025-06-10 21:11:19.330 |     "description": "Property inquiry details for classification",
+2025-06-10 21:11:19.330 |     "expected_output": "A valid JSON object containing the inquiry_type."
+2025-06-10 21:11:19.330 |   }
+2025-06-10 21:11:19.330 | ]
+2025-06-10 21:11:19.329 | INFO:src.tasks.email_response_agent:Initializing crew...
+2025-06-10 21:11:19.330 | INFO:src.tasks.email_response_agent:Task context created: [
+2025-06-10 21:11:19.330 |   {
+2025-06-10 21:11:19.330 |     "role": "system",
+2025-06-10 21:11:19.330 |     "content": "You are an expert at classifying property inquiries.",
+2025-06-10 21:11:19.330 |     "description": "System prompt for classification",
+2025-06-10 21:11:19.330 |     "expected_output": "A valid JSON object containing the inquiry_type."
+2025-06-10 21:11:19.330 |   },
+2025-06-10 21:11:19.330 |   {
+2025-06-10 21:11:19.330 |     "role": "user",
+2025-06-10 21:11:19.330 |     "content": "Subject: New Private Property enquiry (property RR4379658)\nContent: *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658",
+2025-06-10 21:11:19.330 |     "description": "Property inquiry details for classification",
+2025-06-10 21:11:19.330 |     "expected_output": "A valid JSON object containing the inquiry_type."
+2025-06-10 21:11:19.330 |   }
+2025-06-10 21:11:19.330 | ]
+2025-06-10 21:11:19.333 | 2025-06-10 19:11:19,333 - src.tasks.email_response_agent - INFO - Classification task created successfully
+2025-06-10 21:11:19.333 | 2025-06-10 19:11:19,333 - src.tasks.email_response_agent - INFO - Creating response generation task...
+2025-06-10 21:11:19.334 | 2025-06-10 19:11:19,333 - src.tasks.email_response_agent - INFO - Response task context created: [
+2025-06-10 21:11:19.334 |   {
+2025-06-10 21:11:19.334 |     "role": "system",
+2025-06-10 21:11:19.334 |     "content": "You are an expert at writing professional property inquiry responses.",
+2025-06-10 21:11:19.334 |     "description": "System prompt for response generation",
+2025-06-10 21:11:19.334 |     "expected_output": "A valid JSON object with response.subject and response.body"
+2025-06-10 21:11:19.334 |   },
+2025-06-10 21:11:19.334 |   {
+2025-06-10 21:11:19.334 |     "role": "user",
+2025-06-10 21:11:19.334 |     "content": "Property Details: {\n  \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n  \"web_reference\": \"RR4379658\",\n  \"status\": \"available\",\n  \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\"\n}\nInquiry Type: None",
+2025-06-10 21:11:19.334 |     "description": "Property details and inquiry type for response generation",
+2025-06-10 21:11:19.334 |     "expected_output": "A valid JSON object with response.subject and response.body"
+2025-06-10 21:11:19.334 |   }
+2025-06-10 21:11:19.334 | ]
+2025-06-10 21:11:19.333 | INFO:src.tasks.email_response_agent:Classification task created successfully
+2025-06-10 21:11:19.333 | INFO:src.tasks.email_response_agent:Creating response generation task...
+2025-06-10 21:11:19.333 | INFO:src.tasks.email_response_agent:Response task context created: [
+2025-06-10 21:11:19.333 |   {
+2025-06-10 21:11:19.333 |     "role": "system",
+2025-06-10 21:11:19.333 |     "content": "You are an expert at writing professional property inquiry responses.",
+2025-06-10 21:11:19.333 |     "description": "System prompt for response generation",
+2025-06-10 21:11:19.333 |     "expected_output": "A valid JSON object with response.subject and response.body"
+2025-06-10 21:11:19.333 |   },
+2025-06-10 21:11:19.333 |   {
+2025-06-10 21:11:19.334 |     "role": "user",
+2025-06-10 21:11:19.334 |     "content": "Property Details: {\n  \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n  \"web_reference\": \"RR4379658\",\n  \"status\": \"available\",\n  \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\"\n}\nInquiry Type: None",
+2025-06-10 21:11:19.334 |     "description": "Property details and inquiry type for response generation",
+2025-06-10 21:11:19.334 |     "expected_output": "A valid JSON object with response.subject and response.body"
+2025-06-10 21:11:19.334 |   }
+2025-06-10 21:11:19.334 | ]
+2025-06-10 21:11:19.341 | INFO:src.tasks.email_response_agent:Response generation task created successfully
+2025-06-10 21:11:19.341 | INFO:src.tasks.email_response_agent:Creating validation task...
+2025-06-10 21:11:19.341 | INFO:src.tasks.email_response_agent:Validation task context created: [
+2025-06-10 21:11:19.341 |   {
+2025-06-10 21:11:19.341 |     "role": "system",
+2025-06-10 21:11:19.341 |     "content": "You are an expert at validating property inquiry responses.",
+2025-06-10 21:11:19.341 |     "description": "System prompt for response validation",
+2025-06-10 21:11:19.341 |     "expected_output": "A valid JSON object with validation results"
+2025-06-10 21:11:19.341 |   },
+2025-06-10 21:11:19.341 |   {
+2025-06-10 21:11:19.341 |     "role": "user",
+2025-06-10 21:11:19.341 |     "content": "Property Details: {\n  \"id\": \"dc11889a-e21e-42a7-8c17-cc7b3a395131\",\n  \"web_reference\": \"RR4379658\",\n  \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n  \"status\": \"available\",\n  \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\",\n  \"agent_id\": \"77dff4d2-f083-493b-9060-ab1220d8763a\"\n}\nInquiry Type: None",
+2025-06-10 21:11:19.341 |     "description": "Property details and inquiry type for validation",
+2025-06-10 21:11:19.341 |     "expected_output": "A valid JSON object with validation results"
+2025-06-10 21:11:19.341 |   }
+2025-06-10 21:11:19.341 | ]
+2025-06-10 21:11:19.341 | 2025-06-10 19:11:19,340 - src.tasks.email_response_agent - INFO - Response generation task created successfully
+2025-06-10 21:11:19.341 | 2025-06-10 19:11:19,341 - src.tasks.email_response_agent - INFO - Creating validation task...
+2025-06-10 21:11:19.341 | 2025-06-10 19:11:19,341 - src.tasks.email_response_agent - INFO - Validation task context created: [
+2025-06-10 21:11:19.341 |   {
+2025-06-10 21:11:19.341 |     "role": "system",
+2025-06-10 21:11:19.341 |     "content": "You are an expert at validating property inquiry responses.",
+2025-06-10 21:11:19.341 |     "description": "System prompt for response validation",
+2025-06-10 21:11:19.341 |     "expected_output": "A valid JSON object with validation results"
+2025-06-10 21:11:19.341 |   },
+2025-06-10 21:11:19.341 |   {
+2025-06-10 21:11:19.341 |     "role": "user",
+2025-06-10 21:11:19.341 |     "content": "Property Details: {\n  \"id\": \"dc11889a-e21e-42a7-8c17-cc7b3a395131\",\n  \"web_reference\": \"RR4379658\",\n  \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n  \"status\": \"available\",\n  \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\",\n  \"agent_id\": \"77dff4d2-f083-493b-9060-ab1220d8763a\"\n}\nInquiry Type: None",
+2025-06-10 21:11:19.341 |     "description": "Property details and inquiry type for validation",
+2025-06-10 21:11:19.341 |     "expected_output": "A valid JSON object with validation results"
+2025-06-10 21:11:19.341 |   }
+2025-06-10 21:11:19.341 | ]
+2025-06-10 21:11:19.344 | INFO:src.tasks.email_response_agent:Validation task created successfully
+2025-06-10 21:11:19.344 | INFO:src.tasks.email_response_agent:Starting crew setup...
+2025-06-10 21:11:19.344 | INFO:src.tasks.email_response_agent:Classification task created successfully
+2025-06-10 21:11:19.344 | INFO:src.tasks.email_response_agent:Response task created successfully
+2025-06-10 21:11:19.344 | INFO:src.tasks.email_response_agent:Validation task created successfully
+2025-06-10 21:11:19.344 | INFO:src.tasks.email_response_agent:All agents created successfully
+2025-06-10 21:11:19.344 | 2025-06-10 19:11:19,344 - src.tasks.email_response_agent - INFO - Validation task created successfully
+2025-06-10 21:11:19.344 | 2025-06-10 19:11:19,344 - src.tasks.email_response_agent - INFO - Starting crew setup...
+2025-06-10 21:11:19.344 | 2025-06-10 19:11:19,344 - src.tasks.email_response_agent - INFO - Classification task created successfully
+2025-06-10 21:11:19.344 | 2025-06-10 19:11:19,344 - src.tasks.email_response_agent - INFO - Response task created successfully
+2025-06-10 21:11:19.344 | 2025-06-10 19:11:19,344 - src.tasks.email_response_agent - INFO - Validation task created successfully
+2025-06-10 21:11:19.344 | 2025-06-10 19:11:19,344 - src.tasks.email_response_agent - INFO - All agents created successfully
+2025-06-10 21:11:19.352 | INFO:src.tasks.email_response_agent:Created crew with 3 tasks
+2025-06-10 21:11:19.352 | INFO:src.tasks.email_response_agent:Starting crew execution...
+2025-06-10 21:11:19.352 | 2025-06-10 19:11:19,352 - src.tasks.email_response_agent - INFO - Created crew with 3 tasks
+2025-06-10 21:11:19.352 | 2025-06-10 19:11:19,352 - src.tasks.email_response_agent - INFO - Starting crew execution...
+2025-06-10 21:11:19.355 | ╭─────────────────────────── Crew Execution Started ───────────────────────────╮
+2025-06-10 21:11:19.355 | │                                                                              │
+2025-06-10 21:11:19.355 | │  Crew Execution Started                                                      │
+2025-06-10 21:11:19.355 | │  Name: crew                                                                  │
+2025-06-10 21:11:19.355 | │  ID: 8a4329a2-31ad-4a12-8378-fb2886b86312                                    │
+2025-06-10 21:11:19.355 | │                                                                              │
+2025-06-10 21:11:19.355 | │                                                                              │
+2025-06-10 21:11:19.355 | ╰──────────────────────────────────────────────────────────────────────────────╯
+2025-06-10 21:11:19.355 | 
+2025-06-10 21:11:19.375 | 🚀 Crew: crew
+2025-06-10 21:11:19.375 | └── 📋 Task: fe06dea4-4859-4435-a450-bf14743f82c8
+2025-06-10 21:11:19.375 |        Status: Executing Task...
+2025-06-10 21:11:19.375 | 
+2025-06-10 21:11:19.377 | 🚀 Crew: crew
+2025-06-10 21:11:19.378 | └── 📋 Task: fe06dea4-4859-4435-a450-bf14743f82c8
+2025-06-10 21:11:19.378 |        Status: Executing Task...
+2025-06-10 21:11:19.378 |     └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:19.378 |             Status: In Progress
+2025-06-10 21:11:19.378 | 
+2025-06-10 21:11:19.378 | # Agent: Inquiry Classifier
+2025-06-10 21:11:19.378 | ## Task: Classify the type of property inquiry from this email exchange.
+2025-06-10 21:11:19.378 | Subject: New Private Property enquiry (property RR4379658)
+2025-06-10 21:11:19.378 | Content: *New Property Enquiry on RR4379658*
+2025-06-10 21:11:19.378 | 
+2025-06-10 21:11:19.378 | Hi Nozipho, I'm interested in this unit. Is it still available?
+2025-06-10 21:11:19.378 | 
+2025-06-10 21:11:19.378 | 2 Bed Apartment In Ferndale
+2025-06-10 21:11:19.378 | R 8250 Per Month
+2025-06-10 21:11:19.378 | Private Property Ref: RR4379658
+2025-06-10 21:11:19.378 | 
+2025-06-10 21:11:19.378 | Analyze the email content and determine if this is:
+2025-06-10 21:11:19.378 | 1. viewing_request: Customer wants to view the property
+2025-06-10 21:11:19.378 | 2. availability_check: Customer is asking about availability
+2025-06-10 21:11:19.378 | 3. general_info: General inquiry about the property
+2025-06-10 21:11:19.378 | 
+2025-06-10 21:11:19.378 | IMPORTANT: Return ONLY a valid JSON object with this exact format:
+2025-06-10 21:11:19.378 | {"inquiry_type": "viewing_request" | "availability_check" | "general_info"}
+2025-06-10 21:11:21.721 | 
+2025-06-10 21:11:21.721 | 
+2025-06-10 21:11:21.722 | # Agent: Inquiry Classifier
+2025-06-10 21:11:21.722 | ## Final Answer: 
+2025-06-10 21:11:21.722 | {"inquiry_type": "availability_check"}
+2025-06-10 21:11:21.722 | 
+2025-06-10 21:11:21.722 | 
+2025-06-10 21:11:21.725 | 🚀 Crew: crew
+2025-06-10 21:11:21.725 | └── 📋 Task: fe06dea4-4859-4435-a450-bf14743f82c8
+2025-06-10 21:11:21.725 |        Status: Executing Task...
+2025-06-10 21:11:21.725 |     └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:21.725 |             Status: ✅ Completed
+2025-06-10 21:11:21.725 | 
+2025-06-10 21:11:21.726 | 🚀 Crew: crew
+2025-06-10 21:11:21.726 | └── 📋 Task: fe06dea4-4859-4435-a450-bf14743f82c8
+2025-06-10 21:11:21.726 |        Assigned to: Inquiry Classifier
+2025-06-10 21:11:21.726 |        Status: ✅ Completed
+2025-06-10 21:11:21.726 |     └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:21.726 |             Status: ✅ Completed
+2025-06-10 21:11:21.728 | ╭────────────────────────────── Task Completion ───────────────────────────────╮
+2025-06-10 21:11:21.728 | │                                                                              │
+2025-06-10 21:11:21.728 | │  Task Completed                                                              │
+2025-06-10 21:11:21.728 | │  Name: fe06dea4-4859-4435-a450-bf14743f82c8                                  │
+2025-06-10 21:11:21.728 | │  Agent: Inquiry Classifier                                                   │
+2025-06-10 21:11:21.728 | │                                                                              │
+2025-06-10 21:11:21.728 | │                                                                              │
+2025-06-10 21:11:21.728 | ╰──────────────────────────────────────────────────────────────────────────────╯
+2025-06-10 21:11:21.728 | 
+2025-06-10 21:11:21.783 | 🚀 Crew: crew
+2025-06-10 21:11:21.783 | ├── 📋 Task: fe06dea4-4859-4435-a450-bf14743f82c8
+2025-06-10 21:11:21.783 | │      Assigned to: Inquiry Classifier
+2025-06-10 21:11:21.783 | │      Status: ✅ Completed
+2025-06-10 21:11:21.783 | │   └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:21.783 | │           Status: ✅ Completed
+2025-06-10 21:11:21.783 | └── 📋 Task: 2de29b1f-fa07-4833-bdb0-d2f5e739beb1
+2025-06-10 21:11:21.783 |        Status: Executing Task...
+2025-06-10 21:11:21.783 | 
+2025-06-10 21:11:21.788 | 🚀 Crew: crew
+2025-06-10 21:11:21.788 | ├── 📋 Task: fe06dea4-4859-4435-a450-bf14743f82c8
+2025-06-10 21:11:21.788 | │      Assigned to: Inquiry Classifier
+2025-06-10 21:11:21.788 | │      Status: ✅ Completed
+2025-06-10 21:11:21.788 | │   └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:21.788 | │           Status: ✅ Completed
+2025-06-10 21:11:21.788 | └── 📋 Task: 2de29b1f-fa07-4833-bdb0-d2f5e739beb1
+2025-06-10 21:11:21.788 |        Status: Executing Task...
+2025-06-10 21:11:21.788 |     └── 🤖 Agent: Response Writer
+2025-06-10 21:11:21.788 |             Status: In Progress
+2025-06-10 21:11:21.788 | 
+2025-06-10 21:11:21.789 | # Agent: Response Writer
+2025-06-10 21:11:21.789 | ## Task: Generate a professional, POPI-compliant response to this property inquiry.
+2025-06-10 21:11:21.789 | 
+2025-06-10 21:11:21.789 | Email Subject: New Private Property enquiry (property RR4379658)
+2025-06-10 21:11:21.789 | Email Content: *New Property Enquiry on RR4379658*
+2025-06-10 21:11:21.789 | 
+2025-06-10 21:11:21.789 | Hi Nozipho, I'm interested in this unit. Is it still available?
+2025-06-10 21:11:21.789 | 
+2025-06-10 21:11:21.789 | 2 Bed Apartment In Ferndale
+2025-06-10 21:11:21.789 | R 8250 Per Month
+2025-06-10 21:11:21.789 | Private Property Ref: RR4379658
+2025-06-10 21:11:21.789 | Inquiry Type: None
+2025-06-10 21:11:21.789 | 
+2025-06-10 21:11:21.789 | Property Details:
+2025-06-10 21:11:21.789 | {
+2025-06-10 21:11:21.789 |   "address": "175 304 Main Avenue, 304 Main Avenue",
+2025-06-10 21:11:21.789 |   "web_reference": "RR4379658",
+2025-06-10 21:11:21.789 |   "status": "available",
+2025-06-10 21:11:21.789 |   "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv"
+2025-06-10 21:11:21.789 | }
+2025-06-10 21:11:21.789 | 
+2025-06-10 21:11:21.789 | Response Requirements (MUST INCLUDE ALL):
+2025-06-10 21:11:21.789 | 1. Address: 175 304 Main Avenue, 304 Main Avenue
+2025-06-10 21:11:21.789 | 2. Property reference: RR4379658
+2025-06-10 21:11:21.789 | 3. Application link: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv
+2025-06-10 21:11:21.789 | 4. Be friendly and professional
+2025-06-10 21:11:21.789 | 5. Follow South African business etiquette
+2025-06-10 21:11:21.789 | 
+2025-06-10 21:11:21.789 | IMPORTANT: You MUST copy and paste the address, property reference, and application link EXACTLY as provided above into the response body. Do not paraphrase or omit them.
+2025-06-10 21:11:21.789 | 
+2025-06-10 21:11:21.789 | EXAMPLE RESPONSE (format):
+2025-06-10 21:11:21.789 | {
+2025-06-10 21:11:21.789 |     "response": {
+2025-06-10 21:11:21.789 |         "subject": "Re: Property Inquiry - RR4379658",
+2025-06-10 21:11:21.789 |         "body": "Dear [Name],\n\nThank you for your interest in the property at 175 304 Main Avenue, 304 Main Avenue (Reference: RR4379658).\n\nThe property is available. You can apply here: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\n\nBest regards,\n[Agent Name]"
+2025-06-10 21:11:21.789 |     }
+2025-06-10 21:11:21.789 | }
+2025-06-10 21:11:21.789 | 
+2025-06-10 21:11:21.789 | IMPORTANT: Return ONLY a valid JSON object with this exact format:
+2025-06-10 21:11:21.789 | {
+2025-06-10 21:11:21.789 |     "response": {
+2025-06-10 21:11:21.789 |         "subject": "Re: ...",
+2025-06-10 21:11:21.789 |         "body": "Dear [Name],\n\nThank you... [INCLUDE address, web reference, and application link here]"
+2025-06-10 21:11:21.789 |     }
+2025-06-10 21:11:21.789 | }
+2025-06-10 21:11:27.526 | 
+2025-06-10 21:11:27.526 | 
+2025-06-10 21:11:27.526 | # Agent: Response Writer
+2025-06-10 21:11:27.527 | ## Final Answer: 
+2025-06-10 21:11:27.527 | {
+2025-06-10 21:11:27.527 |     "response": {
+2025-06-10 21:11:27.527 |         "subject": "Re: Property Inquiry - RR4379658",
+2025-06-10 21:11:27.527 |         "body": "Dear [Name],\n\nThank you for your interest in the property at 175 304 Main Avenue, 304 Main Avenue (Reference: RR4379658).\n\nThe property is available. You can apply here: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\n\nBest regards,\nNozipho"
+2025-06-10 21:11:27.527 |     }
+2025-06-10 21:11:27.527 | }
+2025-06-10 21:11:27.527 | 
+2025-06-10 21:11:27.527 | 
+2025-06-10 21:11:27.531 | 🚀 Crew: crew
+2025-06-10 21:11:27.531 | ├── 📋 Task: fe06dea4-4859-4435-a450-bf14743f82c8
+2025-06-10 21:11:27.531 | │      Assigned to: Inquiry Classifier
+2025-06-10 21:11:27.531 | │      Status: ✅ Completed
+2025-06-10 21:11:27.531 | │   └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:27.531 | │           Status: ✅ Completed
+2025-06-10 21:11:27.531 | └── 📋 Task: 2de29b1f-fa07-4833-bdb0-d2f5e739beb1
+2025-06-10 21:11:27.531 |        Status: Executing Task...
+2025-06-10 21:11:27.531 |     └── 🤖 Agent: Response Writer
+2025-06-10 21:11:27.531 |             Status: ✅ Completed
+2025-06-10 21:11:27.531 | 
+2025-06-10 21:11:27.535 | 🚀 Crew: crew
+2025-06-10 21:11:27.535 | ├── 📋 Task: fe06dea4-4859-4435-a450-bf14743f82c8
+2025-06-10 21:11:27.535 | │      Assigned to: Inquiry Classifier
+2025-06-10 21:11:27.535 | │      Status: ✅ Completed
+2025-06-10 21:11:27.535 | │   └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:27.535 | │           Status: ✅ Completed
+2025-06-10 21:11:27.535 | └── 📋 Task: 2de29b1f-fa07-4833-bdb0-d2f5e739beb1
+2025-06-10 21:11:27.535 |        Assigned to: Response Writer
+2025-06-10 21:11:27.535 |        Status: ✅ Completed
+2025-06-10 21:11:27.535 |     └── 🤖 Agent: Response Writer
+2025-06-10 21:11:27.535 |             Status: ✅ Completed
+2025-06-10 21:11:27.540 | ╭────────────────────────────── Task Completion ───────────────────────────────╮
+2025-06-10 21:11:27.540 | │                                                                              │
+2025-06-10 21:11:27.540 | │  Task Completed                                                              │
+2025-06-10 21:11:27.540 | │  Name: 2de29b1f-fa07-4833-bdb0-d2f5e739beb1                                  │
+2025-06-10 21:11:27.540 | │  Agent: Response Writer                                                      │
+2025-06-10 21:11:27.540 | │                                                                              │
+2025-06-10 21:11:27.540 | │                                                                              │
+2025-06-10 21:11:27.540 | ╰──────────────────────────────────────────────────────────────────────────────╯
+2025-06-10 21:11:27.540 | 
+2025-06-10 21:11:27.579 | 🚀 Crew: crew
+2025-06-10 21:11:27.579 | ├── 📋 Task: fe06dea4-4859-4435-a450-bf14743f82c8
+2025-06-10 21:11:27.579 | │      Assigned to: Inquiry Classifier
+2025-06-10 21:11:27.579 | │      Status: ✅ Completed
+2025-06-10 21:11:27.579 | │   └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:27.579 | │           Status: ✅ Completed
+2025-06-10 21:11:27.579 | ├── 📋 Task: 2de29b1f-fa07-4833-bdb0-d2f5e739beb1
+2025-06-10 21:11:27.579 | │      Assigned to: Response Writer
+2025-06-10 21:11:27.579 | │      Status: ✅ Completed
+2025-06-10 21:11:27.579 | │   └── 🤖 Agent: Response Writer
+2025-06-10 21:11:27.579 | │           Status: ✅ Completed
+2025-06-10 21:11:27.579 | └── 📋 Task: eff52a15-19de-48ae-b409-97a349bfb494
+2025-06-10 21:11:27.579 |        Status: Executing Task...
+2025-06-10 21:11:27.579 | 
+2025-06-10 21:11:27.584 | 🚀 Crew: crew
+2025-06-10 21:11:27.584 | ├── 📋 Task: fe06dea4-4859-4435-a450-bf14743f82c8
+2025-06-10 21:11:27.584 | │      Assigned to: Inquiry Classifier
+2025-06-10 21:11:27.584 | │      Status: ✅ Completed
+2025-06-10 21:11:27.584 | │   └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:27.584 | │           Status: ✅ Completed
+2025-06-10 21:11:27.584 | ├── 📋 Task: 2de29b1f-fa07-4833-bdb0-d2f5e739beb1
+2025-06-10 21:11:27.584 | │      Assigned to: Response Writer
+2025-06-10 21:11:27.584 | │      Status: ✅ Completed
+2025-06-10 21:11:27.584 | │   └── 🤖 Agent: Response Writer
+2025-06-10 21:11:27.584 | │           Status: ✅ Completed
+2025-06-10 21:11:27.584 | └── 📋 Task: eff52a15-19de-48ae-b409-97a349bfb494
+2025-06-10 21:11:27.584 |        Status: Executing Task...
+2025-06-10 21:11:27.584 |     └── 🤖 Agent: Response Validator
+2025-06-10 21:11:27.584 |             Status: In Progress
+2025-06-10 21:11:27.584 | 
+2025-06-10 21:11:27.585 | # Agent: Response Validator
+2025-06-10 21:11:27.585 | ## Task: Validate this email response for accuracy, professionalism, and completeness.
+2025-06-10 21:11:27.585 | 
+2025-06-10 21:11:27.585 |                     Original Email: 
+2025-06-10 21:11:27.585 |                     *New Property Enquiry on RR4379658*
+2025-06-10 21:11:27.585 | 
+2025-06-10 21:11:27.585 | Hi Nozipho, I'm interested in this unit. Is it still available?
+2025-06-10 21:11:27.585 | 
+2025-06-10 21:11:27.585 | 2 Bed Apartment In Ferndale
+2025-06-10 21:11:27.585 | R 8250 Per Month
+2025-06-10 21:11:27.585 | Private Property Ref: RR4379658
+2025-06-10 21:11:27.585 | 
+2025-06-10 21:11:27.585 |                     Property Details:
+2025-06-10 21:11:27.585 |                     {
+2025-06-10 21:11:27.585 |   "id": "dc11889a-e21e-42a7-8c17-cc7b3a395131",
+2025-06-10 21:11:27.585 |   "web_reference": "RR4379658",
+2025-06-10 21:11:27.585 |   "address": "175 304 Main Avenue, 304 Main Avenue",
+2025-06-10 21:11:27.585 |   "status": "available",
+2025-06-10 21:11:27.585 |   "application_link": "https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv",
+2025-06-10 21:11:27.585 |   "agent_id": "77dff4d2-f083-493b-9060-ab1220d8763a"
+2025-06-10 21:11:27.585 | }
+2025-06-10 21:11:27.585 | 
+2025-06-10 21:11:27.585 |                     Validation Requirements:
+2025-06-10 21:11:27.585 |                     1. Address included: 175 304 Main Avenue, 304 Main Avenue
+2025-06-10 21:11:27.585 |                     2. Property reference included: RR4379658
+2025-06-10 21:11:27.585 |                     3. Application link included: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv
+2025-06-10 21:11:27.585 | 
+2025-06-10 21:11:27.585 |                     IMPORTANT: Return ONLY a valid JSON object with this exact format:
+2025-06-10 21:11:27.585 |                     {
+2025-06-10 21:11:27.585 |                         "pass": true/false,
+2025-06-10 21:11:27.585 |                         "confidence": 0.0-1.0,
+2025-06-10 21:11:27.585 |                         "details": {
+2025-06-10 21:11:27.585 |                             "factual_pass": true/false,
+2025-06-10 21:11:27.585 |                             "completeness_pass": true/false,
+2025-06-10 21:11:27.585 |                             "tone_pass": true/false,
+2025-06-10 21:11:27.585 |                             "missing_fields": [...],
+2025-06-10 21:11:27.585 |                             "inquiry_type": "None"
+2025-06-10 21:11:27.585 |                         }
+2025-06-10 21:11:27.585 |                     }
+2025-06-10 21:11:31.853 | 
+2025-06-10 21:11:31.853 | 
+2025-06-10 21:11:31.853 | # Agent: Response Validator
+2025-06-10 21:11:31.853 | ## Final Answer: 
+2025-06-10 21:11:31.853 | {
+2025-06-10 21:11:31.853 |     "pass": true,
+2025-06-10 21:11:31.853 |     "confidence": 1.0,
+2025-06-10 21:11:31.853 |     "details": {
+2025-06-10 21:11:31.853 |         "factual_pass": true,
+2025-06-10 21:11:31.853 |         "completeness_pass": true,
+2025-06-10 21:11:31.853 |         "tone_pass": true,
+2025-06-10 21:11:31.853 |         "missing_fields": [],
+2025-06-10 21:11:31.853 |         "inquiry_type": "New Property Enquiry"
+2025-06-10 21:11:31.853 |     }
+2025-06-10 21:11:31.853 | }
+2025-06-10 21:11:31.853 | 
+2025-06-10 21:11:31.853 | 
+2025-06-10 21:11:31.859 | 🚀 Crew: crew
+2025-06-10 21:11:31.860 | ├── 📋 Task: fe06dea4-4859-4435-a450-bf14743f82c8
+2025-06-10 21:11:31.860 | │      Assigned to: Inquiry Classifier
+2025-06-10 21:11:31.860 | │      Status: ✅ Completed
+2025-06-10 21:11:31.860 | │   └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:31.860 | │           Status: ✅ Completed
+2025-06-10 21:11:31.860 | ├── 📋 Task: 2de29b1f-fa07-4833-bdb0-d2f5e739beb1
+2025-06-10 21:11:31.860 | │      Assigned to: Response Writer
+2025-06-10 21:11:31.860 | │      Status: ✅ Completed
+2025-06-10 21:11:31.860 | │   └── 🤖 Agent: Response Writer
+2025-06-10 21:11:31.860 | │           Status: ✅ Completed
+2025-06-10 21:11:31.860 | └── 📋 Task: eff52a15-19de-48ae-b409-97a349bfb494
+2025-06-10 21:11:31.860 |        Status: Executing Task...
+2025-06-10 21:11:31.860 |     └── 🤖 Agent: Response Validator
+2025-06-10 21:11:31.860 |             Status: ✅ Completed
+2025-06-10 21:11:31.865 | 
+2025-06-10 21:11:31.875 | 🚀 Crew: crew
+2025-06-10 21:11:31.875 | ├── 📋 Task: fe06dea4-4859-4435-a450-bf14743f82c8
+2025-06-10 21:11:31.875 | │      Assigned to: Inquiry Classifier
+2025-06-10 21:11:31.875 | │      Status: ✅ Completed
+2025-06-10 21:11:31.875 | │   └── 🤖 Agent: Inquiry Classifier
+2025-06-10 21:11:31.875 | │           Status: ✅ Completed
+2025-06-10 21:11:31.875 | ├── 📋 Task: 2de29b1f-fa07-4833-bdb0-d2f5e739beb1
+2025-06-10 21:11:31.875 | │      Assigned to: Response Writer
+2025-06-10 21:11:31.875 | │      Status: ✅ Completed
+2025-06-10 21:11:31.875 | │   └── 🤖 Agent: Response Writer
+2025-06-10 21:11:31.875 | │           Status: ✅ Completed
+2025-06-10 21:11:31.875 | └── 📋 Task: eff52a15-19de-48ae-b409-97a349bfb494
+2025-06-10 21:11:31.875 |        Assigned to: Response Validator
+2025-06-10 21:11:31.875 |        Status: ✅ Completed
+2025-06-10 21:11:31.875 |     └── 🤖 Agent: Response Validator
+2025-06-10 21:11:31.875 |             Status: ✅ Completed
+2025-06-10 21:11:31.875 | ╭────────────────────────────── Task Completion ───────────────────────────────╮
+2025-06-10 21:11:31.875 | │                                                                              │
+2025-06-10 21:11:31.875 | │  Task Completed                                                              │
+2025-06-10 21:11:31.875 | │  Name: eff52a15-19de-48ae-b409-97a349bfb494                                  │
+2025-06-10 21:11:31.875 | │  Agent: Response Validator                                                   │
+2025-06-10 21:11:31.875 | │                                                                              │
+2025-06-10 21:11:31.875 | │                                                                              │
+2025-06-10 21:11:31.875 | ╰──────────────────────────────────────────────────────────────────────────────╯
+2025-06-10 21:11:31.875 | 
+2025-06-10 21:11:31.939 | ╭────────────────────────────── Crew Completion ───────────────────────────────╮
+2025-06-10 21:11:31.939 | │                                                                              │
+2025-06-10 21:11:31.939 | │  Crew Execution Completed                                                    │
+2025-06-10 21:11:31.939 | │  Name: crew                                                                  │
+2025-06-10 21:11:31.939 | │  ID: 8a4329a2-31ad-4a12-8378-fb2886b86312                                    │
+2025-06-10 21:11:31.939 | │                                                                              │
+2025-06-10 21:11:31.939 | │                                                                              │
+2025-06-10 21:11:31.939 | ╰──────────────────────────────────────────────────────────────────────────────╯
+2025-06-10 21:11:31.939 | 
+2025-06-10 21:11:31.944 | INFO:src.tasks.email_response_agent:Serialized result: {
+2025-06-10 21:11:31.944 |   "raw": "{\n    \"pass\": true,\n    \"confidence\": 1.0,\n    \"details\": {\n        \"factual_pass\": true,\n        \"completeness_pass\": true,\n        \"tone_pass\": true,\n        \"missing_fields\": [],\n        \"inquiry_type\": \"New Property Enquiry\"\n    }\n}",
+2025-06-10 21:11:31.944 |   "pydantic": null,
+2025-06-10 21:11:31.944 |   "json_dict": null,
+2025-06-10 21:11:31.944 |   "tasks_output": [
+2025-06-10 21:11:31.944 |     {
+2025-06-10 21:11:31.944 |       "description": "Classify the type of property inquiry from this email exchange.\nSubject: New Private Property enquiry (property RR4379658)\nContent: *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658\n\nAnalyze the email content and determine if this is:\n1. viewing_request: Customer wants to view the property\n2. availability_check: Customer is asking about availability\n3. general_info: General inquiry about the property\n\nIMPORTANT: Return ONLY a valid JSON object with this exact format:\n{\"inquiry_type\": \"viewing_request\" | \"availability_check\" | \"general_info\"}",
+2025-06-10 21:11:31.944 |       "name": "classify_inquiry_task",
+2025-06-10 21:11:31.944 |       "expected_output": "A valid JSON object containing the inquiry_type.",
+2025-06-10 21:11:31.944 |       "summary": "Classify the type of property inquiry from this email exchange.\nSubject:...",
+2025-06-10 21:11:31.944 |       "raw": "{\"inquiry_type\": \"availability_check\"}",
+2025-06-10 21:11:31.944 |       "pydantic": null,
+2025-06-10 21:11:31.944 |       "json_dict": null,
+2025-06-10 21:11:31.944 |       "agent": "Inquiry Classifier",
+2025-06-10 21:11:31.944 |       "output_format": "raw"
+2025-06-10 21:11:31.944 |     },
+2025-06-10 21:11:31.944 |     {
+2025-06-10 21:11:31.944 |       "description": "Generate a professional, POPI-compliant response to this property inquiry.\n\nEmail Subject: New Private Property enquiry (property RR4379658)\nEmail Content: *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658\nInquiry Type: None\n\nProperty Details:\n{\n  \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n  \"web_reference\": \"RR4379658\",\n  \"status\": \"available\",\n  \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\"\n}\n\nResponse Requirements (MUST INCLUDE ALL):\n1. Address: 175 304 Main Avenue, 304 Main Avenue\n2. Property reference: RR4379658\n3. Application link: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\n4. Be friendly and professional\n5. Follow South African business etiquette\n\nIMPORTANT: You MUST copy and paste the address, property reference, and application link EXACTLY as provided above into the response body. Do not paraphrase or omit them.\n\nEXAMPLE RESPONSE (format):\n{\n    \"response\": {\n        \"subject\": \"Re: Property Inquiry - RR4379658\",\n        \"body\": \"Dear [Name],\\n\\nThank you for your interest in the property at 175 304 Main Avenue, 304 Main Avenue (Reference: RR4379658).\\n\\nThe property is available. You can apply here: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\\n\\nBest regards,\\n[Agent Name]\"\n    }\n}\n\nIMPORTANT: Return ONLY a valid JSON object with this exact format:\n{\n    \"response\": {\n        \"subject\": \"Re: ...\",\n        \"body\": \"Dear [Name],\\n\\nThank you... [INCLUDE address, web reference, and application link here]\"\n    }\n}",
+2025-06-10 21:11:31.944 |       "name": "generate_response_task",
+2025-06-10 21:11:31.944 |       "expected_output": "A valid JSON object with response.subject and response.body",
+2025-06-10 21:11:31.944 |       "summary": "Generate a professional, POPI-compliant response to this property inquiry.\n\nEmail Subject:...",
+2025-06-10 21:11:31.944 |       "raw": "{\n    \"response\": {\n        \"subject\": \"Re: Property Inquiry - RR4379658\",\n        \"body\": \"Dear [Name],\\n\\nThank you for your interest in the property at 175 304 Main Avenue, 304 Main Avenue (Reference: RR4379658).\\n\\nThe property is available. You can apply here: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\\n\\nBest regards,\\nNozipho\"\n    }\n}",
+2025-06-10 21:11:31.944 |       "pydantic": null,
+2025-06-10 21:11:31.944 |       "json_dict": null,
+2025-06-10 21:11:31.944 |       "agent": "Response Writer",
+2025-06-10 21:11:31.944 |       "output_format": "raw"
+2025-06-10 21:11:31.944 |     },
+2025-06-10 21:11:31.944 |     {
+2025-06-10 21:11:31.944 |       "description": "Validate this email response for accuracy, professionalism, and completeness.\n\n                    Original Email: \n                    *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658\n\n                    Property Details:\n                    {\n  \"id\": \"dc11889a-e21e-42a7-8c17-cc7b3a395131\",\n  \"web_reference\": \"RR4379658\",\n  \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n  \"status\": \"available\",\n  \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\",\n  \"agent_id\": \"77dff4d2-f083-493b-9060-ab1220d8763a\"\n}\n\n                    Validation Requirements:\n                    1. Address included: 175 304 Main Avenue, 304 Main Avenue\n                    2. Property reference included: RR4379658\n                    3. Application link included: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\n\n                    IMPORTANT: Return ONLY a valid JSON object with this exact format:\n                    {\n                        \"pass\": true/false,\n                        \"confidence\": 0.0-1.0,\n                        \"details\": {\n                            \"factual_pass\": true/false,\n                            \"completeness_pass\": true/false,\n                            \"tone_pass\": true/false,\n                            \"missing_fields\": [...],\n                            \"inquiry_type\": \"None\"\n                        }\n                    }",
+2025-06-10 21:11:31.944 |       "name": "validate_response_task",
+2025-06-10 21:11:31.944 |       "expected_output": "A valid JSON object with validation results",
+2025-06-10 21:11:31.944 |       "summary": "Validate this email response for accuracy, professionalism, and completeness.\n\n ...",
+2025-06-10 21:11:31.944 |       "raw": "{\n    \"pass\": true,\n    \"confidence\": 1.0,\n    \"details\": {\n        \"factual_pass\": true,\n        \"completeness_pass\": true,\n        \"tone_pass\": true,\n        \"missing_fields\": [],\n        \"inquiry_type\": \"New Property Enquiry\"\n    }\n}",
+2025-06-10 21:11:31.944 |       "pydantic": null,
+2025-06-10 21:11:31.944 |       "json_dict": null,
+2025-06-10 21:11:31.944 |       "agent": "Response Validator",
+2025-06-10 21:11:31.944 |       "output_format": "raw"
+2025-06-10 21:11:31.944 |     }
+2025-06-10 21:11:31.944 |   ],
+2025-06-10 21:11:31.944 |   "token_usage": {
+2025-06-10 21:11:31.944 |     "total_tokens": 1756,
+2025-06-10 21:11:31.944 |     "prompt_tokens": 1536,
+2025-06-10 21:11:31.945 |     "cached_prompt_tokens": 0,
+2025-06-10 21:11:31.945 |     "completion_tokens": 220,
+2025-06-10 21:11:31.945 |     "successful_requests": 3
+2025-06-10 21:11:31.945 |   }
+2025-06-10 21:11:31.945 | }
+2025-06-10 21:11:31.945 | WARNING:src.email_response_workflow:Failed to extract response text, but continuing with workflow
+2025-06-10 21:11:31.945 | 2025-06-10 19:11:31,942 - src.tasks.email_response_agent - INFO - Serialized result: {
+2025-06-10 21:11:31.945 |   "raw": "{\n    \"pass\": true,\n    \"confidence\": 1.0,\n    \"details\": {\n        \"factual_pass\": true,\n        \"completeness_pass\": true,\n        \"tone_pass\": true,\n        \"missing_fields\": [],\n        \"inquiry_type\": \"New Property Enquiry\"\n    }\n}",
+2025-06-10 21:11:31.945 |   "pydantic": null,
+2025-06-10 21:11:31.945 |   "json_dict": null,
+2025-06-10 21:11:31.945 |   "tasks_output": [
+2025-06-10 21:11:31.945 |     {
+2025-06-10 21:11:31.945 |       "description": "Classify the type of property inquiry from this email exchange.\nSubject: New Private Property enquiry (property RR4379658)\nContent: *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658\n\nAnalyze the email content and determine if this is:\n1. viewing_request: Customer wants to view the property\n2. availability_check: Customer is asking about availability\n3. general_info: General inquiry about the property\n\nIMPORTANT: Return ONLY a valid JSON object with this exact format:\n{\"inquiry_type\": \"viewing_request\" | \"availability_check\" | \"general_info\"}",
+2025-06-10 21:11:31.945 |       "name": "classify_inquiry_task",
+2025-06-10 21:11:31.945 |       "expected_output": "A valid JSON object containing the inquiry_type.",
+2025-06-10 21:11:31.945 |       "summary": "Classify the type of property inquiry from this email exchange.\nSubject:...",
+2025-06-10 21:11:31.945 |       "raw": "{\"inquiry_type\": \"availability_check\"}",
+2025-06-10 21:11:31.945 |       "pydantic": null,
+2025-06-10 21:11:31.945 |       "json_dict": null,
+2025-06-10 21:11:31.945 |       "agent": "Inquiry Classifier",
+2025-06-10 21:11:31.945 |       "output_format": "raw"
+2025-06-10 21:11:31.945 |     },
+2025-06-10 21:11:31.945 |     {
+2025-06-10 21:11:31.945 |       "description": "Generate a professional, POPI-compliant response to this property inquiry.\n\nEmail Subject: New Private Property enquiry (property RR4379658)\nEmail Content: *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658\nInquiry Type: None\n\nProperty Details:\n{\n  \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n  \"web_reference\": \"RR4379658\",\n  \"status\": \"available\",\n  \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\"\n}\n\nResponse Requirements (MUST INCLUDE ALL):\n1. Address: 175 304 Main Avenue, 304 Main Avenue\n2. Property reference: RR4379658\n3. Application link: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\n4. Be friendly and professional\n5. Follow South African business etiquette\n\nIMPORTANT: You MUST copy and paste the address, property reference, and application link EXACTLY as provided above into the response body. Do not paraphrase or omit them.\n\nEXAMPLE RESPONSE (format):\n{\n    \"response\": {\n        \"subject\": \"Re: Property Inquiry - RR4379658\",\n        \"body\": \"Dear [Name],\\n\\nThank you for your interest in the property at 175 304 Main Avenue, 304 Main Avenue (Reference: RR4379658).\\n\\nThe property is available. You can apply here: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\\n\\nBest regards,\\n[Agent Name]\"\n    }\n}\n\nIMPORTANT: Return ONLY a valid JSON object with this exact format:\n{\n    \"response\": {\n        \"subject\": \"Re: ...\",\n        \"body\": \"Dear [Name],\\n\\nThank you... [INCLUDE address, web reference, and application link here]\"\n    }\n}",
+2025-06-10 21:11:31.945 |       "name": "generate_response_task",
+2025-06-10 21:11:31.945 |       "expected_output": "A valid JSON object with response.subject and response.body",
+2025-06-10 21:11:31.945 |       "summary": "Generate a professional, POPI-compliant response to this property inquiry.\n\nEmail Subject:...",
+2025-06-10 21:11:31.945 |       "raw": "{\n    \"response\": {\n        \"subject\": \"Re: Property Inquiry - RR4379658\",\n        \"body\": \"Dear [Name],\\n\\nThank you for your interest in the property at 175 304 Main Avenue, 304 Main Avenue (Reference: RR4379658).\\n\\nThe property is available. You can apply here: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\\n\\nBest regards,\\nNozipho\"\n    }\n}",
+2025-06-10 21:11:31.945 |       "pydantic": null,
+2025-06-10 21:11:31.945 |       "json_dict": null,
+2025-06-10 21:11:31.945 |       "agent": "Response Writer",
+2025-06-10 21:11:31.945 |       "output_format": "raw"
+2025-06-10 21:11:31.945 |     },
+2025-06-10 21:11:31.945 |     {
+2025-06-10 21:11:31.945 |       "description": "Validate this email response for accuracy, professionalism, and completeness.\n\n                    Original Email: \n                    *New Property Enquiry on RR4379658*\n\nHi Nozipho, I'm interested in this unit. Is it still available?\n\n2 Bed Apartment In Ferndale\nR 8250 Per Month\nPrivate Property Ref: RR4379658\n\n                    Property Details:\n                    {\n  \"id\": \"dc11889a-e21e-42a7-8c17-cc7b3a395131\",\n  \"web_reference\": \"RR4379658\",\n  \"address\": \"175 304 Main Avenue, 304 Main Avenue\",\n  \"status\": \"available\",\n  \"application_link\": \"https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\",\n  \"agent_id\": \"77dff4d2-f083-493b-9060-ab1220d8763a\"\n}\n\n                    Validation Requirements:\n                    1. Address included: 175 304 Main Avenue, 304 Main Avenue\n                    2. Property reference included: RR4379658\n                    3. Application link included: https://app.agentamara.com/apply/prop_1745768243927_4z4pw4yv\n\n                    IMPORTANT: Return ONLY a valid JSON object with this exact format:\n                    {\n                        \"pass\": true/false,\n                        \"confidence\": 0.0-1.0,\n                        \"details\": {\n                            \"factual_pass\": true/false,\n                            \"completeness_pass\": true/false,\n                            \"tone_pass\": true/false,\n                            \"missing_fields\": [...],\n                            \"inquiry_type\": \"None\"\n                        }\n                    }",
+2025-06-10 21:11:31.945 |       "name": "validate_response_task",
+2025-06-10 21:11:31.945 |       "expected_output": "A valid JSON object with validation results",
+2025-06-10 21:11:31.945 |       "summary": "Validate this email response for accuracy, professionalism, and completeness.\n\n ...",
+2025-06-10 21:11:31.945 |       "raw": "{\n    \"pass\": true,\n    \"confidence\": 1.0,\n    \"details\": {\n        \"factual_pass\": true,\n        \"completeness_pass\": true,\n        \"tone_pass\": true,\n        \"missing_fields\": [],\n        \"inquiry_type\": \"New Property Enquiry\"\n    }\n}",
+2025-06-10 21:11:31.945 |       "pydantic": null,
+2025-06-10 21:11:31.945 |       "json_dict": null,
+2025-06-10 21:11:31.945 |       "agent": "Response Validator",
+2025-06-10 21:11:31.945 |       "output_format": "raw"
+2025-06-10 21:11:31.945 |     }
+2025-06-10 21:11:31.945 |   ],
+2025-06-10 21:11:31.945 |   "token_usage": {
+2025-06-10 21:11:31.945 |     "total_tokens": 1756,
+2025-06-10 21:11:31.945 |     "prompt_tokens": 1536,
+2025-06-10 21:11:31.945 |     "cached_prompt_tokens": 0,
+2025-06-10 21:11:31.945 |     "completion_tokens": 220,
+2025-06-10 21:11:31.945 |     "successful_requests": 3
+2025-06-10 21:11:31.945 |   }
+2025-06-10 21:11:31.945 | }
+2025-06-10 21:11:31.963 | INFO:     172.19.0.1:39046 - "POST /api/v1/process-email HTTP/1.1" 200 OK

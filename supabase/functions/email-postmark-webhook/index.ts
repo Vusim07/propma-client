@@ -271,6 +271,8 @@ serve(async (req) => {
 					supabaseClient,
 				});
 
+				console.log('AI agent raw result:', JSON.stringify(aiResult, null, 2));
+
 				if (aiResult && aiResult.response) {
 					let outgoingMessageId;
 					await retryOperation(async () => {
@@ -281,12 +283,23 @@ serve(async (req) => {
 								from_address: To,
 								to_address: From,
 								subject: aiResult.response.subject || `Re: ${thread.subject}`,
-								body: aiResult.response.body || aiResult.response,
+								body:
+									typeof aiResult.response?.body === 'string'
+										? aiResult.response.body
+										: typeof aiResult.response === 'string'
+										? aiResult.response
+										: (console.warn(
+												'AI response body is not a string, using JSON.stringify fallback',
+										  ),
+										  JSON.stringify(aiResult.response)),
 								status: 'sent',
 								is_read: false,
 								sent_at: null,
 								ai_generated: true,
-								ai_confidence: aiResult.validation?.confidence || null,
+								ai_confidence:
+									typeof aiResult.validation?.confidence === 'number'
+										? aiResult.validation.confidence
+										: null,
 								ai_validation: aiResult.validation || null,
 								created_at: new Date().toISOString(),
 							})
@@ -297,6 +310,27 @@ serve(async (req) => {
 					}, 'store AI response message');
 
 					if (outgoingMessageId) {
+						const outgoingPayload = {
+							messageId: outgoingMessageId,
+							to: From,
+							subject: aiResult.response.subject || `Re: ${thread.subject}`,
+							body:
+								typeof aiResult.response?.body === 'string'
+									? aiResult.response.body
+									: typeof aiResult.response === 'string'
+									? aiResult.response
+									: (console.warn(
+											'AI response body is not a string, using JSON.stringify fallback',
+									  ),
+									  JSON.stringify(aiResult.response)),
+							replyTo: To,
+							// Added user_id from emailAddress to satisfy downstream requirements.
+							user_id: emailAddress.user_id || emailAddress.id,
+						};
+						console.log(
+							'Outgoing Postmark payload:',
+							JSON.stringify(outgoingPayload, null, 2),
+						);
 						const sendRes = await fetch(
 							Deno.env.get('EMAIL_SEND_FUNCTION_URL') ||
 								'http://localhost:54321/functions/v1/email-postmark-send',
@@ -308,13 +342,7 @@ serve(async (req) => {
 										'SUPABASE_SERVICE_ROLE_KEY',
 									)}`,
 								},
-								body: JSON.stringify({
-									messageId: outgoingMessageId,
-									to: From,
-									subject: aiResult.response.subject || `Re: ${thread.subject}`,
-									body: aiResult.response.body || aiResult.response,
-									replyTo: To,
-								}),
+								body: JSON.stringify(outgoingPayload),
 							},
 						);
 						if (!sendRes.ok) {

@@ -34,6 +34,7 @@ serve(async (req) => {
 
 		// Parse the request body
 		const payload: SendEmailRequest = await req.json();
+		console.log('Received payload:', JSON.stringify(payload, null, 2));
 
 		// Validate required fields
 		if (

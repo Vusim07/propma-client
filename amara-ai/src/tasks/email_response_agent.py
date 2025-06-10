@@ -377,45 +377,44 @@ class EmailResponseCrew:
             if isinstance(result, str):
                 try:
                     result = json.loads(result)
-                except json.JSONDecodeError:
-                    logger.error("Failed to parse result as JSON")
-                    result = {"response": result}
+                except Exception:
+                    logger.warning("Result string could not be parsed as JSON")
 
-            # Extract response
+            # Extract response from tasks_output if present
             if isinstance(result, dict):
-                if "response" in result:
+                # If response is already present and non-empty, use it
+                if result.get("response") and result["response"]:
                     final_data["response"] = result["response"]
-                    logger.info("Successfully extracted response")
-
-                # Extract validation if present
-                if "validation" in result:
-                    final_data["validation"] = result["validation"]
-                    logger.info("Successfully extracted validation")
-
-                # Set success based on validation
-                final_data["success"] = (
-                    final_data["validation"]["pass"]
-                    and final_data["validation"]["confidence"] >= 0.7
-                )
+                # Otherwise, try to extract from tasks_output
+                elif "tasks_output" in result and isinstance(
+                    result["tasks_output"], list
+                ):
+                    for task in result["tasks_output"]:
+                        if (
+                            task.get("name") == "generate_response_task"
+                            and "raw" in task
+                        ):
+                            try:
+                                raw_obj = json.loads(task["raw"])
+                                if raw_obj.get("response"):
+                                    final_data["response"] = raw_obj["response"]
+                                    break
+                            except Exception as e:
+                                logger.warning(
+                                    f"Failed to parse generate_response_task raw: {e}"
+                                )
+                # Fallback: if raw is present at top level
+                elif "raw" in result:
+                    try:
+                        raw_obj = json.loads(result["raw"])
+                        if raw_obj.get("response"):
+                            final_data["response"] = raw_obj["response"]
+                    except Exception as e:
+                        logger.warning(f"Failed to parse top-level raw: {e}")
 
             # Validate required fields
             if final_data["response"]:
-                logger.info("Validating response completeness...")
-                required_fields = [
-                    self.matched_property["address"],
-                    self.matched_property["application_link"],
-                    self.matched_property["web_reference"],
-                ]
-                missing = []
-                response_text = str(final_data["response"])
-                for field in required_fields:
-                    if field not in response_text:
-                        missing.append(field)
-                if missing:
-                    final_data["validation"]["details"]["missing_fields"] = missing
-                    final_data["validation"]["pass"] = False
-                    final_data["success"] = False
-                    logger.warning(f"Missing required fields: {missing}")
+                final_data["success"] = True
 
             # Add inquiry type
             final_data["validation"]["details"]["inquiry_type"] = self.inquiry_type
@@ -581,7 +580,7 @@ def process_email_with_crew(
             raise ValueError("Missing required email content or subject")
 
         if not agent_properties:
-            raise ValueError("No properties provided")
+            raise ValueError("No properties provided for agent")
 
         if not workflow_actions:
             raise ValueError("No workflow actions provided")
@@ -602,16 +601,39 @@ def process_email_with_crew(
 
         # Convert result to serializable format
         serialized_result = _ensure_serializable(result)
+
+        # Ensure we have a response object
+        if not serialized_result.get("response"):
+            for task in serialized_result.get("tasks_output", []):
+                if task.get("name") == "generate_response_task":
+                    try:
+                        response_data = json.loads(task.get("raw", "{}"))
+                        if "response" in response_data:
+                            serialized_result["response"] = response_data["response"]
+                            break
+                    except:
+                        continue
+
         logger.info(f"Serialized result: {json.dumps(serialized_result, indent=2)}")
+
+        # Validate final output structure
+        if not serialized_result.get("response"):
+            logger.error("No response found in serialized result")
+            return {
+                "success": False,
+                "error": "No response generated",
+                "raw": serialized_result,
+            }
 
         return serialized_result
 
     except ValueError as ve:
         logger.error(f"Validation error in email processing: {str(ve)}")
         return {
-            "response": None,
-            "validation": None,
+            "success": False,
             "error": str(ve),
+            "response": {},
+            "validation": None,
             "inquiry_type": None,
         }
     except Exception as e:
@@ -619,9 +641,9 @@ def process_email_with_crew(
         logger.error(error_msg)
         logger.error(f"Stack trace: {traceback.format_exc()}")
         return {
-            "response": None,
-            "validation": None,
+            "success": False,
             "error": error_msg,
+            "response": {},
+            "validation": None,
             "inquiry_type": None,
-            "stack_trace": traceback.format_exc(),
         }

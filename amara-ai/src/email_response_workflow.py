@@ -27,7 +27,13 @@ def _convert_crew_output(output):
     """Convert CrewOutput object to a serializable dict"""
     if hasattr(output, "raw"):
         # Handle CrewOutput object
-        return output.raw() if callable(output.raw) else output.raw
+        raw_output = output.raw() if callable(output.raw) else output.raw
+        if isinstance(raw_output, str):
+            try:
+                return json.loads(raw_output)
+            except json.JSONDecodeError:
+                return {"response": raw_output}
+        return raw_output
     elif hasattr(output, "output"):
         # Handle TaskOutput object
         return output.output() if callable(output.output) else output.output
@@ -36,7 +42,7 @@ def _convert_crew_output(output):
     elif isinstance(output, str):
         try:
             return json.loads(output)
-        except:
+        except json.JSONDecodeError:
             return {"response": output}
     return output
 
@@ -81,46 +87,75 @@ def extract_inquiry_type(result):
 
 def serialize_crew_result(result):
     """Convert any CrewAI result into a JSON-serializable format"""
+    logger.info(f"Serializing crew result of type: {type(result)}")
+
+    # Base structure for response
+    serialized_response = {
+        "success": True,
+        "response": {},
+        "validation": None,
+        "inquiry_type": None,
+    }
+
     if hasattr(result, "tasks_output"):
         tasks = []
+        response_data = None
+        validation_data = None
+
         for task in result.tasks_output:
-            task_dict = {}
-            for key, value in task.items():
-                if (
-                    isinstance(value, (str, int, float, bool, list, dict))
-                    or value is None
-                ):
-                    task_dict[key] = value
-                else:
-                    task_dict[key] = str(value)
+            task_dict = _convert_crew_output(task)
             tasks.append(task_dict)
 
-        # Extract the response from generate_response_task
-        response = None
-        for task in tasks:
-            if task.get("name") == "generate_response_task":
+            # Look for response writer output
+            if task.get("name") == "generate_response_task" or "response" in str(
+                task.get("raw", "")
+            ):
                 try:
-                    raw = task.get("raw", "")
-                    if isinstance(raw, str):
-                        response = json.loads(raw)
-                except json.JSONDecodeError:
-                    logger.error(f"Failed to parse response from task output: {raw}")
+                    raw_response = _convert_crew_output(task.get("raw"))
+                    if isinstance(raw_response, dict) and "response" in raw_response:
+                        response_data = raw_response["response"]
+                except:
+                    pass
 
-        return {"tasks_output": tasks, "response": response}
+            # Look for validation output
+            if task.get("name") == "validate_response_task" or "validation" in str(
+                task.get("raw", "")
+            ):
+                try:
+                    validation_data = _convert_crew_output(task.get("raw"))
+                except:
+                    pass
 
-    # If it's a dict, ensure all values are serializable
+        if response_data:
+            serialized_response["response"] = response_data
+        if validation_data:
+            serialized_response["validation"] = validation_data
+            if isinstance(validation_data, dict) and "details" in validation_data:
+                serialized_response["inquiry_type"] = validation_data["details"].get(
+                    "inquiry_type"
+                )
+
+        return serialized_response
+
+    # Handle dict input
     if isinstance(result, dict):
-        return {
-            k: (
-                str(v)
-                if not isinstance(v, (str, int, float, bool, list, dict))
-                and v is not None
-                else v
-            )
-            for k, v in result.items()
-        }
+        if "response" in result:
+            serialized_response["response"] = result["response"]
+        if "validation" in result:
+            serialized_response["validation"] = result["validation"]
+        if "inquiry_type" in result:
+            serialized_response["inquiry_type"] = result["inquiry_type"]
+        return serialized_response
 
-    return str(result)
+    # Fallback for other types
+    try:
+        return json.loads(str(result))
+    except:
+        return {
+            "success": False,
+            "error": "Could not serialize result",
+            "raw": str(result),
+        }
 
 
 def run_email_response_workflow(
@@ -197,6 +232,36 @@ def run_email_response_workflow(
             agent_properties=agent_properties,
             workflow_actions={**full_workflow_actions, "inquiry_type": inquiry_type},
         )
+
+        logger.info("=== DEBUGGING CREW OUTPUT ===")
+        logger.info(f"ai_result type: {type(ai_result)}")
+        logger.info(
+            f"ai_result keys: {list(ai_result.keys()) if isinstance(ai_result, dict) else 'Not a dict'}"
+        )
+
+        # Log raw result structure
+        if hasattr(ai_result, "__dict__"):
+            logger.info(f"ai_result attributes: {list(ai_result.__dict__.keys())}")
+        if hasattr(ai_result, "tasks_output"):
+            logger.info(f"tasks_output length: {len(ai_result.tasks_output)}")
+            for i, task in enumerate(ai_result.tasks_output):
+                logger.info(
+                    f"Task {i} keys: {list(task.keys()) if isinstance(task, dict) else type(task)}"
+                )
+                if isinstance(task, dict):
+                    logger.info(f"Task {i} name: {task.get('name', 'NO NAME')}")
+                    raw_preview = str(task.get("raw", "NO RAW"))[:200]
+                    logger.info(f"Task {i} raw preview: {raw_preview}")
+
+        # Check for alternative response locations
+        if isinstance(ai_result, dict):
+            for key, value in ai_result.items():
+                if "response" in key.lower() or "output" in key.lower():
+                    logger.info(
+                        f"Found potential response in key '{key}': {str(value)[:200]}"
+                    )
+
+        logger.info("=== END DEBUGGING ===")
 
         # Ensure result is JSON serializable
         serialized_result = serialize_crew_result(ai_result)
