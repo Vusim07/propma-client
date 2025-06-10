@@ -177,7 +177,7 @@ const AgentDashboard: React.FC = () => {
 								<Table>
 									<TableHeader>
 										<TableRow>
-											<TableHead>Tenant</TableHead>
+											<TableHead>Prospect</TableHead>
 											<TableHead>Property</TableHead>
 											<TableHead>Status</TableHead>
 										</TableRow>
@@ -194,7 +194,7 @@ const AgentDashboard: React.FC = () => {
 												<TableCell className='font-medium truncate max-w-[100px]'>
 													{application.tenant_profiles?.first_name}{' '}
 													{application.tenant_profiles?.last_name ||
-														`Tenant #${application.tenant_id}`}
+														`Prospect #${application.tenant_id}`}
 													<p className='text-xs text-gray-400'>
 														{application.submitted_at_formatted ||
 															'Date unknown'}
@@ -263,7 +263,7 @@ const AgentDashboard: React.FC = () => {
 									<TableHeader>
 										<TableRow>
 											<TableHead>Time</TableHead>
-											<TableHead>Tenant</TableHead>
+											<TableHead>Prospect</TableHead>
 											<TableHead>Property</TableHead>
 										</TableRow>
 									</TableHeader>

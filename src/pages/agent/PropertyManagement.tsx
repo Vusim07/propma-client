@@ -151,19 +151,6 @@ const PropertyManagement: React.FC = () => {
 
 	return (
 		<div>
-			<div className='mb-6 flex flex-col md:flex-row md:items-center md:justify-between'>
-				<div className='mt-4 md:mt-0'>
-					<Button
-						onClick={() => navigate('/agent/properties/new')}
-						className='bg-primary text-white hover:bg-primary-600'
-						variant='default'
-					>
-						<Plus size={16} className='mr-2' />
-						Add New Property
-					</Button>
-				</div>
-			</div>
-
 			{error && (
 				<Alert variant='destructive' className='mb-6'>
 					{error}
@@ -171,7 +158,7 @@ const PropertyManagement: React.FC = () => {
 			)}
 
 			{/* Filters and Search */}
-			<div className='mb-6 bg-white p-4 rounded-lg shadow-sm'>
+			<div className='mb-6 bg-white rounded-lg shadow-sm'>
 				<div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
 					<div className='flex flex-wrap gap-2'>
 						<Button
@@ -208,6 +195,14 @@ const PropertyManagement: React.FC = () => {
 							onClick={() => setStatusFilter('inactive')}
 						>
 							Inactive
+						</Button>
+						<Button
+							variant='default'
+							size='sm'
+							onClick={() => navigate('/agent/properties/new')}
+						>
+							<Plus size={16} className='mr-2' />
+							Add New Property
 						</Button>
 					</div>
 

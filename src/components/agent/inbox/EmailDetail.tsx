@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Star, Flag } from 'lucide-react';
 import EmailMessage from './EmailMessage';
 import AISuggestion from './AISuggestion';
-import ReplyBox from './ReplyBox';
+// import ReplyBox from './ReplyBox';
 import {
 	EmailThreadWithRelations,
 	EmailMessageWithRelations,
@@ -70,32 +70,42 @@ const EmailDetail: React.FC<EmailDetailProps> = ({ thread, message }) => {
 		);
 	}
 
+	// Sort messages in ascending order (oldest first)
+	const sortedMessages = thread.messages
+		? [...thread.messages].sort(
+				(a, b) =>
+					new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+		  )
+		: [];
+	// Use the initial message of the thread for sender details
+	const initialMessage = sortedMessages[0];
+
 	const handleMarkPriority = () => {
 		console.log('Marked as high priority');
 	};
 
-	const handleSendMessage = (message: string) => {
-		console.log('Sending message:', message);
-	};
+	// const handleSendMessage = (message: string) => {
+	// 	console.log('Sending message:', message);
+	// };
 
 	return (
-		<div className='flex-1 bg-white flex flex-col max-h-screen overflow-hidden'>
+		<div className='flex-1 bg-white flex flex-col h-full overflow-hidden min-h-0'>
 			{/* Main header - Hidden on mobile as we use the parent's header */}
 			<div className='hidden md:block border-b border-gray-200'>
 				<div className='px-4 md:px-6 py-4 overflow-hidden'>
 					<div className='flex items-start gap-4 min-w-0'>
 						<Avatar className='w-10 h-10 rounded-full bg-blue-100 flex-shrink-0'>
 							<AvatarFallback>
-								{getInitials(message.from_name ?? undefined) ||
-									message.from_address.charAt(0).toUpperCase()}
+								{getInitials(initialMessage.from_name ?? undefined) ||
+									initialMessage.from_address.charAt(0).toUpperCase()}
 							</AvatarFallback>
 						</Avatar>
 						<div className='flex-1 min-w-0'>
 							<h2 className='text-base font-semibold text-gray-900 truncate'>
-								{message.from_name || message.from_address}
+								{initialMessage.from_name || initialMessage.from_address}
 							</h2>
 							<p className='text-sm text-gray-600 truncate'>
-								{message.from_address}
+								{initialMessage.from_address}
 							</p>
 						</div>
 						<div className='flex items-center gap-2 flex-shrink-0'>
@@ -147,7 +157,7 @@ const EmailDetail: React.FC<EmailDetailProps> = ({ thread, message }) => {
 			{/* Messages Section */}
 			<div className='flex-1 overflow-y-auto'>
 				<div className='px-4 md:px-6 py-4 space-y-6 max-w-full'>
-					{thread.messages?.map((msg) => (
+					{sortedMessages.map((msg) => (
 						<EmailMessage
 							key={msg.id}
 							sender={msg.from_name || msg.from_address}
@@ -190,11 +200,11 @@ const EmailDetail: React.FC<EmailDetailProps> = ({ thread, message }) => {
 			</div>
 
 			{/* Reply Box */}
-			<div className='border-t border-gray-200 bg-white mb-12'>
-				<div className='px-4 md:px-6 py-4 max-w-full'>
+			{/* <div className='border-t border-gray-200 bg-white'>
+				<div className='px-4 md:px-6 py-4'>
 					<ReplyBox onSend={handleSendMessage} />
 				</div>
-			</div>
+			</div> */}
 		</div>
 	);
 };
