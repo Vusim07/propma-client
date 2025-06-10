@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { ApplicationWithRelations } from '@/types';
+import { useInboxStore } from '@/stores/inboxStore';
 
 const AgentDashboard: React.FC = () => {
 	const { user } = useAuthStore();
@@ -33,29 +34,31 @@ const AgentDashboard: React.FC = () => {
 	const {
 		applications,
 		properties,
-		workflowLogs,
 		appointments,
 		fetchApplications,
 		fetchProperties,
-		fetchWorkflowLogs,
 		fetchAppointments,
 		isLoading,
 		currentTeamId,
 	} = useAgentStore();
+
+	// Inbox store for recent emails
+	const { threads, fetchThreads, isLoading: inboxLoading } = useInboxStore();
+	React.useEffect(() => {
+		fetchThreads({}); // Fetch all threads, optionally add limit/filter if supported
+	}, [fetchThreads]);
 
 	useEffect(() => {
 		setPageTitle('Welcome, ' + user?.first_name + '👋');
 		if (user) {
 			fetchApplications(user.id, currentTeamId);
 			fetchProperties(user.id, currentTeamId);
-			fetchWorkflowLogs();
 			fetchAppointments(user.id);
 		}
 	}, [
 		user,
 		fetchApplications,
 		fetchProperties,
-		fetchWorkflowLogs,
 		fetchAppointments,
 		setPageTitle,
 		currentTeamId,
@@ -93,8 +96,7 @@ const AgentDashboard: React.FC = () => {
 		(app) => app.status === 'rejected',
 	).length;
 
-	// Get recent workflow activities
-	const recentWorkflowActivities = workflowLogs.slice(0, 5);
+	// Remove legacy workflow activity variable if present
 
 	// Filter appointments for today
 	const todayString = format(new Date(), 'yyyy-MM-dd');
@@ -149,9 +151,7 @@ const AgentDashboard: React.FC = () => {
 					<CardContent className='p-6'>
 						<div className='flex items-center justify-between'>
 							<div>
-								<p className='text-sm font-medium text-gray-500'>
-									Pending Review
-								</p>
+								<p className='text-sm font-medium text-gray-500'>Pending</p>
 								<p className='text-xl font-bold mt-1'>{pendingApplications}</p>
 							</div>
 							<div className='bg-yellow-100 p-3 rounded-full'>
@@ -303,7 +303,7 @@ const AgentDashboard: React.FC = () => {
 					</CardContent>
 				</Card>
 
-				{/* Recent Workflow Activities */}
+				{/* Recent Inbox Activities */}
 				<Card className='lg:col-span-1'>
 					<CardHeader>
 						<div className='flex items-center gap-2'>
@@ -312,41 +312,70 @@ const AgentDashboard: React.FC = () => {
 						</div>
 					</CardHeader>
 					<CardContent>
-						{recentWorkflowActivities.length > 0 ? (
+						{inboxLoading ? (
+							<p className='text-gray-500 text-center py-4'>Loading...</p>
+						) : threads && threads.length > 0 ? (
 							<div className='divide-y divide-gray-200'>
-								{recentWorkflowActivities.map((activity) => (
-									<div key={activity.id} className='py-3 first:pt-0 last:pb-0'>
-										<div className='flex items-start justify-between'>
-											<div>
-												<p className='font-medium truncate max-w-xs'>
-													{activity.email_subject}
-												</p>
-												<p className='text-sm text-gray-500'>
-													From: {activity.email_from}
-												</p>
-												<p className='text-sm text-gray-500'>
-													{new Date(activity.triggered_at).toLocaleString()}
-												</p>
+								{threads.slice(0, 5).map((thread) => {
+									// Sort messages by sent_at or created_at descending
+									const sortedMessages = (thread.messages || [])
+										.slice()
+										.sort((a, b) => {
+											const aDate = new Date(
+												a.sent_at || a.created_at,
+											).getTime();
+											const bDate = new Date(
+												b.sent_at || b.created_at,
+											).getTime();
+											return bDate - aDate;
+										});
+									const msg = sortedMessages[0];
+									if (!msg) return null;
+									const isReceived = msg.status === 'received';
+									const sender = isReceived
+										? msg.from_name || msg.from_address || 'Unknown'
+										: msg.to_address || 'Unknown';
+									const statusLabel =
+										msg.status.charAt(0).toUpperCase() + msg.status.slice(1);
+									const dateStr = msg.sent_at || msg.created_at;
+									return (
+										<div key={thread.id} className='py-3 first:pt-0 last:pb-0'>
+											<div className='flex items-start justify-between'>
+												<div>
+													<p className='font-medium truncate max-w-xs'>
+														{msg.subject || '(No Subject)'}
+													</p>
+													<p className='text-sm text-gray-500'>
+														{isReceived ? 'From' : 'To'}: {sender}
+													</p>
+													<p className='text-sm text-gray-500'>
+														{dateStr
+															? new Date(dateStr).toLocaleString('en-ZA')
+															: ''}
+													</p>
+												</div>
+												<Badge
+													variant={
+														msg.status === 'received'
+															? 'default'
+															: msg.status === 'sent'
+															? 'secondary'
+															: 'outline'
+													}
+													className='capitalize'
+												>
+													{statusLabel}
+												</Badge>
 											</div>
-											<Badge
-												variant={
-													activity.status === 'success'
-														? 'default'
-														: 'destructive'
-												}
-											>
-												{activity.action_taken}
-											</Badge>
 										</div>
-									</div>
-								))}
+									);
+								})}
 							</div>
 						) : (
 							<p className='text-gray-500 text-center py-4'>
 								No inbox activities found
 							</p>
 						)}
-
 						<div className='mt-4'>
 							<Link to='/agent/inbox'>
 								<Button
