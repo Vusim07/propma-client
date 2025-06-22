@@ -44,6 +44,26 @@ const EmailList: React.FC<EmailListProps> = ({
 	onSelectThread,
 	isLoading = false,
 }) => {
+	// Sort threads by latest message timestamp (descending)
+	const sortedThreads = [...threads].sort((a, b) => {
+		const getLatestMessageTime = (thread: EmailThreadWithRelations) => {
+			if (!thread.messages || thread.messages.length === 0)
+				return new Date(thread.last_message_at).getTime();
+			return Math.max(
+				...thread.messages.map((msg) => {
+					return msg.sent_at
+						? new Date(msg.sent_at).getTime()
+						: msg.received_at
+						? new Date(msg.received_at).getTime()
+						: msg.created_at
+						? new Date(msg.created_at).getTime()
+						: 0;
+				}),
+			);
+		};
+		return getLatestMessageTime(b) - getLatestMessageTime(a);
+	});
+
 	if (isLoading) {
 		return (
 			<ScrollArea className='h-[calc(100vh-8rem)]' type='auto'>
@@ -52,7 +72,7 @@ const EmailList: React.FC<EmailListProps> = ({
 		);
 	}
 
-	if (threads.length === 0) {
+	if (sortedThreads.length === 0) {
 		return (
 			<ScrollArea className='h-[calc(100vh-8rem)]' type='auto'>
 				<div className='p-4 text-center text-gray-500'>No threads found</div>
@@ -63,19 +83,44 @@ const EmailList: React.FC<EmailListProps> = ({
 	return (
 		<ScrollArea className='h-[calc(100vh-8rem)]' type='auto'>
 			<div className='divide-y divide-gray-100'>
-				{threads.map((thread) => {
-					const isUnread = thread.status === 'active';
-					const needsFollowUp = thread.needs_follow_up;
-					const fromName = thread.messages?.[0]?.from_name || '';
-					const fromAddress =
-						thread.messages?.[0]?.from_address || 'Unknown Sender';
+				{sortedThreads.map((thread) => {
+					// Use the initial sender (first message in thread)
+					const initialMsg =
+						thread.messages && thread.messages.length > 0
+							? thread.messages[0]
+							: undefined;
+					const fromName = initialMsg?.from_name || '';
+					const fromAddress = initialMsg?.from_address || 'Unknown Sender';
 					const propertyAddress = thread.property?.address;
 					const applicationStatus = thread.application?.status;
+					const isUnread = thread.status === 'active';
+					const needsFollowUp = thread.needs_follow_up;
+					// Find the latest message for display time
+					const latestMsg =
+						thread.messages && thread.messages.length > 0
+							? thread.messages.reduce((latest, msg) => {
+									const latestTime =
+										latest.sent_at || latest.received_at || latest.created_at;
+									const msgTime =
+										msg.sent_at || msg.received_at || msg.created_at;
+									return new Date(msgTime).getTime() >
+										new Date(latestTime).getTime()
+										? msg
+										: latest;
+							  }, thread.messages[0])
+							: undefined;
+					const displayTime = latestMsg
+						? new Date(
+								latestMsg.sent_at ||
+									latestMsg.received_at ||
+									latestMsg.created_at,
+						  ).toLocaleTimeString()
+						: new Date(thread.last_message_at).toLocaleTimeString();
 
 					return (
 						<div
 							key={thread.id}
-							className={`p-4 cursor-pointer hover:bg-gray-50 active:bg-gray-100 touch-manipulation ${
+							className={`p-4 cursor-pointer hover:bg-gray-50 active:bg-gray-100 touch-manipulation max-w-[420px] min-w-[320px] w-[400px] ${
 								selectedThread?.id === thread.id
 									? 'bg-blue-50 border-r-2 border-blue-600 md:border-r-2'
 									: ''
@@ -93,14 +138,14 @@ const EmailList: React.FC<EmailListProps> = ({
 								<div className='flex-1 min-w-0 space-y-1'>
 									<div className='flex items-center justify-between gap-2'>
 										<h3
-											className={`text-sm font-medium truncate ${
+											className={`text-sm font-medium truncate max-w-[180px] ${
 												isUnread ? 'text-gray-900' : 'text-gray-700'
 											}`}
 										>
 											{fromAddress}
 										</h3>
 										<span className='text-xs text-gray-500 whitespace-nowrap'>
-											{new Date(thread.last_message_at).toLocaleTimeString()}
+											{displayTime}
 										</span>
 									</div>
 
@@ -111,7 +156,7 @@ const EmailList: React.FC<EmailListProps> = ({
 									)}
 
 									<p
-										className={`text-sm truncate ${
+										className={`text-sm truncate max-w-[180px] ${
 											isUnread ? 'font-medium text-gray-900' : 'text-gray-700'
 										}`}
 									>

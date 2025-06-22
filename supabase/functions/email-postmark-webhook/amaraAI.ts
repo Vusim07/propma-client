@@ -3,14 +3,14 @@
 
 import type { ParsedEmailContent, SupabaseClient } from './types.ts';
 
-// const CREWAI_API_URL =
-// 	'https://renewed-cockatoo-liked.ngrok-free.app/api/v1/process-email';
-const CREWAI_API_URL = 'https://ai.agentamara.com/api/v1/process-email';
-
 /**
  * Calls the Amara AI agent to generate an email response for a given parsed email and agent context.
  * Fetches agent properties by team_id or user_id as appropriate.
  */
+const CREWAI_API_URL =
+	Deno.env.get('CREWAI_API_URL') ??
+	'https://renewed-cockatoo-liked.ngrok-free.app/api/v1';
+
 export async function amaraAI({
 	parsedEmail,
 	thread,
@@ -103,7 +103,7 @@ export async function amaraAI({
 		workflow_actions: workflowActions,
 	};
 
-	const response = await fetch(CREWAI_API_URL, {
+	const response = await fetch(`${CREWAI_API_URL}/process-email`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(payload),

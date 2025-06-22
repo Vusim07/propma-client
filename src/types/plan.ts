@@ -3,6 +3,8 @@ export interface Plan {
 	name: string;
 	price: number;
 	usage_limit: number;
+	inbox_limit: number;
+	includes_credit_check: boolean;
 	description: string;
 	extra_usage: string | null;
 	is_team_plan: boolean;

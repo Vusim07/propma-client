@@ -606,75 +606,7 @@ export interface Database {
 					},
 				];
 			};
-			subscriptions: {
-				Row: {
-					id: string;
-					user_id: string;
-					plan_name: string;
-					plan_price: number;
-					team_id: string | null;
-					plan_type: string | null;
-					is_team: boolean;
-					usage_limit: number;
-					current_usage: number;
-					status: string;
-					paystack_subscription_id: string;
-					start_date: string;
-					end_date: string | null;
-					created_at: string;
-					updated_at: string;
-				};
-				Insert: {
-					id?: string;
-					user_id: string;
-					plan_name: string;
-					plan_price: number;
-					team_id: string | null;
-					plan_type: string | null;
-					is_team: boolean;
-					usage_limit: number;
-					current_usage?: number;
-					status: string;
-					paystack_subscription_id: string;
-					start_date: string;
-					end_date?: string | null;
-					created_at?: string;
-					updated_at?: string;
-				};
-				Update: {
-					id?: string;
-					user_id?: string;
-					plan_name?: string;
-					plan_price?: number;
-					team_id?: string | null;
-					plan_type?: string | null;
-					is_team?: boolean;
-					usage_limit?: number;
-					current_usage?: number;
-					status?: string;
-					paystack_subscription_id?: string;
-					start_date?: string;
-					end_date?: string | null;
-					created_at?: string;
-					updated_at?: string;
-				};
-				Relationships: [
-					{
-						foreignKeyName: 'subscriptions_user_id_fkey';
-						columns: ['user_id'];
-						isOneToOne: false;
-						referencedRelation: 'users';
-						referencedColumns: ['id'];
-					},
-					{
-						foreignKeyName: '${tableName}_team_id_fkey';
-						columns: ['team_id'];
-						isOneToOne: false;
-						referencedRelation: 'teams';
-						referencedColumns: ['id'];
-					},
-				];
-			};
+
 			credit_reports: {
 				Row: {
 					id: string;
@@ -1012,10 +944,12 @@ export interface Database {
 				];
 				plans: {
 					Row: {
-						id: string;
+						id: string; // text/slug
 						name: string;
 						price: number;
 						usage_limit: number;
+						includes_credit_check: boolean;
+						inbox_limit: number;
 						description: string;
 						extra_usage: string | null;
 						is_team_plan: boolean;
@@ -1026,10 +960,12 @@ export interface Database {
 						updated_at: string;
 					};
 					Insert: {
-						id: string;
+						id: string; // text/slug
 						name: string;
 						price: number;
 						usage_limit: number;
+						includes_credit_check: boolean;
+						inbox_limit: number;
 						description: string;
 						extra_usage?: string | null;
 						is_team_plan?: boolean;
@@ -1040,10 +976,12 @@ export interface Database {
 						updated_at?: string;
 					};
 					Update: {
-						id?: string;
+						id?: string; // text/slug
 						name?: string;
 						price?: number;
 						usage_limit?: number;
+						includes_credit_check?: boolean;
+						inbox_limit?: number;
 						description?: string;
 						extra_usage?: string | null;
 						is_team_plan?: boolean;
@@ -1054,6 +992,94 @@ export interface Database {
 						updated_at?: string;
 					};
 				};
+			};
+			subscriptions: {
+				Row: {
+					id: string;
+					user_id: string;
+					plan_id: string; // text/slug, foreign key to plans(id)
+					plan_name: string;
+					plan_price: number;
+					team_id: string | null;
+					plan_type: string | null;
+					is_team: boolean;
+					usage_limit: number;
+					current_usage: number;
+					inbox_limit: number | null;
+					inbox_usage: number | null;
+					status: string;
+					paystack_subscription_id: string;
+					add_ons: Json | null;
+					start_date: string;
+					end_date: string | null;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: {
+					id?: string;
+					user_id: string;
+					plan_id: string; // text/slug, foreign key to plans(id)
+					plan_name: string;
+					plan_price: number;
+					team_id: string | null;
+					plan_type: string | null;
+					is_team: boolean;
+					usage_limit: number;
+					current_usage?: number;
+					inbox_limit?: number | null;
+					inbox_usage?: number | null;
+					status: string;
+					paystack_subscription_id: string;
+					add_ons?: Json | null;
+					start_date: string;
+					end_date?: string | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Update: {
+					id?: string;
+					user_id?: string;
+					plan_id?: string; // text/slug, foreign key to plans(id)
+					plan_name?: string;
+					plan_price?: number;
+					team_id?: string | null;
+					plan_type?: string | null;
+					is_team?: boolean;
+					usage_limit?: number;
+					current_usage?: number;
+					inbox_limit?: number | null;
+					inbox_usage?: number | null;
+					status?: string;
+					paystack_subscription_id?: string;
+					add_ons?: Json | null;
+					start_date?: string;
+					end_date?: string | null;
+					created_at?: string;
+					updated_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'subscriptions_user_id_fkey';
+						columns: ['user_id'];
+						isOneToOne: false;
+						referencedRelation: 'users';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: '${tableName}_team_id_fkey';
+						columns: ['team_id'];
+						isOneToOne: false;
+						referencedRelation: 'teams';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'subscriptions_plan_id_fkey';
+						columns: ['plan_id'];
+						isOneToOne: false;
+						referencedRelation: 'plans';
+						referencedColumns: ['id'];
+					},
+				];
 			};
 			team_email_addresses: {
 				Row: {

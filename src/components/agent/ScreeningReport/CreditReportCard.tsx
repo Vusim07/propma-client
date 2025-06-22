@@ -23,6 +23,8 @@ interface CreditReportCardProps {
 				pdf_path: string;
 		  }[]
 		| null;
+	planIncludesCreditCheck?: boolean | null;
+	checkingPlan?: boolean;
 }
 
 const getCreditScoreCategory = (score: number | null) => {
@@ -55,8 +57,31 @@ const CreditReportCard = ({
 	creditScore,
 	creditReport,
 	creditReports,
+	planIncludesCreditCheck = true,
+	checkingPlan = false,
 }: CreditReportCardProps) => {
 	const creditCategory = getCreditScoreCategory(creditScore);
+
+	if (planIncludesCreditCheck === false && !checkingPlan) {
+		return (
+			<Card>
+				<CardHeader>
+					<h2 className='text-lg font-semibold flex items-center'>
+						<CreditCard className='h-5 w-5 text-dusty_grey mr-2' />
+						Experian Credit Report
+					</h2>
+				</CardHeader>
+				<CardContent>
+					<Alert variant='default' className='mb-2'>
+						Your plan does not include Credit Reports.
+					</Alert>
+					<Button asChild variant='default' className='w-full md:w-auto'>
+						<a href='/agent/settings'>Upgrade to Access Credit Reports</a>
+					</Button>
+				</CardContent>
+			</Card>
+		);
+	}
 
 	return (
 		<Card>

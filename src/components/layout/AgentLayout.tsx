@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { usePageTitle } from '../../context/PageTitleContext';
@@ -15,6 +15,8 @@ import {
 	Inbox,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { useInboxStore } from '@/stores/inboxStore';
 
 const AgentLayout: React.FC = () => {
 	const { user, logout } = useAuthStore();
@@ -22,6 +24,12 @@ const AgentLayout: React.FC = () => {
 	const navigate = useNavigate();
 	const [isCollapsed, setIsCollapsed] = useState(false);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+	// Inbox usage state
+	const { inboxUsage, inboxLimit, fetchInboxUsage } = useInboxStore();
+	useEffect(() => {
+		fetchInboxUsage();
+	}, [fetchInboxUsage]);
 
 	const handleLogout = async () => {
 		await logout();
@@ -131,6 +139,18 @@ const AgentLayout: React.FC = () => {
 									<span className={isCollapsed ? '' : 'mr-3'}>{item.icon}</span>
 									{!isCollapsed && item.label}
 								</NavLink>
+								{/* Show inbox usage below Inbox nav item */}
+								{item.to === '/agent/inbox' && !isCollapsed && (
+									<div className='px-6 pt-1 pb-2'>
+										<Progress
+											value={inboxLimit ? (inboxUsage / inboxLimit) * 100 : 0}
+											className='h-2 bg-gray-100'
+										/>
+										<div className='text-xs text-gray-500 mt-1'>
+											Inbox: {inboxUsage ?? 0}/{inboxLimit ?? 0} used
+										</div>
+									</div>
+								)}
 							</li>
 						))}
 					</ul>
