@@ -189,6 +189,96 @@ serve(async (req) => {
 			return data;
 		}, 'find email address');
 
+		// Enforce inbox/conversation usage limits before thread creation
+		const usageCheck = await supabaseClient.rpc('increment_inbox_usage', {
+			p_user_id: emailAddress.user_id || null,
+			p_team_id: emailAddress.team_id || null,
+			check_only: true,
+		});
+		if (usageCheck.error) {
+			console.error('Error checking inbox usage:', usageCheck.error);
+			throw usageCheck.error;
+		}
+		if (usageCheck.data && usageCheck.data.limit_reached) {
+			console.warn(
+				'Inbox/conversation limit reached for this plan. Blocking new thread.',
+			);
+
+			// Notify affected user(s) by email
+			let notificationEmails = [];
+			if (emailAddress.user_id) {
+				// Fetch the user's email
+				const { data: user, error: userError } = await supabaseClient
+					.from('users')
+					.select('email')
+					.eq('id', emailAddress.user_id)
+					.single();
+				if (!userError && user && user.email) {
+					notificationEmails.push(user.email);
+				}
+			} else if (emailAddress.team_id) {
+				// Fetch all users in the team
+				const { data: teamMembers, error: teamError } = await supabaseClient
+					.from('team_members')
+					.select('user_id')
+					.eq('team_id', emailAddress.team_id);
+				if (
+					!teamError &&
+					Array.isArray(teamMembers) &&
+					teamMembers.length > 0
+				) {
+					const userIds = teamMembers.map((m) => m.user_id);
+					const { data: users, error: usersError } = await supabaseClient
+						.from('users')
+						.select('email')
+						.in('id', userIds);
+					if (!usersError && Array.isArray(users)) {
+						notificationEmails = users.map((u) => u.email).filter(Boolean);
+					}
+				}
+			}
+
+			// Send notification email(s) if any
+			if (notificationEmails.length > 0) {
+				const notificationSubject = 'Amara: Inbox/Conversation Limit Reached';
+				const notificationBody =
+					'Your Amara subscription plan inbox/conversation limit has been reached.\n\n' +
+					'You will not be able to start new conversations until you upgrade your plan or close existing threads.\n\n' +
+					'If you have questions, please contact support.';
+				for (const email of notificationEmails) {
+					await fetch(
+						`${Deno.env.get('SUPABASE_URL')}/functions/v1/email-postmark-send`,
+						{
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json',
+								Authorization: `Bearer ${Deno.env.get(
+									'SUPABASE_SERVICE_ROLE_KEY',
+								)}`,
+							},
+							body: JSON.stringify({
+								to: email,
+								subject: notificationSubject,
+								body: notificationBody,
+							}),
+						},
+					);
+				}
+			}
+
+			return new Response(
+				JSON.stringify({
+					error: 'Inbox/conversation limit reached',
+					message:
+						'Your subscription plan inbox/conversation limit has been reached. Please upgrade your plan.',
+				}),
+				{
+					headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+					status: 403,
+				},
+			);
+		}
+
 		// Create thread
 		const threadInsert = {
 			subject: Subject || '(No Subject)',
@@ -224,6 +314,13 @@ serve(async (req) => {
 				}
 				return data;
 			}, 'create email thread');
+
+			// Increment inbox usage after successful thread creation
+			await supabaseClient.rpc('increment_inbox_usage', {
+				p_user_id: emailAddress.user_id || null,
+				p_team_id: emailAddress.team_id || null,
+				check_only: false,
+			});
 
 			// Store the email message
 			const { error: messageError } = await supabaseClient

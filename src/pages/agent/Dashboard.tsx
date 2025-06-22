@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import { useAgentStore } from '../../stores/agentStore';
@@ -104,8 +105,14 @@ const AgentDashboard: React.FC = () => {
 		.filter((appt) => appt.date === todayString && appt.status === 'scheduled')
 		.sort((a, b) => a.start_time.localeCompare(b.start_time));
 
-	// Get recent applications
-	const recentApplications = formattedApplications.slice(0, 5);
+	// Get recent applications (latest first)
+	const recentApplications = formattedApplications
+		.slice()
+		.sort(
+			(a, b) =>
+				new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+		)
+		.slice(0, 5);
 
 	return (
 		<div>
@@ -315,61 +322,85 @@ const AgentDashboard: React.FC = () => {
 						{inboxLoading ? (
 							<p className='text-gray-500 text-center py-4'>Loading...</p>
 						) : threads && threads.length > 0 ? (
-							<div className='divide-y divide-gray-200'>
-								{threads.slice(0, 5).map((thread) => {
-									// Sort messages by sent_at or created_at descending
-									const sortedMessages = (thread.messages || [])
-										.slice()
-										.sort((a, b) => {
-											const aDate = new Date(
-												a.sent_at || a.created_at,
-											).getTime();
-											const bDate = new Date(
-												b.sent_at || b.created_at,
-											).getTime();
-											return bDate - aDate;
-										});
-									const msg = sortedMessages[0];
-									if (!msg) return null;
-									const isReceived = msg.status === 'received';
-									const sender = isReceived
-										? msg.from_name || msg.from_address || 'Unknown'
-										: msg.to_address || 'Unknown';
-									const statusLabel =
-										msg.status.charAt(0).toUpperCase() + msg.status.slice(1);
-									const dateStr = msg.sent_at || msg.created_at;
-									return (
-										<div key={thread.id} className='py-3 first:pt-0 last:pb-0'>
-											<div className='flex items-start justify-between'>
-												<div>
-													<p className='font-medium truncate max-w-xs'>
-														{msg.subject || '(No Subject)'}
-													</p>
-													<p className='text-sm text-gray-500'>
-														{isReceived ? 'From' : 'To'}: {sender}
-													</p>
-													<p className='text-sm text-gray-500'>
-														{dateStr
-															? new Date(dateStr).toLocaleString('en-ZA')
-															: ''}
-													</p>
+							<div className='divide-y divide-gray-200 max-h-72 overflow-y-auto'>
+								{threads
+									.slice()
+									.sort((a, b) => {
+										const getLatest = (thread: any) => {
+											if (!thread.messages || thread.messages.length === 0)
+												return 0;
+											return Math.max(
+												...thread.messages.map((msg: any) => {
+													return msg.sent_at
+														? new Date(msg.sent_at).getTime()
+														: msg.received_at
+														? new Date(msg.received_at).getTime()
+														: msg.created_at
+														? new Date(msg.created_at).getTime()
+														: 0;
+												}),
+											);
+										};
+										return getLatest(b) - getLatest(a);
+									})
+									.slice(0, 5)
+									.map((thread) => {
+										const sortedMessages = (thread.messages || [])
+											.slice()
+											.sort((a, b) => {
+												const aDate = new Date(
+													a.sent_at || a.received_at || a.created_at,
+												).getTime();
+												const bDate = new Date(
+													b.sent_at || b.received_at || b.created_at,
+												).getTime();
+												return bDate - aDate;
+											});
+										const msg = sortedMessages[0];
+										if (!msg) return null;
+										const isReceived = msg.status === 'received';
+										const sender = isReceived
+											? msg.from_name || msg.from_address || 'Unknown'
+											: msg.to_address || 'Unknown';
+										const statusLabel =
+											msg.status.charAt(0).toUpperCase() + msg.status.slice(1);
+										const dateStr =
+											msg.sent_at || msg.received_at || msg.created_at;
+										return (
+											<div
+												key={thread.id}
+												className='py-3 first:pt-0 last:pb-0'
+											>
+												<div className='flex items-start justify-between max-w-[420px] min-w-[320px] w-full'>
+													<div className='flex-1 min-w-0'>
+														<p className='font-medium truncate max-w-[180px]'>
+															{msg.subject || '(No Subject)'}
+														</p>
+														<p className='text-sm text-gray-500 truncate max-w-[180px]'>
+															{isReceived ? 'From' : 'To'}: {sender}
+														</p>
+														<p className='text-sm text-gray-500 whitespace-nowrap'>
+															{dateStr
+																? new Date(dateStr).toLocaleString('en-ZA')
+																: ''}
+														</p>
+													</div>
+													<Badge
+														variant={
+															msg.status === 'received'
+																? 'secondary'
+																: msg.status === 'sent'
+																? 'success'
+																: 'outline'
+														}
+														className='capitalize max-w-[80px] truncate text-center'
+													>
+														{statusLabel}
+													</Badge>
 												</div>
-												<Badge
-													variant={
-														msg.status === 'received'
-															? 'default'
-															: msg.status === 'sent'
-															? 'secondary'
-															: 'outline'
-													}
-													className='capitalize'
-												>
-													{statusLabel}
-												</Badge>
 											</div>
-										</div>
-									);
-								})}
+										);
+									})}
 							</div>
 						) : (
 							<p className='text-gray-500 text-center py-4'>

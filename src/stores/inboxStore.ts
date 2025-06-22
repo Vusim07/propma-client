@@ -11,6 +11,8 @@ import {
 	EmailNotification,
 	EmailValidationResult,
 } from '../types/inbox';
+import { trackInboxUsage } from '../services/subscriptionService';
+import { useTeamStore } from './teamStore';
 
 interface InboxState {
 	// State
@@ -23,6 +25,10 @@ interface InboxState {
 	notifications: EmailNotification[];
 	draft: EmailDraft | null;
 	userEmailAddress: string | null;
+
+	// Inbox usage state
+	inboxUsage: number;
+	inboxLimit: number;
 
 	// Actions
 	fetchThreads: (filters?: Partial<InboxFilters>) => Promise<InboxResponse>;
@@ -48,6 +54,7 @@ interface InboxState {
 	addNotification: (notification: EmailNotification) => void;
 	removeNotification: (notificationId: string) => void;
 	fetchUserEmailAddress: () => Promise<void>;
+	fetchInboxUsage: () => Promise<void>;
 }
 
 export const useInboxStore = create<InboxState>((set, get) => ({
@@ -61,6 +68,10 @@ export const useInboxStore = create<InboxState>((set, get) => ({
 	notifications: [],
 	draft: null,
 	userEmailAddress: null,
+
+	// Inbox usage state
+	inboxUsage: 0,
+	inboxLimit: 0,
 
 	// Fetch email threads with optional filters
 	fetchThreads: async (filters = {}) => {
@@ -225,8 +236,23 @@ export const useInboxStore = create<InboxState>((set, get) => ({
 				);
 			}
 
-			// Create or update thread
+			// Enforce inbox usage limit only when creating a new thread
 			let threadId = draft.threadId;
+			if (!threadId) {
+				// Determine agentId or teamId for usage tracking
+				const { currentTeam } = useTeamStore.getState();
+				const userId = (await supabase.auth.getUser()).data.user?.id;
+				const usageResult = await trackInboxUsage({
+					agentId: currentTeam ? undefined : userId,
+					teamId: currentTeam?.id,
+				});
+				if (!usageResult?.success) {
+					set({ isLoading: false });
+					return false;
+				}
+			}
+
+			// Create or update thread
 			if (!threadId) {
 				const { data: thread, error: threadError } = await supabase
 					.from('email_threads')
@@ -540,6 +566,43 @@ export const useInboxStore = create<InboxState>((set, get) => ({
 		} catch (error) {
 			console.error('Error fetching user email address:', error);
 			set({ error: (error as Error).message });
+		}
+	},
+
+	// Fetch inbox usage
+	fetchInboxUsage: async () => {
+		try {
+			// Try to get user and team context
+			const {
+				data: { user },
+			} = await supabase.auth.getUser();
+			if (!user) return;
+
+			// Get teamId if available
+			let teamId: string | undefined = undefined;
+			try {
+				const { currentTeam } = useTeamStore.getState();
+				if (currentTeam && currentTeam.id) teamId = currentTeam.id;
+			} catch {
+				// Ignore if team store is not available
+			}
+
+			const params: Record<string, string> = {};
+			if (teamId) params.p_team_id = teamId;
+			if (user.id) params.p_user_id = user.id;
+
+			const { data, error } = await supabase.rpc('increment_inbox_usage', {
+				...params,
+				check_only: true,
+			});
+			if (error) throw error;
+			set({
+				inboxUsage: data?.current_usage ?? 0,
+				inboxLimit: data?.usage_limit ?? 0,
+			});
+		} catch (error) {
+			console.error('Error fetching inbox usage:', error);
+			set({ inboxUsage: 0, inboxLimit: 0 });
 		}
 	},
 }));

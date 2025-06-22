@@ -1005,6 +1005,8 @@ export interface Database {
 					is_team: boolean;
 					usage_limit: number;
 					current_usage: number;
+					inbox_limit: number | null;
+					inbox_usage: number | null;
 					status: string;
 					paystack_subscription_id: string;
 					add_ons: Json | null;
@@ -1024,6 +1026,8 @@ export interface Database {
 					is_team: boolean;
 					usage_limit: number;
 					current_usage?: number;
+					inbox_limit?: number | null;
+					inbox_usage?: number | null;
 					status: string;
 					paystack_subscription_id: string;
 					add_ons?: Json | null;
@@ -1043,6 +1047,8 @@ export interface Database {
 					is_team?: boolean;
 					usage_limit?: number;
 					current_usage?: number;
+					inbox_limit?: number | null;
+					inbox_usage?: number | null;
 					status?: string;
 					paystack_subscription_id?: string;
 					add_ons?: Json | null;
