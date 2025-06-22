@@ -4,7 +4,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { useTeamStore } from '../../stores/teamStore';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card } from '../ui/Card';
+import { Card } from '../ui/card';
 import { Label } from '../ui/label';
 import {
 	Select,
