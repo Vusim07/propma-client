@@ -7,9 +7,9 @@ import {
 	useNavigate,
 	useLocation,
 } from 'react-router-dom';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuthStore } from './stores/authStore';
 import { PageTitleProvider } from './context/PageTitleContext';
-import { Tables } from '@/services/database.types'; // Add this import
+import { Tables } from './services/database.types'; // Add this import
 
 // Auth Pages
 import Login from './pages/auth/Login';
@@ -45,8 +45,8 @@ import Inbox from './pages/agent/Inbox';
 // Layout Components
 import TenantLayout from './components/layout/TenantLayout';
 import AgentLayout from './components/layout/AgentLayout';
-import Spinner from './components/ui/Spinner';
-import Toaster from '@/components/ui/toaster';
+import Spinner from './components/ui/spinner';
+import { Toaster } from './components/ui/toaster';
 
 // Enhanced Protected Route Component with profile completion check
 const ProtectedRoute = ({
