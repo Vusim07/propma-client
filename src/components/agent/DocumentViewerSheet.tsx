@@ -10,7 +10,7 @@ import {
 	SheetTrigger,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import Spinner from '@/components/ui/Spinner';
+import Spinner from '@/components/ui/spinner';
 import { Alert } from '@/components/ui/alert';
 import { supabase } from '@/services/supabase';
 import { Tables } from '@/services/database.types';

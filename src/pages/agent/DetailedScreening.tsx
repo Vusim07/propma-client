@@ -5,7 +5,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { supabase } from '../../services/supabase';
 import { Tables } from '../../services/database.types';
 
-import Spinner from '@/components/ui/Spinner';
+import Spinner from '@/components/ui/spinner';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';

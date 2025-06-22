@@ -13,7 +13,7 @@ import {
 	FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import Spinner from '@/components/ui/Spinner';
+import Spinner from '@/components/ui/spinner';
 import { useSessionCheck } from '@/hooks/useSessionCheck';
 import { useProfileCompletion } from '@/hooks/useProfileCompletion';
 import { profileCompletionSchema } from '@/schemas/profileCompletionSchema';

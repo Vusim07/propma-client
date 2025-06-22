@@ -32,7 +32,7 @@ import {
 	FormControl,
 	FormMessage,
 } from '@/components/ui/form';
-import Spinner from '@/components/ui/Spinner';
+import Spinner from '@/components/ui/spinner';
 import { AlertCircle } from 'lucide-react';
 import { TeamStatsCard } from '@/components/teams/TeamStatsCard';
 import { useNavigate, useLocation } from 'react-router-dom';

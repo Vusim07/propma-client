@@ -22,7 +22,7 @@ import {
 	SheetDescription,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import Spinner from '@/components/ui/Spinner';
+import Spinner from '@/components/ui/spinner';
 import { Badge } from '@/components/ui/badge';
 import { Alert } from '@/components/ui/alert';
 import { usePageTitle } from '../../context/PageTitleContext';
