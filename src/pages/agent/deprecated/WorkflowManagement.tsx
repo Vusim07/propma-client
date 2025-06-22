@@ -14,13 +14,13 @@ import {
 	CardHeader,
 	CardContent,
 	CardFooter,
-} from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
+} from '@/components/ui/card';
+import Button from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/Textarea';
-import Spinner from '@/components/ui/Spinner';
-import Badge from '@/components/ui/Badge';
-import Alert from '@/components/ui/Alert';
+import { Textarea } from '@/components/ui/textarea';
+import Spinner from '@/components/ui/spinner';
+import Badge from '@/components/ui/bagde';
+import Alert from '@/components/ui/alert';
 import {
 	Workflow,
 	Mail,

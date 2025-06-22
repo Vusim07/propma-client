@@ -6,7 +6,7 @@ import { usePageTitle } from '../../context/PageTitleContext';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert } from '@/components/ui/alert';
-import Spinner from '@/components/ui/Spinner';
+import Spinner from '@/components/ui/spinner';
 import Calendar from 'react-calendar';
 import { format, parse, isPast, isBefore, addDays } from 'date-fns'; // Re-add isBefore and addDays
 import {

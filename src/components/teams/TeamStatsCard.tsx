@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/card';
 import { AlertCircle, BadgeCheck, Users, CreditCard } from 'lucide-react';
 import { Team } from '@/types';
 

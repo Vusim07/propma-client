@@ -14,7 +14,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
-import Spinner from '@/components/ui/Spinner';
+import Spinner from '@/components/ui/spinner';
 import { Alert } from '@/components/ui/alert';
 import { ArrowLeft, Plus, X, Upload } from 'lucide-react';
 import { Property } from '../../types';

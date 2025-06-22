@@ -3,8 +3,8 @@ import { useAuthStore } from '../../stores/authStore';
 import { usePageTitle } from '../../context/PageTitleContext';
 import { supabase } from '../../services/supabase';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import { Alert } from '@/components/ui/Alert';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Alert } from '@/components/ui/alert';
 import { Calendar, Check, RefreshCcw, X } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 

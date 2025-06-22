@@ -7,7 +7,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert } from '@/components/ui/alert';
-import Spinner from '@/components/ui/Spinner';
+import Spinner from '@/components/ui/spinner';
 import {
 	Home,
 	MapPin,

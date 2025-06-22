@@ -6,9 +6,9 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from 'react';
-import { Card, CardHeader, CardContent } from '../ui/Card';
-import Badge from '../ui/Badge';
-import Spinner from '../ui/Spinner';
+import { Card, CardHeader, CardContent } from '../ui/card';
+import Badge from '../ui/badge';
+import Spinner from '../ui/spinner';
 import { Inbox } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useAgentStore } from '../../stores/agentStore';

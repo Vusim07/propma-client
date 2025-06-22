@@ -45,7 +45,7 @@ import Inbox from './pages/agent/Inbox';
 // Layout Components
 import TenantLayout from './components/layout/TenantLayout';
 import AgentLayout from './components/layout/AgentLayout';
-import Spinner from './components/ui/Spinner';
+import Spinner from './components/ui/spinner';
 import { Toaster } from './components/ui/toaster';
 
 // Enhanced Protected Route Component with profile completion check

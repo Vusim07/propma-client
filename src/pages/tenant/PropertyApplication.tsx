@@ -6,7 +6,7 @@ import { supabase } from '@/services/supabase';
 import { useAuthStore } from '@/stores/authStore';
 import { useTenantStore } from '@/stores/tenantStore';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
-import Spinner from '@/components/ui/Spinner';
+import Spinner from '@/components/ui/spinner';
 import { Alert } from '@/components/ui/alert';
 import { Property, Application, TenantProfile } from '@/types';
 import { showToast } from '@/utils/toast';

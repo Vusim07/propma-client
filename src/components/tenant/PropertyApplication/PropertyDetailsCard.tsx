@@ -1,5 +1,5 @@
 // PropertyApplicationComponents/PropertyDetailsCard.tsx
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Property } from '@/types';
 import { Home, MapPin, DollarSign, Calendar } from 'lucide-react';
 import { useState } from 'react';

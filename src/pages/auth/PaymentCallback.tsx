@@ -5,7 +5,7 @@ import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import paystackService from '../../services/paystackService';
 import { showToast } from '../../utils/toast';
-import Spinner from '@/components/ui/Spinner';
+import Spinner from '@/components/ui/spinner';
 
 const PaymentCallback: React.FC = () => {
 	const [isProcessing, setIsProcessing] = useState(true);
