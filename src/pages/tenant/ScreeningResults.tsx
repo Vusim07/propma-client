@@ -447,50 +447,61 @@ const ScreeningResults: React.FC = () => {
 						<CreditCard className='h-5 w-5 text-blue-600' />
 					</CardHeader>
 					<CardContent>
-						<div className='flex items-center justify-between mb-4'>
-							<div>
-								<p className='text-3xl font-bold'>{reportData.credit_score}</p>
-								<Badge variant={creditCategory.color as any}>
-									{creditCategory.label}
-								</Badge>
-							</div>
-							<div
-								className='w-16 h-16 rounded-full border-4 flex items-center justify-center'
-								style={{
-									borderColor:
-										creditCategory.color === 'success'
-											? '#10b981'
-											: creditCategory.color === 'warning'
-											? '#f59e0b'
-											: '#ef4444',
-								}}
-							>
-								<span className='text-lg font-bold'>
-									{Math.round(((reportData.credit_score || 0) / 850) * 100)}%
-								</span>
-							</div>
-						</div>
-						<div className='w-full bg-gray-200 rounded-full h-2.5 mb-4'>
-							<div
-								className='h-2.5 rounded-full'
-								style={{
-									width: `${((reportData.credit_score || 0) / 850) * 100}%`,
-									backgroundColor:
-										creditCategory.color === 'success'
-											? '#10b981'
-											: creditCategory.color === 'warning'
-											? '#f59e0b'
-											: '#ef4444',
-								}}
-							></div>
-						</div>
-						<p className='text-sm text-gray-600'>
-							{creditCategory.color === 'success'
-								? 'Your credit score is in good standing, which positively impacts your rental application.'
-								: creditCategory.color === 'warning'
-								? 'Your credit score is acceptable, but could be improved for better rental opportunities.'
-								: 'Your credit score may limit your rental options. Consider credit improvement strategies.'}
-						</p>
+						{reportData.credit_score === null ? (
+							<Alert variant='default'>
+								Your credit report was not requested at this time
+							</Alert>
+						) : (
+							<>
+								<div className='flex items-center justify-between mb-4'>
+									<div>
+										<p className='text-3xl font-bold'>
+											{reportData.credit_score}
+										</p>
+										<Badge variant={creditCategory.color as any}>
+											{creditCategory.label}
+										</Badge>
+									</div>
+									<div
+										className='w-16 h-16 rounded-full border-4 flex items-center justify-center'
+										style={{
+											borderColor:
+												creditCategory.color === 'success'
+													? '#10b981'
+													: creditCategory.color === 'warning'
+													? '#f59e0b'
+													: '#ef4444',
+										}}
+									>
+										<span className='text-lg font-bold'>
+											{Math.round(((reportData.credit_score || 0) / 850) * 100)}
+											%
+										</span>
+									</div>
+								</div>
+								<div className='w-full bg-gray-200 rounded-full h-2.5 mb-4'>
+									<div
+										className='h-2.5 rounded-full'
+										style={{
+											width: `${((reportData.credit_score || 0) / 850) * 100}%`,
+											backgroundColor:
+												creditCategory.color === 'success'
+													? '#10b981'
+													: creditCategory.color === 'warning'
+													? '#f59e0b'
+													: '#ef4444',
+										}}
+									></div>
+								</div>
+								<p className='text-sm text-gray-600'>
+									{creditCategory.color === 'success'
+										? 'Your credit score is in good standing, which positively impacts your rental application.'
+										: creditCategory.color === 'warning'
+										? 'Your credit score is acceptable, but could be improved for better rental opportunities.'
+										: 'Your credit score may limit your rental options. Consider credit improvement strategies.'}
+								</p>
+							</>
+						)}
 					</CardContent>
 				</Card>
 

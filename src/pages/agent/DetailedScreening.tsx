@@ -1,21 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../stores/authStore';
-import { supabase } from '../../services/supabase';
-import { Tables } from '../../services/database.types';
-
+import { useAuthStore } from '@/stores/authStore';
+import { usePageTitle } from '@/context/PageTitleContext';
+import { supabase } from '@/services/supabase';
 import Spinner from '@/components/ui/spinner';
-import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import AffordabilityCard from '@/components/agent/ScreeningReport/AffordabilityCard';
-import BackgroundCheckCard from '@/components/agent/ScreeningReport/BackgroundCheckCard';
-import CreditReportCard from '@/components/agent/ScreeningReport/CreditReportCard';
-import DocumentAnalysisCard from '@/components/agent/ScreeningReport/DocumentAnalysisCard';
+import { Alert } from '@/components/ui/alert';
 import ScreeningHeader from '@/components/agent/ScreeningReport/ScreeningHeader';
 import TenantInfoCard from '@/components/agent/ScreeningReport/TenantInfoCard';
-import { usePageTitle } from '@/context/PageTitleContext';
+import AffordabilityCard from '@/components/agent/ScreeningReport/AffordabilityCard';
+import CreditReportCard from '@/components/agent/ScreeningReport/CreditReportCard';
+import BackgroundCheckCard from '@/components/agent/ScreeningReport/BackgroundCheckCard';
+import DocumentAnalysisCard from '@/components/agent/ScreeningReport/DocumentAnalysisCard';
+import { Tables } from '../../services/database.types';
 
 type ScreeningReportWithDetails = Tables<'screening_reports'> & {
 	tenant_profiles: Tables<'tenant_profiles'> | null;
@@ -54,7 +52,6 @@ type ScreeningReportWithDetails = Tables<'screening_reports'> & {
 
 const DetailedScreening: React.FC = () => {
 	const { setPageTitle } = usePageTitle();
-
 	const { id } = useParams<{ id: string }>();
 	const navigate = useNavigate();
 	const { user } = useAuthStore();
@@ -63,6 +60,10 @@ const DetailedScreening: React.FC = () => {
 	const [screeningData, setScreeningData] =
 		useState<ScreeningReportWithDetails | null>(null);
 	const [monthlyRent, setMonthlyRent] = useState<number | null>(null);
+	const [planIncludesCreditCheck, setPlanIncludesCreditCheck] = useState<
+		boolean | null
+	>(null);
+	const [checkingPlan, setCheckingPlan] = useState(true);
 
 	useEffect(() => {
 		setPageTitle('Detailed Screening Report');
@@ -170,6 +171,31 @@ const DetailedScreening: React.FC = () => {
 					};
 
 					setScreeningData(combinedData);
+					// Fetch agent subscription and plan info for credit check feature
+					try {
+						setCheckingPlan(true);
+						const { data: subscription, error: subError } = await supabase
+							.from('subscriptions')
+							.select('plan_id, add_ons, plans(includes_credit_check)')
+							.eq('user_id', user.id)
+							.single();
+						if (subError || !subscription) {
+							setPlanIncludesCreditCheck(false);
+						} else {
+							// Check if plan or add-ons include credit check
+							const planHasCredit =
+								Array.isArray(subscription.plans) &&
+								subscription.plans[0]?.includes_credit_check === true;
+							const addOnsHasCredit =
+								Array.isArray(subscription.add_ons) &&
+								subscription.add_ons.includes('credit_check');
+							setPlanIncludesCreditCheck(planHasCredit || addOnsHasCredit);
+						}
+					} catch {
+						setPlanIncludesCreditCheck(false);
+					} finally {
+						setCheckingPlan(false);
+					}
 				} else {
 					setError(`Screening report not found for application ID: ${id}`);
 					setScreeningData(null);
@@ -193,7 +219,7 @@ const DetailedScreening: React.FC = () => {
 		};
 
 		fetchScreeningData();
-	}, [id, user]);
+	}, [id, user, setPageTitle]);
 
 	if (isLoading) {
 		return (
@@ -212,7 +238,6 @@ const DetailedScreening: React.FC = () => {
 					onClick={() => navigate('/agent/applications')}
 					className='mb-4'
 				>
-					<ArrowLeft size={16} className='mr-2' />
 					Back to Applications
 				</Button>
 				<Alert variant='destructive'>{error}</Alert>
@@ -229,7 +254,6 @@ const DetailedScreening: React.FC = () => {
 					onClick={() => navigate('/agent/applications')}
 					className='mb-4'
 				>
-					<ArrowLeft size={16} className='mr-2' />
 					Back to Applications
 				</Button>
 				<Alert variant='default'>
@@ -248,7 +272,6 @@ const DetailedScreening: React.FC = () => {
 					onClick={() => navigate('/agent/applications')}
 					className='mb-4'
 				>
-					<ArrowLeft size={16} className='mr-2' />
 					Back to Applications
 				</Button>
 
@@ -276,12 +299,15 @@ const DetailedScreening: React.FC = () => {
 
 			{/* Credit Report and Background Check - Side by side */}
 			<div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-6'>
-				<CreditReportCard
-					creditScore={screeningData.credit_report?.score ?? null}
-					creditReport={screeningData.credit_report}
-					creditReports={screeningData.credit_reports as any}
-				/>
-
+				<div>
+					<CreditReportCard
+						creditScore={screeningData.credit_report?.score ?? null}
+						creditReport={screeningData.credit_report}
+						creditReports={screeningData.credit_reports as any}
+						planIncludesCreditCheck={planIncludesCreditCheck}
+						checkingPlan={checkingPlan}
+					/>
+				</div>
 				<BackgroundCheckCard
 					backgroundCheckStatus={screeningData.background_check_status}
 					backgroundCheck={screeningData.background_check}

@@ -134,10 +134,10 @@ class AffordabilityService {
 			}
 			const agentId = application.agent_id;
 
-			// New Subscription Check: Ensure agent has an active subscription and usage is within limit
+			// Updated: Fetch subscription and join plan to get includes_credit_check
 			const { data: subscription, error: subError } = await supabase
 				.from('subscriptions')
-				.select('*')
+				.select('*, plan:plans(*)')
 				.eq('user_id', agentId)
 				.eq('status', 'active')
 				.single();
@@ -157,6 +157,10 @@ class AffordabilityService {
 				});
 				throw new Error('Subscription usage limit exceeded.');
 			}
+
+			// Determine if credit check is included in the plan
+			const includesCreditCheck =
+				subscription.plan?.includes_credit_check === true;
 
 			// 1. Get transactions AND raw bank statement data
 			const documents = await fetchDocuments(
@@ -190,10 +194,11 @@ class AffordabilityService {
 				applicationId,
 			);
 
-			// 4. Generate credit report using the tenant profile ID
-			const creditReport = await this.generateCreditReport(
-				application.tenant_id,
-			);
+			// 4. Conditionally generate credit report using the tenant profile ID
+			let creditReport: CreditReportData | undefined = undefined;
+			if (includesCreditCheck) {
+				creditReport = await this.generateCreditReport(application.tenant_id);
+			}
 
 			// 5. Get target rent amount
 			const targetRent = await this.getTargetRent(propertyId);

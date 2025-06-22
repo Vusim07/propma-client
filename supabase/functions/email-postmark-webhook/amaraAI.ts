@@ -3,9 +3,10 @@
 
 import type { ParsedEmailContent, SupabaseClient } from './types.ts';
 
-// const CREWAI_API_URL =
-// 	'https://renewed-cockatoo-liked.ngrok-free.app/api/v1/process-email';
-const CREWAI_API_URL = 'https://ai.agentamara.com/api/v1/process-email';
+const CREWAI_API_URL =
+	process.env.NODE_ENV === 'production'
+		? 'https://ai.agentamara.com/api/v1/process-email'
+		: `${process.env.CREW_API_URL}/process-email`;
 
 /**
  * Calls the Amara AI agent to generate an email response for a given parsed email and agent context.
