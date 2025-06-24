@@ -28,7 +28,6 @@ import {
 import { format } from 'date-fns';
 import { ApplicationWithRelations } from '@/types';
 import { useInboxStore } from '@/stores/inboxStore';
-
 const AgentDashboard: React.FC = () => {
 	const { user } = useAuthStore();
 	const { setPageTitle } = usePageTitle();
@@ -74,17 +73,33 @@ const AgentDashboard: React.FC = () => {
 	}
 
 	// Format applications with proper types
-	const formattedApplications = applications.map((application) => ({
-		...application,
-		tenant_profiles:
-			application as unknown as ApplicationWithRelations['tenant_profiles'],
-		properties:
-			application as unknown as ApplicationWithRelations['properties'],
-		submitted_at_formatted: format(
-			new Date(application.created_at),
-			'dd/MM/yyyy',
-		),
-	}));
+	const formattedApplications: ApplicationWithRelations[] = applications.map(
+		(application) => {
+			// Traverse nested structure to get the deepest tenant_profiles with first_name/last_name
+			let tenantProfile = (application as any).tenant_profiles;
+			while (
+				tenantProfile &&
+				tenantProfile.tenant_profiles &&
+				tenantProfile.tenant_profiles.first_name
+			) {
+				tenantProfile = tenantProfile.tenant_profiles;
+			}
+
+			return {
+				...application,
+				// Use the deepest tenantProfile with a name, or null
+				tenant_profiles: tenantProfile || null,
+				properties:
+					application as unknown as ApplicationWithRelations['properties'],
+				submitted_at_formatted: format(
+					new Date(application.created_at),
+					'dd/MM/yyyy',
+				),
+			};
+		},
+	);
+
+	console.log('Formatted Applications:', formattedApplications);
 
 	// Calculate metrics
 	const pendingApplications = formattedApplications.filter(
@@ -96,8 +111,6 @@ const AgentDashboard: React.FC = () => {
 	const rejectedApplications = formattedApplications.filter(
 		(app) => app.status === 'rejected',
 	).length;
-
-	// Remove legacy workflow activity variable if present
 
 	// Filter appointments for today
 	const todayString = format(new Date(), 'yyyy-MM-dd');
@@ -199,9 +212,12 @@ const AgentDashboard: React.FC = () => {
 												}
 											>
 												<TableCell className='font-medium truncate max-w-[100px]'>
-													{application.tenant_profiles?.first_name}{' '}
-													{application.tenant_profiles?.last_name ||
-														`Prospect #${application.tenant_id}`}
+													{(() => {
+														const name = getDeepestTenantProfileName(
+															application.tenant_profiles,
+														);
+														return name || `Prospect #${application.tenant_id}`;
+													})()}
 													<p className='text-xs text-gray-400'>
 														{application.submitted_at_formatted ||
 															'Date unknown'}
@@ -478,3 +494,19 @@ const AgentDashboard: React.FC = () => {
 };
 
 export default AgentDashboard;
+
+// Helper to traverse nested tenant_profiles and return the deepest profile with a valid name
+function getDeepestTenantProfileName(profile: any): string | null {
+	let current = profile;
+	let lastValid: { first_name?: string; last_name?: string } | null = null;
+	while (current && typeof current === 'object') {
+		if (current.first_name && current.last_name) {
+			lastValid = current;
+		}
+		current = current.tenant_profiles;
+	}
+	if (lastValid && lastValid.first_name && lastValid.last_name) {
+		return `${lastValid.first_name} ${lastValid.last_name}`;
+	}
+	return null;
+}
