@@ -11,6 +11,21 @@ INSERT INTO public.plans (
     features,
     popular
 ) VALUES 
+(
+    'free-plan',
+    'Free Plan',
+    0,
+    25,
+    50,
+    false,
+    'Free starter plan for new agents. Limited usage, upgrade for more features.',
+    NULL,
+    false,
+    false,
+    NULL,
+    false,
+    '["Basic tenant screening", "Limited support", "Upgrade anytime"]'::jsonb
+);
     (
         'starter-individual',
         'Individual Starter',

@@ -264,6 +264,8 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 					// Map created_at to submitted_at if submitted_at doesn't exist
 					submitted_at: formatDate(appWithDates.submitted_at || app.created_at),
 					decision_at: app.decision_at ? formatDate(app.decision_at) : null,
+					// Add a fallback for tenant_profiles if not present
+					tenant_profiles: app.tenant_profiles || null,
 				};
 			});
 

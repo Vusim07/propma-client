@@ -35,7 +35,7 @@ export type UpdateApplication = UpdateTables<'applications'>;
 
 // Add ApplicationWithRelations type
 export interface ApplicationWithRelations extends Application {
-	tenant_profiles?: TenantProfile;
+	tenant_profiles?: TenantProfile | null; // Ensure nullable for type safety
 	properties?: {
 		properties?: Property;
 	};
