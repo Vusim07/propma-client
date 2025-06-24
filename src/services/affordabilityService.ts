@@ -10,6 +10,7 @@ import {
 	getTransactionsFromDocuments,
 	fetchDocuments,
 } from '../utils/documentUtils';
+import { trackScreeningUsage } from './subscriptionService';
 
 export interface Transaction {
 	description: string;
@@ -256,7 +257,14 @@ class AffordabilityService {
 			}
 
 			// New: Increment subscription usage after a successful screening
-			await supabase.rpc('increment_screening_usage', { p_agent_id: agentId });
+			const usageResult = await trackScreeningUsage(agentId);
+			if (!usageResult?.success) {
+				throw new Error(
+					`Screening usage tracking failed: ${
+						usageResult?.message || 'Unknown error'
+					}`,
+				);
+			}
 
 			return affordabilityResponse;
 		} catch (error) {

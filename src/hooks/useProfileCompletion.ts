@@ -5,6 +5,7 @@ import { useTeamStore } from '@/stores/teamStore';
 import { supabase } from '@/services/supabase';
 import { showToast } from '@/utils/toast';
 import { ProfileCompletionValues } from '../schemas/profileCompletionSchema';
+import { createSubscription } from '@/services/subscriptionService';
 
 export const useProfileCompletion = (session: any) => {
 	const { checkAuth, updateProfile, setHasSubmittedApplication } =
@@ -136,6 +137,19 @@ export const useProfileCompletion = (session: any) => {
 			const { data: sessionData } = await supabase.auth.getSession();
 			if (!sessionData.session) {
 				throw new Error('Session lost during profile completion');
+			}
+
+			if (values.role === 'agent') {
+				// Auto-subscribe new agents to free-plan
+				const subResult = await createSubscription({
+					userId: session.user.id,
+					planId: 'free-plan',
+				});
+				if (!subResult.success) {
+					showToast.error(
+						subResult.message || 'Failed to assign free plan subscription',
+					);
+				}
 			}
 
 			if (values.role === 'agent' || values.role === 'landlord') {

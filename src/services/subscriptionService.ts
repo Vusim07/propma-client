@@ -95,3 +95,66 @@ export const trackInboxUsage = async (context: {
 
 	return data;
 };
+
+/**
+ * Create a new subscription for a user (agent) to a given plan.
+ * If a subscription already exists and is active, do nothing.
+ */
+export const createSubscription = async ({
+	userId,
+	planId,
+}: {
+	userId: string;
+	planId: string;
+}): Promise<{ success: boolean; message?: string }> => {
+	// Check for existing active subscription
+	const { data: existing, error: existingError } = await supabase
+		.from('subscriptions')
+		.select('*')
+		.eq('user_id', userId)
+		.eq('status', 'active')
+		.maybeSingle();
+	if (existingError) {
+		return { success: false, message: existingError.message };
+	}
+	if (existing) {
+		return { success: true, message: 'Already subscribed' };
+	}
+
+	// Fetch plan details
+	const { data: plan, error: planError } = await supabase
+		.from('plans')
+		.select('*')
+		.eq('id', planId)
+		.single();
+	if (planError || !plan) {
+		return { success: false, message: planError?.message || 'Plan not found' };
+	}
+
+	// Insert new subscription
+	const now = new Date().toISOString();
+	const { error: insertError } = await supabase.from('subscriptions').insert({
+		user_id: userId,
+		plan_id: plan.id,
+		plan_name: plan.id,
+		plan_price: plan.price,
+		usage_limit: plan.usage_limit,
+		current_usage: 0,
+		inbox_limit: plan.inbox_limit,
+		inbox_usage: 0,
+		status: 'active',
+		paystack_subscription_id: '',
+		is_team: plan.is_team_plan,
+		team_id: null,
+		plan_type: null,
+		add_ons: null,
+		start_date: now,
+		end_date: null,
+		created_at: now,
+		updated_at: now,
+	});
+	if (insertError) {
+		return { success: false, message: insertError.message };
+	}
+	return { success: true };
+};
