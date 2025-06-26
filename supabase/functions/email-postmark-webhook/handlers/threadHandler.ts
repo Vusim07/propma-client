@@ -51,6 +51,13 @@ export async function handleThreadCreation(
 		return data;
 	}, 'create email thread');
 
+	// Increment inbox usage after successful thread creation
+	await supabaseClient.rpc('increment_inbox_usage', {
+		p_user_id: emailAddress.user_id || null,
+		p_team_id: emailAddress.team_id || null,
+		check_only: false,
+	});
+
 	// Store the message
 	await storeMessage(thread.id, processedEmail, supabaseClient);
 
