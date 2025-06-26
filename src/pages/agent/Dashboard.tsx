@@ -376,7 +376,7 @@ const AgentDashboard: React.FC = () => {
 										if (!msg) return null;
 										const isReceived = msg.status === 'received';
 										const sender = isReceived
-											? msg.from_name || msg.from_address || 'Unknown'
+											? msg.lead_name || msg.lead_email || 'Unknown'
 											: msg.to_address || 'Unknown';
 										const statusLabel =
 											msg.status.charAt(0).toUpperCase() + msg.status.slice(1);
@@ -389,7 +389,7 @@ const AgentDashboard: React.FC = () => {
 											>
 												<div className='flex items-start justify-between max-w-[420px] min-w-[320px] w-full'>
 													<div className='flex-1 min-w-0'>
-														<p className='font-medium truncate max-w-[180px]'>
+														<p className='font-medium truncate max-w-[280px]'>
 															{msg.subject || '(No Subject)'}
 														</p>
 														<p className='text-sm text-gray-500 truncate max-w-[180px]'>

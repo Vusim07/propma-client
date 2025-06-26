@@ -376,6 +376,13 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 			// Include team_id in property creation if in team context
 			const teamId = get().currentTeamId;
 
+			// Log the payload before sending
+			console.debug('[addProperty] Payload:', {
+				...property,
+				application_link: applicationLink,
+				team_id: teamId,
+			});
+
 			const { data, error } = await supabase
 				.from('properties')
 				.insert({
@@ -386,7 +393,10 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 				.select()
 				.single();
 
-			if (error) throw error;
+			if (error) {
+				console.error('[addProperty] Supabase error:', error);
+				throw error;
+			}
 
 			// Format currency and dates
 			const formattedProperty = {
@@ -402,6 +412,7 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 				isLoading: false,
 			}));
 		} catch (error) {
+			console.error('[addProperty] Exception:', error);
 			set({ error: (error as Error).message, isLoading: false });
 		}
 	},

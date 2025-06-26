@@ -103,3 +103,75 @@ export interface SESNotification {
 		};
 	}>;
 }
+
+export interface ExtractedLeadInfo {
+	email: string | null;
+	name: string | null;
+	phone: string | null;
+	message: string | null;
+}
+
+export interface PostmarkInboundEmail {
+	FromName: string;
+	From: string;
+	FromFull: {
+		Email: string;
+		Name: string;
+		MailboxHash: string;
+	};
+	To: string;
+	ToFull: Array<{
+		Email: string;
+		Name: string;
+		MailboxHash: string;
+	}>;
+	Cc: string;
+	CcFull: Array<{
+		Email: string;
+		Name: string;
+		MailboxHash: string;
+	}>;
+	Bcc: string;
+	BccFull: Array<{
+		Email: string;
+		Name: string;
+		MailboxHash: string;
+	}>;
+	OriginalRecipient: string;
+	Subject: string;
+	MessageID: string;
+	ReplyTo: string;
+	MailboxHash: string;
+	Date: string;
+	TextBody: string;
+	HtmlBody: string;
+	StrippedTextReply: string;
+	Tag: string;
+	Headers: Array<{
+		Name: string;
+		Value: string;
+	}>;
+	Attachments: Array<{
+		Name: string;
+		Content: string;
+		ContentType: string;
+		ContentLength: number;
+	}>;
+}
+
+export interface EmailThread {
+	id: string;
+	subject: string;
+	status: string;
+	lead_email?: string | null;
+	lead_name?: string | null;
+	lead_phone?: string | null;
+}
+
+export interface ProcessedEmail {
+	payload: PostmarkInboundEmail;
+	leadInfo: ExtractedLeadInfo;
+	thread?: EmailThread;
+	replyToEmail: string;
+	replyToName: string;
+}

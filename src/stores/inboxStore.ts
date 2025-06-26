@@ -278,7 +278,7 @@ export const useInboxStore = create<InboxState>((set, get) => ({
 					to_address: draft.to.join(','),
 					subject: draft.subject,
 					body: draft.body,
-					body_html: draft.htmlBody,
+					body_html: draft.body_html,
 					status: 'sent',
 					is_read: true,
 					sent_at: new Date().toISOString(),

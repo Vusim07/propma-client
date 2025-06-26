@@ -99,6 +99,9 @@ export interface EmailThreadWithRelations extends EmailThread {
 export interface EmailMessageWithRelations extends EmailMessage {
 	attachments?: EmailAttachment[];
 	ai_suggestions?: EmailAISuggestion[];
+	lead_name?: string;
+	lead_email?: string;
+	lead_phone?: string;
 	delivery_logs?: EmailDeliveryLog[];
 	thread?: EmailThread;
 }
@@ -108,6 +111,9 @@ export interface InboxEmail {
 	id: string;
 	sender: string;
 	email: string;
+	lead_email?: string;
+	lead_phone?: string;
+	lead_name?: string;
 	subject: string;
 	preview: string;
 	time: string;
@@ -132,6 +138,9 @@ export interface InboxFilters {
 	status?: EmailThread['status'];
 	priority?: EmailThread['priority'];
 	needsFollowUp?: boolean;
+	lead_email?: string;
+	lead_phone?: string;
+	lead_name?: string;
 	leadSource?: string;
 	propertyId?: string;
 	tenantId?: string;
@@ -164,7 +173,7 @@ export interface EmailDraft {
 	bcc?: string[];
 	subject: string;
 	body: string;
-	htmlBody?: string;
+	body_html?: string;
 	attachments?: File[];
 	threadId?: string;
 	inReplyTo?: string;

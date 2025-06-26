@@ -1,72 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
-import { crypto } from 'https://deno.land/std@0.168.0/crypto/mod.ts';
-import { encode as base64Encode } from 'https://deno.land/std@0.168.0/encoding/base64.ts';
-import { SNSMessage } from './types.ts';
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
-
-export function decodeContent(content: string, encoding: string): string {
-	if (!encoding) return content;
-	encoding = encoding.toLowerCase();
-
-	if (encoding === 'base64') {
-		try {
-			return atob(content.replace(/\s/g, ''));
-		} catch {
-			return content;
-		}
-	} else if (encoding === 'quoted-printable') {
-		return decodeQuotedPrintable(content);
-	}
-	return content;
-}
-
-function decodeQuotedPrintable(input: string): string {
-	return (
-		input
-			// Handle soft line breaks (=\r\n or =\n)
-			.replace(/=\r?\n/g, '')
-			// Handle encoded characters (=XX where XX is hex)
-			.replace(/=([A-Fa-f0-9]{2})/g, (_, hex) => {
-				const charCode = parseInt(hex, 16);
-				return String.fromCharCode(charCode);
-			})
-			// Handle any remaining = at end of lines that might be malformed
-			.replace(/=$/gm, '')
-	);
-}
-
-export function stripHtml(html: string): string {
-	// First decode any quoted-printable content
-	const decoded = decodeQuotedPrintable(html);
-
-	return (
-		decoded
-			// Replace common block elements with line breaks
-			.replace(/<(br|div|p|h[1-6]|table|tr|td|th)[^>]*>/gi, '\n')
-			.replace(/<\/(div|p|h[1-6]|table|tr|td|th)>/gi, '\n')
-			// Remove all other HTML tags
-			.replace(/<[^>]+>/g, '')
-			// Decode HTML entities
-			.replace(/&quot;/g, '"')
-			.replace(/&#39;/g, "'")
-			.replace(/&lt;/g, '<')
-			.replace(/&gt;/g, '>')
-			.replace(/&amp;/g, '&')
-			.replace(/&nbsp;/g, ' ')
-			.replace(/&#(\d+);/g, (_, num) => String.fromCharCode(parseInt(num, 10)))
-			.replace(/&#x([a-fA-F0-9]+);/g, (_, hex) =>
-				String.fromCharCode(parseInt(hex, 16)),
-			)
-			// Normalize whitespace
-			.replace(/\n{3,}/g, '\n\n')
-			.replace(/[ \t]+\n/g, '\n')
-			.replace(/\s{2,}/g, ' ')
-			.trim()
-	);
-}
 
 export const delay = (ms: number) =>
 	new Promise((resolve) => setTimeout(resolve, ms));
@@ -100,86 +36,33 @@ export async function retryOperation<T>(
 	);
 }
 
-export async function verifySNSSignature(
-	message: SNSMessage,
-): Promise<boolean> {
-	try {
-		const certResponse = await fetch(message.SigningCertURL);
-		if (!certResponse.ok) {
-			throw new Error('Failed to fetch signing certificate');
-		}
-		const certText = await certResponse.text();
+export function sanitizeEmailBody(body: string): string {
+	let normalized = body.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+	normalized = normalized.replace(/\n{3,}/g, '\n\n');
+	normalized = normalized.replace(/([.!?])\n/g, '$1\n\n');
+	normalized = normalized.replace(/[ \t]+/g, ' ').trim();
+	normalized = normalized.replace(
+		/\n(Best regards|Sincerely|Regards|Thank you)/gi,
+		'\n\n$1',
+	);
+	normalized = normalized
+		.split('\n')
+		.map((line) => line.trimRight())
+		.join('\n');
+	return normalized.trim() + '\n';
+}
 
-		let stringToSign = '';
-		if (message.Type === 'Notification') {
-			stringToSign = [
-				'Message',
-				'MessageId',
-				'Subject',
-				'Timestamp',
-				'TopicArn',
-				'Type',
-			]
-				.map((key) => `${key}\n${message[key as keyof SNSMessage]}\n`)
-				.join('');
-		} else if (
-			message.Type === 'SubscriptionConfirmation' ||
-			message.Type === 'UnsubscribeConfirmation'
-		) {
-			stringToSign = [
-				'Message',
-				'MessageId',
-				'SubscribeURL',
-				'Timestamp',
-				'Token',
-				'TopicArn',
-				'Type',
-			]
-				.map((key) => `${key}\n${message[key as keyof SNSMessage]}\n`)
-				.join('');
-		}
+export function extractEmailAddress(formattedEmail: string): string {
+	const matchAngleBrackets = formattedEmail.match(/<([^>]+)>/);
+	if (matchAngleBrackets) return matchAngleBrackets[1];
 
-		if (message.Type === 'SubscriptionConfirmation') {
-			const certUrl = new URL(message.SigningCertURL);
-			return (
-				certUrl.hostname === 'sns.amazonaws.com' ||
-				certUrl.hostname.endsWith('.sns.amazonaws.com')
-			);
-		}
+	const matchQuotes = formattedEmail.match(/"([^"]+)"/);
+	if (matchQuotes) return matchQuotes[1];
 
-		if (message.Type === 'Notification') {
-			const certPem = certText
-				.replace('-----BEGIN CERTIFICATE-----', '')
-				.replace('-----END CERTIFICATE-----', '')
-				.replace(/\s/g, '');
+	return formattedEmail.trim();
+}
 
-			const certBuffer = base64Encode(new TextEncoder().encode(certPem));
-
-			const certKey = await crypto.subtle.importKey(
-				'spki',
-				certBuffer,
-				{
-					name: 'RSASSA-PKCS1-v1_5',
-					hash: 'SHA-1',
-				},
-				false,
-				['verify'],
-			);
-
-			const signature = base64Encode(
-				await crypto.subtle.sign(
-					{ name: 'RSASSA-PKCS1-v1_5' },
-					certKey,
-					new TextEncoder().encode(stringToSign),
-				),
-			);
-
-			return signature === message.Signature;
-		}
-
-		return false;
-	} catch (error) {
-		console.error('Error verifying SNS signature:', error);
-		return false;
-	}
+export function isValidEmail(email: string | null): boolean {
+	if (!email) return false;
+	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }

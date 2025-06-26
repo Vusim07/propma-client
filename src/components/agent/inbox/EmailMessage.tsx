@@ -67,7 +67,7 @@ const EmailMessage: React.FC<EmailMessageProps> = ({
 				</div>
 				{isFromUser && (
 					<Avatar className='w-8 h-8 rounded-full bg-blue-100 flex-shrink-0'>
-						<AvatarFallback>{getInitials(sender)}</AvatarFallback>
+						<AvatarFallback>{getInitials('A')}</AvatarFallback>
 					</Avatar>
 				)}
 			</div>
