@@ -31,6 +31,9 @@ const AgentLayout: React.FC = () => {
 		fetchInboxUsage();
 	}, [fetchInboxUsage]);
 
+	console.log('Inbox Usage:', inboxUsage);
+	console.log('Inbox Limit:', inboxLimit);
+
 	const handleLogout = async () => {
 		await logout();
 		navigate('/login');
