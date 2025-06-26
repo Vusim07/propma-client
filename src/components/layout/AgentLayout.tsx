@@ -13,26 +13,29 @@ import {
 	Menu,
 	LayoutDashboard,
 	Inbox,
+	Check,
+	Copy,
+	Mail,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useInboxStore } from '@/stores/inboxStore';
+import { cn } from '@/lib/utils';
+import { showToast } from '@/utils/toast';
 
 const AgentLayout: React.FC = () => {
-	const { user, logout } = useAuthStore();
+	const { logout } = useAuthStore();
 	const { pageTitle } = usePageTitle();
 	const navigate = useNavigate();
 	const [isCollapsed, setIsCollapsed] = useState(false);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
 	// Inbox usage state
-	const { inboxUsage, inboxLimit, fetchInboxUsage } = useInboxStore();
+	const { inboxUsage, inboxLimit, fetchInboxUsage, userEmailAddress } =
+		useInboxStore();
 	useEffect(() => {
 		fetchInboxUsage();
 	}, [fetchInboxUsage]);
-
-	console.log('Inbox Usage:', inboxUsage);
-	console.log('Inbox Limit:', inboxLimit);
 
 	const handleLogout = async () => {
 		await logout();
@@ -45,6 +48,20 @@ const AgentLayout: React.FC = () => {
 
 	const toggleMobileMenu = () => {
 		setIsMobileMenuOpen(!isMobileMenuOpen);
+	};
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const [isHovering, setIsHovering] = useState(false);
+	const [copied, setCopied] = useState(false);
+
+	const handleCopyEmail = () => {
+		if (!userEmailAddress) return;
+
+		navigator.clipboard.writeText(userEmailAddress);
+		setCopied(true);
+		showToast.success('Email address copied to clipboard');
+
+		setTimeout(() => setCopied(false), 2000);
 	};
 
 	const navItems = [
@@ -121,7 +138,44 @@ const AgentLayout: React.FC = () => {
 						<div className='bg-blue-100 p-2 rounded-full'>
 							<User size={20} className='text-blue-700' />
 						</div>
-						<span className='text-sm font-medium'>{user?.email}</span>
+						<div
+							className='flex items-center gap-2 text-sm text-gray-600 group cursor-pointer w-full'
+							onClick={handleCopyEmail}
+							onMouseEnter={() => setIsHovering(true)}
+							onMouseLeave={() => setIsHovering(false)}
+						>
+							<div className='flex-1 min-w-0'>
+								<span
+									className={cn(
+										'font-medium block truncate',
+										!userEmailAddress && 'text-gray-400 italic',
+									)}
+									title={userEmailAddress || 'Loading email...'} // Show full email on hover
+								>
+									<Mail size={16} className='inline-block mr-1' />
+									{userEmailAddress
+										? userEmailAddress.length > 24
+											? `${userEmailAddress.slice(
+													0,
+													12,
+											  )}...${userEmailAddress.slice(-8)}`
+											: userEmailAddress
+										: 'Loading email...'}
+								</span>
+							</div>
+							<Button
+								variant='ghost'
+								size='icon'
+								className='h-8 w-8 flex-shrink-0'
+								onClick={handleCopyEmail}
+							>
+								{copied ? (
+									<Check className='h-4 w-4 text-green-500' />
+								) : (
+									<Copy className='h-4 w-4' />
+								)}
+							</Button>
+						</div>
 					</div>
 					<ul>
 						{navItems.map((item) => (
@@ -158,6 +212,29 @@ const AgentLayout: React.FC = () => {
 						))}
 					</ul>
 
+					<div className='hidden md:flex flex-col items-center mt-8'>
+						{isCollapsed ? (
+							<Button
+								variant='ghost'
+								size='icon'
+								onClick={handleLogout}
+								className='flex items-center justify-center'
+								title='Logout'
+							>
+								<LogOut size={20} />
+							</Button>
+						) : (
+							<Button
+								variant='outline'
+								size='sm'
+								onClick={handleLogout}
+								className='flex items-center w-5/6 justify-center'
+							>
+								<LogOut size={16} className='mr-1' />
+								Logout
+							</Button>
+						)}
+					</div>
 					<div className='flex flex-col py-12 items-center md:hidden'>
 						<Button
 							variant='outline'
@@ -199,21 +276,44 @@ const AgentLayout: React.FC = () => {
 					<div className='px-6 py-4 flex items-center justify-between'>
 						<h1 className='text-xl font-semibold text-gray-800'>{pageTitle}</h1>
 						<div className='flex items-center space-x-4'>
-							<div className='flex items-center space-x-2'>
-								<div className='bg-blue-100 p-2 rounded-full'>
-									<User size={20} className='text-blue-700' />
-								</div>
-								<span className='text-sm font-medium'>{user?.email}</span>
-							</div>
-							<Button
-								variant='outline'
-								size='sm'
-								onClick={handleLogout}
-								className='flex items-center'
+							<div
+								className='flex items-center gap-2 text-sm text-gray-600 group cursor-pointer w-full'
+								onClick={handleCopyEmail}
+								onMouseEnter={() => setIsHovering(true)}
+								onMouseLeave={() => setIsHovering(false)}
 							>
-								<LogOut size={16} className='mr-1' />
-								Logout
-							</Button>
+								<div className='flex-1 min-w-0'>
+									<span
+										className={cn(
+											'font-medium block truncate',
+											!userEmailAddress && 'text-gray-400 italic',
+										)}
+										title={userEmailAddress || 'Loading email...'} // Show full email on hover
+									>
+										<Mail size={16} className='inline-block mr-1' />
+										{userEmailAddress
+											? userEmailAddress.length > 24
+												? `${userEmailAddress.slice(
+														0,
+														16,
+												  )}...${userEmailAddress.slice(-8)}`
+												: userEmailAddress
+											: 'Loading email...'}
+									</span>
+								</div>
+								<Button
+									variant='ghost'
+									size='icon'
+									className='h-8 w-8 flex-shrink-0'
+									onClick={handleCopyEmail}
+								>
+									{copied ? (
+										<Check className='h-4 w-4 text-green-500' />
+									) : (
+										<Copy className='h-4 w-4' />
+									)}
+								</Button>
+							</div>
 						</div>
 					</div>
 				</header>
