@@ -97,8 +97,14 @@ export const trackInboxUsage = async (context: {
 };
 
 /**
+ * Utility to check if a plan is free (price 0)
+ */
+export const isFreePlan = (plan: { price: number }) => plan.price === 0;
+
+/**
  * Create a new subscription for a user (agent) to a given plan.
  * If a subscription already exists and is active, do nothing.
+ * This should be used for free plans only. Paid plans must go through Paystack.
  */
 export const createSubscription = async ({
 	userId,
@@ -132,6 +138,10 @@ export const createSubscription = async ({
 	}
 
 	// Insert new subscription
+	if (!plan.id) {
+		console.error('Plan object missing id field:', plan);
+		return { success: false, message: 'Plan data is invalid: missing id' };
+	}
 	const now = new Date().toISOString();
 	const { error: insertError } = await supabase.from('subscriptions').insert({
 		user_id: userId,
