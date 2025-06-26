@@ -18,6 +18,7 @@ import AuthCallback from './pages/auth/AuthCallback';
 import ProfileCompletion from './pages/auth/ProfileCompletion';
 import PaymentCallback from './pages/auth/PaymentCallback';
 import AuthLayout from './components/layout/AuthLayout';
+import VerifyEmail from './pages/auth/VerifyEmail'; // <-- Add this import
 
 // Add this import
 import PropertyApplication from './pages/tenant/PropertyApplication';
@@ -59,31 +60,37 @@ const ProtectedRoute = ({
 	const { user, isLoading, initialize } = useAuthStore();
 	const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 	const navigate = useNavigate();
-	const location = useLocation(); // Add this to get current URL
+	const location = useLocation();
 
 	useEffect(() => {
-		// Extra check to ensure auth state is stable
 		const checkAuthState = async () => {
-			// Check if we're returning from a payment processor
 			const searchParams = new URLSearchParams(location.search);
 			const isReturningFromPayment =
 				searchParams.has('reference') || searchParams.has('trxref');
 
 			if (isReturningFromPayment) {
-				// If coming back from payment provider, force a complete auth reinitialization
 				await initialize();
-				// Clean URL parameters to avoid multiple reinits
 				if (window.history.replaceState) {
 					window.history.replaceState({}, document.title, location.pathname);
 				}
 			}
 
-			// Brief delay to ensure auth state is settled
 			await new Promise((r) => setTimeout(r, 100));
 
 			const currentUser = useAuthStore.getState().user;
 
-			// Check if profile is complete enough
+			// Fetch the current session user from Supabase to check email verification
+			const { data } = await import('./services/supabase').then((m) =>
+				m.supabase.auth.getSession(),
+			);
+			const sessionUser = data?.session?.user;
+			const isEmailVerified = !!(sessionUser && sessionUser.confirmed_at);
+
+			if (currentUser && !isEmailVerified) {
+				navigate('/auth/verify-email', { state: { email: currentUser.email } });
+				return;
+			}
+
 			if (currentUser && isProfileIncomplete(currentUser)) {
 				navigate('/profile-completion');
 				return;
@@ -93,14 +100,11 @@ const ProtectedRoute = ({
 		};
 
 		checkAuthState();
-	}, [user, navigate, location.search, initialize]); // Add location.search and initialize to deps
+	}, [user, navigate, location.search, location.pathname, initialize]);
 
-	// Function to check if a profile has minimal required fields
 	const isProfileIncomplete = (profile: Tables<'users'>): boolean => {
-		// More explicit check to ensure we're only redirecting profiles that are truly incomplete
 		const isMissingRequiredFields =
 			!profile.first_name || !profile.last_name || !profile.phone;
-
 		return isMissingRequiredFields;
 	};
 
@@ -113,7 +117,6 @@ const ProtectedRoute = ({
 		);
 	}
 
-	// Get current user state directly from store
 	const currentUser = useAuthStore.getState().user;
 
 	if (!currentUser || !allowedRoles.includes(currentUser.role)) {
@@ -127,12 +130,10 @@ function App() {
 	const { initialize, loading, isLoading } = useAuthStore();
 	const [initializing, setInitializing] = useState(true);
 
-	// Add a new initialization effect that runs only once
 	useEffect(() => {
 		const initAuth = async () => {
 			setInitializing(true);
 			try {
-				// Call our new initialize method
 				const success = await initialize();
 				console.log('Auth initialization result:', success);
 			} catch (err) {
@@ -178,6 +179,7 @@ function App() {
 						}
 					/>
 					<Route path='/auth/callback' element={<AuthCallback />} />
+					<Route path='/auth/verify-email' element={<VerifyEmail />} />
 					<Route path='/payment/callback' element={<PaymentCallback />} />
 					<Route
 						path='/profile-completion'

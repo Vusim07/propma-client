@@ -67,19 +67,10 @@ const Register: React.FC = () => {
 				return;
 			}
 
-			showToast.success('Account created! Please complete your profile.');
+			showToast.success('Account created! Please verify your email.');
 
-			// Add a small delay to ensure auth state is propagated
-			setTimeout(() => {
-				// First try using react-router
-				try {
-					window.location.href = '/profile-completion';
-				} catch (navError) {
-					console.error('Navigation error:', navError);
-					// Fallback to direct location change
-					window.location.href = '/profile-completion';
-				}
-			}, 1000); // Increased timeout to ensure profile creation is complete
+			// Redirect to verify email page
+			window.location.href = `/auth/verify-email?email=${encodeURIComponent(values.email.trim().toLowerCase())}`;
 		} catch (err: any) {
 			console.error('Registration error:', err);
 

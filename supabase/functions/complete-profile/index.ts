@@ -4,6 +4,8 @@
 // but will work in the Supabase Edge Function environment
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+// Import onboarding email utility
+import { sendOnboardingEmail } from './emails/onBoarding.ts';
 
 // Define CORS headers
 const corsHeaders = {
@@ -212,6 +214,16 @@ serve(async (req) => {
 					headers: { ...corsHeaders, 'Content-Type': 'application/json' },
 				},
 			);
+		}
+
+		// Send onboarding email if this is a new user (no previous profile) and role is agent or landlord
+		if (
+			data &&
+			data.created_at &&
+			data.created_at === data.updated_at &&
+			(role === 'agent' || role === 'landlord')
+		) {
+			await sendOnboardingEmail({ to: normalizedEmail, firstName: first_name });
 		}
 
 		// If role is tenant and create_tenant_profile flag is true, create a tenant profile

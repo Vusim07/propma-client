@@ -6,6 +6,7 @@ import { supabase } from '@/services/supabase';
 import { showToast } from '@/utils/toast';
 import { ProfileCompletionValues } from '../schemas/profileCompletionSchema';
 import { createSubscription } from '@/services/subscriptionService';
+import { sendOnboardingEmail } from '@/services/onboardingEmailService';
 
 export const useProfileCompletion = (session: any) => {
 	const { checkAuth, updateProfile, setHasSubmittedApplication } =
@@ -33,6 +34,18 @@ export const useProfileCompletion = (session: any) => {
 			};
 
 			await updateProfile(userData);
+
+			// Send onboarding email for agent/landlord after profile completion
+			if (['agent', 'landlord'].includes(values.role)) {
+				try {
+					await sendOnboardingEmail({
+						to: session.user.email,
+						firstName: values.firstName,
+					});
+				} catch {
+					// Optionally log error, but do not block flow
+				}
+			}
 
 			if (
 				(values.role === 'agent' || values.role === 'landlord') &&
@@ -192,7 +205,7 @@ export const useProfileCompletion = (session: any) => {
 				values.role === 'tenant'
 					? `/tenant/documents${
 							tenantProfileId ? `?profileId=${tenantProfileId}` : ''
-					  }`
+						}`
 					: '/agent',
 			);
 			window.location.reload(); // Force full page reload
