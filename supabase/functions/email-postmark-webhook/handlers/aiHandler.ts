@@ -81,7 +81,7 @@ async function storeAIResponse(
 						? aiResult.response.body
 						: JSON.stringify(aiResult.response),
 				),
-				status: 'queued',
+				status: 'draft',
 				is_read: false,
 				sent_at: null,
 				ai_generated: true,
