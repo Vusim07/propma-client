@@ -96,16 +96,16 @@ const EmailDetail: React.FC<EmailDetailProps> = ({ thread, message }) => {
 					<div className='flex items-start gap-4 min-w-0'>
 						<Avatar className='w-10 h-10 rounded-full bg-blue-100 flex-shrink-0'>
 							<AvatarFallback>
-								{getInitials(initialMessage.from_name ?? undefined) ||
-									initialMessage.from_address.charAt(0).toUpperCase()}
+								{getInitials(initialMessage.lead_name ?? undefined) ||
+									(initialMessage.lead_email?.charAt(0)?.toUpperCase() ?? '')}
 							</AvatarFallback>
 						</Avatar>
 						<div className='flex-1 min-w-0'>
 							<h2 className='text-base font-semibold text-gray-900 truncate'>
-								{initialMessage.from_name || initialMessage.from_address}
+								{initialMessage.lead_name || initialMessage.lead_email}
 							</h2>
 							<p className='text-sm text-gray-600 truncate'>
-								{initialMessage.from_address}
+								{initialMessage.lead_email}
 							</p>
 						</div>
 						<div className='flex items-center gap-2 flex-shrink-0'>
@@ -160,11 +160,11 @@ const EmailDetail: React.FC<EmailDetailProps> = ({ thread, message }) => {
 					{sortedMessages.map((msg) => (
 						<EmailMessage
 							key={msg.id}
-							sender={msg.from_name || msg.from_address}
+							sender={msg.lead_name || msg.from_address}
 							avatar={`https://api.dicebear.com/7.x/avataaars/svg?seed=${
-								msg.from_name || msg.from_address
+								msg.lead_name || msg.from_address
 							}`}
-							content={msg.body}
+							content={msg.body_html || msg.body}
 							timestamp={new Date(msg.created_at).toLocaleString()}
 							isFromUser={msg.status === 'sent'}
 						/>

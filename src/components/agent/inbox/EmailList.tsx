@@ -89,8 +89,8 @@ const EmailList: React.FC<EmailListProps> = ({
 						thread.messages && thread.messages.length > 0
 							? thread.messages[0]
 							: undefined;
-					const fromName = initialMsg?.from_name || '';
-					const fromAddress = initialMsg?.from_address || 'Unknown Sender';
+					const fromName = initialMsg?.lead_name || '';
+					const fromAddress = initialMsg?.lead_email || 'Unknown Sender';
 					const propertyAddress = thread.property?.address;
 					const applicationStatus = thread.application?.status;
 					const isUnread = thread.status === 'active';

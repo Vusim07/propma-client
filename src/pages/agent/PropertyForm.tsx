@@ -248,11 +248,11 @@ const PropertyForm: React.FC = () => {
 			return false;
 		}
 		if (!formData.province) {
-			setFormError('Province is required');
+			setFormError('Province/State is required');
 			return false;
 		}
 		if (!formData.postal_code) {
-			setFormError('Postal code is required');
+			setFormError('Postal/Zip code is required');
 			return false;
 		}
 		if (formData.monthly_rent <= 0) {
@@ -369,7 +369,7 @@ const PropertyForm: React.FC = () => {
 								/>
 
 								<Input
-									placeholder='Province'
+									placeholder='Province/State'
 									name='province'
 									value={formData.province}
 									onChange={handleInputChange}
@@ -377,7 +377,7 @@ const PropertyForm: React.FC = () => {
 								/>
 
 								<Input
-									placeholder='Postal Code'
+									placeholder='Postal/Zip Code'
 									name='postal_code'
 									value={formData.postal_code}
 									onChange={handleInputChange}
