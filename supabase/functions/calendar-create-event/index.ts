@@ -317,6 +317,15 @@ serve(async (req) => {
 			);
 		}
 
+		// Notify agent of new appointment
+		await notifyAgentOfNewAppointment({
+			agentId,
+			tenantId,
+			propertyId,
+			appointment,
+			supabaseAdmin,
+		});
+
 		return new Response(
 			JSON.stringify({
 				success: true,
@@ -348,3 +357,80 @@ serve(async (req) => {
 		);
 	}
 });
+
+// Utility to notify agent of new appointment via Postmark
+async function notifyAgentOfNewAppointment({
+	agentId,
+	tenantId,
+	propertyId,
+	appointment,
+	supabaseAdmin,
+}) {
+	// Fetch agent email
+	const { data: agent, error: agentError } = await supabaseAdmin
+		.from('users')
+		.select('email, first_name, last_name')
+		.eq('id', agentId)
+		.single();
+	if (agentError || !agent?.email) return;
+
+	// Fetch tenant info
+	const { data: tenant } = await supabaseAdmin
+		.from('users')
+		.select('first_name, last_name, email, phone')
+		.eq('id', tenantId)
+		.single();
+
+	// Fetch property info
+	const { data: property } = await supabaseAdmin
+		.from('properties')
+		.select('address, suburb, city, province, postal_code')
+		.eq('id', propertyId)
+		.single();
+
+	// Compose notification
+	const subject = `Amara: New Viewing Appointment Scheduled at ${
+		property?.address || 'Property'
+	}`;
+	const appointmentDate = appointment.date;
+	const appointmentTime =
+		appointment.start_time +
+		(appointment.end_time ? ` - ${appointment.end_time}` : '');
+	const propertyAddress = property
+		? `${property.address}, ${property.suburb}, ${property.city}, ${property.province}, ${property.postal_code}`
+		: 'N/A';
+	const tenantName = tenant
+		? `${tenant.first_name} ${tenant.last_name}`
+		: 'N/A';
+	const tenantEmail = tenant?.email || 'N/A';
+	const tenantPhone = tenant?.phone || 'N/A';
+
+	const body =
+		`Dear ${agent.first_name || 'Agent'},\n\n` +
+		`A new viewing appointment has been scheduled in your calendar.\n\n` +
+		`Date: ${appointmentDate}\n` +
+		`Time: ${appointmentTime}\n` +
+		`Property: ${propertyAddress}\n` +
+		`Tenant: ${tenantName}\n` +
+		`Tenant Email: ${tenantEmail}\n` +
+		`Tenant Phone: ${tenantPhone}\n` +
+		`\nPlease log in to Amara to view more details about the prospect.\n\n` +
+		`Regards,\nAgent Amara`;
+
+	// Send email via Postmark Edge Function
+	await fetch(
+		`${Deno.env.get('SUPABASE_URL')}/functions/v1/email-postmark-send`,
+		{
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+			},
+			body: JSON.stringify({
+				to: agent.email,
+				subject,
+				body,
+			}),
+		},
+	);
+}
