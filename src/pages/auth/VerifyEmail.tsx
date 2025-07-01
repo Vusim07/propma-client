@@ -7,12 +7,17 @@ import { showToast } from '@/utils/toast';
 const VerifyEmail: React.FC = () => {
 	const [isResending, setIsResending] = useState(false);
 	const location = useLocation();
+	const searchParams = new URLSearchParams(location.search);
 	const email =
-		(location.state && (location.state as { email?: string })?.email) || '';
+		(location.state && (location.state as { email?: string })?.email) ||
+		searchParams.get('email') ||
+		'';
 
 	const handleResend = async () => {
 		if (!email) {
-			showToast.error('No email address found. Please return to registration.');
+			showToast.error(
+				'No email address found. Please return to registration or login.',
+			);
 			return;
 		}
 		setIsResending(true);
@@ -41,6 +46,11 @@ const VerifyEmail: React.FC = () => {
 				email={email}
 				disabled={!email || isResending}
 			/>
+			{!email && (
+				<p className='text-red-500 mt-4'>
+					No email address found. Please return to registration or login.
+				</p>
+			)}
 		</div>
 	);
 };
