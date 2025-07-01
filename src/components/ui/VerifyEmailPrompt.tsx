@@ -1,3 +1,4 @@
+/*
 import React from 'react';
 import { Button } from './button';
 
@@ -44,3 +45,4 @@ const VerifyEmailPrompt: React.FC<VerifyEmailPromptProps> = ({
 };
 
 export default VerifyEmailPrompt;
+*/
