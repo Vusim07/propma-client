@@ -1,3 +1,4 @@
+/*
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/services/supabase';
@@ -56,3 +57,4 @@ const VerifyEmail: React.FC = () => {
 };
 
 export default VerifyEmail;
+*/

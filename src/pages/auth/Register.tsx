@@ -67,10 +67,10 @@ const Register: React.FC = () => {
 				return;
 			}
 
-			showToast.success('Account created! Please verify your email.');
+			showToast.success('Account created! You can now log in.');
 
-			// Redirect to verify email page
-			window.location.href = `/auth/verify-email?email=${encodeURIComponent(values.email.trim().toLowerCase())}`;
+			// Redirect to login page
+			window.location.href = '/login';
 		} catch (err: any) {
 			console.error('Registration error:', err);
 

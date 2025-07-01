@@ -18,7 +18,6 @@ import AuthCallback from './pages/auth/AuthCallback';
 import ProfileCompletion from './pages/auth/ProfileCompletion';
 import PaymentCallback from './pages/auth/PaymentCallback';
 import AuthLayout from './components/layout/AuthLayout';
-import VerifyEmail from './pages/auth/VerifyEmail'; // <-- Add this import
 
 // Add this import
 import PropertyApplication from './pages/tenant/PropertyApplication';
@@ -171,7 +170,6 @@ function App() {
 						}
 					/>
 					<Route path='/auth/callback' element={<AuthCallback />} />
-					<Route path='/auth/verify-email' element={<VerifyEmail />} />
 					<Route path='/payment/callback' element={<PaymentCallback />} />
 					<Route
 						path='/profile-completion'
