@@ -78,26 +78,10 @@ const ProtectedRoute = ({
 			await new Promise((r) => setTimeout(r, 100));
 
 			const currentUser = useAuthStore.getState().user;
-			const { data } = await import('./services/supabase').then((m) =>
-				m.supabase.auth.getSession(),
-			);
-			const sessionUser = data?.session?.user;
-			const provider = sessionUser?.app_metadata?.provider;
-			const isSocialProvider = provider && provider !== 'email';
-			const isEmailVerified =
-				isSocialProvider || !!(sessionUser && sessionUser.confirmed_at);
-
-			console.log('currentUser:', currentUser);
-			console.log('sessionUser:', sessionUser);
-			console.log('provider:', provider);
-			console.log('isSocialProvider:', isSocialProvider);
-			console.log('isEmailVerified:', isEmailVerified);
-			console.log('confirmed_at:', sessionUser?.confirmed_at);
-
-			if (currentUser && !isEmailVerified) {
-				navigate('/auth/verify-email', { state: { email: currentUser.email } });
-				return;
-			}
+			// const { data } = await import('./services/supabase').then((m) =>
+			// 	m.supabase.auth.getSession(),
+			// );
+			// const sessionUser = data?.session?.user;
 
 			if (currentUser && isProfileIncomplete(currentUser)) {
 				navigate('/profile-completion');
